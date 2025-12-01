@@ -1,10 +1,10 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
+import path from "node:path";
 import Components from "unplugin-vue-components/vite";
-import { VantResolver } from "@vant/auto-import-resolver";
+import { NaiveUiResolver, VantResolver } from 'unplugin-vue-components/resolvers'
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
@@ -12,12 +12,21 @@ export default defineConfig(async () => ({
   plugins: [
     vue(),
     Components({
-      resolvers: [VantResolver()],
+      // 自动导入 naive-ui 和 vant 的组件
+      resolvers: [NaiveUiResolver(), VantResolver()],
     }),
   ],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      "@": path.resolve(__dirname, "./src"),
+      "@components": path.resolve(__dirname, "./src/components"),
+      "@views": path.resolve(__dirname, "./src/views"),
+      "@stores": path.resolve(__dirname, "./src/stores"),
+      "@utils": path.resolve(__dirname, "./src/utils"),
+      "@styles": path.resolve(__dirname, "./src/styles"),
+      "@types": path.resolve(__dirname, "./src/types"),
+      "@layouts": path.resolve(__dirname, "./src/layouts"),
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
     },
   },
 

@@ -27,3 +27,6 @@ dist-ssr
 CLAUDE.md 
 .claude 
 .mcp.json
+
+# doc
+docs/
