@@ -1,0 +1,773 @@
+/**
+ * Desktop Calendar Page Styles
+ * 桌面端日历页面样式
+ */
+
+.calendar {
+  padding: var(--spacing-8);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Header */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-8);
+}
+
+.header-left {
+  flex: 1;
+}
+
+.calendar-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-1);
+}
+
+.calendar-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.month-selector {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-alpha-20);
+  border-radius: var(--radius-full);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.month-selector:hover {
+  background: var(--color-surface-hover);
+}
+
+.month-selector .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.month-selector .icon-expand {
+  font-size: 16px;
+  color: var(--color-text-muted);
+}
+
+.add-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-full);
+  color: var(--color-background);
+  cursor: pointer;
+  box-shadow: 0 20px 40px rgba(43, 215, 118, 0.35);
+  transition: opacity 0.2s;
+}
+
+.add-button:hover {
+  opacity: 0.9;
+}
+
+.add-button .material-symbols-outlined {
+  font-size: 24px;
+}
+
+/* Main Content */
+.calendar-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--spacing-6);
+}
+
+/* Calendar Grid Panel */
+.calendar-grid-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-alpha-20);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-6);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Month Navigation */
+.month-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-4);
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: var(--color-background-alpha-60);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+  background: var(--color-surface-hover);
+}
+
+.current-month {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Week Days Header */
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--spacing-2);
+  margin-bottom: var(--spacing-4);
+  text-align: center;
+}
+
+.week-day {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Calendar Days Grid */
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--spacing-2);
+}
+
+.calendar-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  padding: var(--spacing-2);
+  background: var(--color-background-alpha-60);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary-alpha-40);
+}
+
+.calendar-day.not-current-month {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.calendar-day.not-current-month:hover {
+  background: var(--color-background-alpha-60);
+  border-color: var(--color-border);
+}
+
+.calendar-day.selected {
+  background: var(--color-primary-alpha-20);
+  border-color: var(--color-primary-alpha-60);
+  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.25);
+}
+
+.calendar-day.today .day-number {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.day-number {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-1);
+}
+
+.day-income {
+  font-size: 11px;
+  color: var(--color-income);
+  font-weight: 500;
+}
+
+.day-expense {
+  font-size: 11px;
+  color: var(--color-expense);
+  font-weight: 500;
+}
+
+/* Right Panel */
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+/* Month Statistics Card */
+.month-stats-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-alpha-20);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-item:not(:last-child) {
+  border-right: 1px solid var(--color-border);
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-1);
+}
+
+.stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.stat-value.income {
+  color: var(--color-income);
+}
+
+.stat-value.expense {
+  color: var(--color-expense);
+}
+
+/* Day Transactions Card */
+.day-transactions-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-alpha-20);
+  border-radius: var(--radius-2xl);
+  padding: var(--spacing-5);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-3);
+  padding-bottom: var(--spacing-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.day-title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.day-summary {
+  display: flex;
+  gap: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* Transactions List */
+.transactions-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3);
+  background: var(--color-background-alpha-40);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  transition: background-color 0.2s;
+}
+
+.transaction-item:hover {
+  background: var(--color-surface-hover);
+}
+
+.transaction-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.transaction-icon.income {
+  background: rgba(77, 230, 165, 0.1);
+  color: var(--color-income);
+}
+
+.transaction-icon.expense {
+  background: rgba(239, 95, 154, 0.1);
+  color: var(--color-expense);
+}
+
+.transaction-icon .material-symbols-outlined {
+  font-size: 20px;
+  font-variation-settings: 'FILL' 1;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-name {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.transaction-category {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.transaction-amount {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+}
+
+.transaction-amount.text-income {
+  color: var(--color-income);
+}
+
+.transaction-amount.text-expense {
+  color: var(--color-expense);
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-8);
+  color: var(--color-text-muted);
+}
+
+.empty-state .material-symbols-outlined {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.empty-state p {
+  font-size: var(--font-size-sm);
+}
+
+/* 响应式布局 */
+
+/* 超大屏幕优化 (>= 1536px) */
+@media (min-width: 1536px) {
+  .calendar {
+    max-width: 1600px;
+  }
+
+  .calendar-grid-panel,
+  .day-transactions-card {
+    padding: var(--spacing-8);
+  }
+
+  .calendar-day {
+    min-height: 100px;
+  }
+}
+
+/* 大屏幕 (1280px - 1535px) */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .calendar {
+    max-width: 1400px;
+  }
+
+  .calendar-day {
+    min-height: 90px;
+  }
+}
+
+/* 中等桌面屏幕 (1024px - 1279px) */
+@media (max-width: 1279px) {
+  .calendar-content {
+    grid-template-columns: 1.5fr 1fr;
+  }
+
+  .calendar-day {
+    min-height: 75px;
+  }
+}
+
+/* 平板横屏 (768px - 1199px) */
+@media (max-width: 1199px) {
+  .calendar-content {
+    grid-template-columns: 1fr;
+  }
+
+  .right-panel {
+    flex-direction: row;
+    gap: var(--spacing-4);
+  }
+
+  .month-stats-card {
+    flex: 1;
+  }
+
+  .day-transactions-card {
+    flex: 2;
+    min-height: 300px;
+  }
+}
+
+/* 平板竖屏 (640px - 767px) */
+@media (max-width: 767px) {
+  .calendar {
+    padding: var(--spacing-3);
+  }
+
+  .calendar-header {
+    margin-bottom: var(--spacing-4);
+  }
+
+  .calendar-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .calendar-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .calendar-grid-panel,
+  .month-stats-card,
+  .day-transactions-card {
+    padding: var(--spacing-3);
+  }
+
+  .right-panel {
+    flex-direction: column;
+  }
+
+  .calendar-day {
+    min-height: 65px;
+    padding: var(--spacing-1);
+  }
+
+  .day-number {
+    font-size: var(--font-size-sm);
+  }
+
+  .day-income,
+  .day-expense {
+    font-size: 10px;
+  }
+
+  .stat-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .stat-value {
+    font-size: var(--font-size-base);
+  }
+
+  .day-title {
+    font-size: var(--font-size-base);
+  }
+
+  .day-summary {
+    font-size: var(--font-size-xs);
+  }
+
+  .transaction-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .transaction-icon .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .transaction-name {
+    font-size: var(--font-size-xs);
+  }
+
+  .transaction-category {
+    font-size: 10px;
+  }
+
+  .transaction-amount {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* 小屏手机 (< 640px) */
+@media (max-width: 639px) {
+  .calendar {
+    padding: var(--spacing-2);
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-3);
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .month-selector {
+    flex: 1;
+  }
+
+  .calendar-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .calendar-grid-panel,
+  .month-stats-card,
+  .day-transactions-card {
+    padding: var(--spacing-2);
+  }
+
+  .current-month {
+    font-size: var(--font-size-base);
+  }
+
+  .week-day {
+    font-size: 11px;
+  }
+
+  .calendar-day {
+    min-height: 56px;
+    padding: 4px;
+  }
+
+  .day-number {
+    font-size: var(--font-size-xs);
+    margin-bottom: 2px;
+  }
+
+  .day-income,
+  .day-expense {
+    font-size: 9px;
+  }
+
+  .month-stats-card {
+    flex-direction: column;
+    gap: var(--spacing-2);
+    padding: var(--spacing-3);
+  }
+
+  .stat-item {
+    text-align: left;
+  }
+
+  .stat-item:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--spacing-2);
+  }
+
+  .stat-label {
+    font-size: 11px;
+  }
+
+  .stat-value {
+    font-size: var(--font-size-sm);
+  }
+
+  .day-title {
+    font-size: var(--font-size-sm);
+  }
+
+  .day-summary {
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-end;
+    font-size: 10px;
+  }
+
+  .transaction-item {
+    padding: var(--spacing-2);
+  }
+
+  .transaction-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .transaction-icon .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .transaction-name,
+  .transaction-amount {
+    font-size: 11px;
+  }
+
+  .transaction-category {
+    font-size: 9px;
+  }
+
+  .empty-state .material-symbols-outlined {
+    font-size: 36px;
+  }
+
+  .empty-state p {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* 极小屏手机 (< 480px) */
+@media (max-width: 479px) {
+  .calendar-content {
+    gap: var(--spacing-3);
+  }
+
+  .calendar-days {
+    gap: var(--spacing-1);
+  }
+
+  .calendar-day {
+    min-height: 48px;
+  }
+
+  .week-days {
+    gap: var(--spacing-1);
+  }
+
+  .week-day {
+    font-size: 10px;
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2);
+  }
+
+  .day-summary {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* 横屏模式优化 */
+@media (max-height: 700px) and (orientation: landscape) {
+  .calendar {
+    padding: var(--spacing-2);
+  }
+
+  .calendar-header {
+    margin-bottom: var(--spacing-2);
+  }
+
+  .calendar-content {
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--spacing-3);
+  }
+
+  .calendar-day {
+    min-height: 50px;
+  }
+
+  .right-panel {
+    flex-direction: column;
+  }
+
+  .month-stats-card {
+    padding: var(--spacing-2);
+  }
+
+  .day-transactions-card {
+    padding: var(--spacing-2);
+    max-height: 300px;
+  }
+
+  .transactions-list {
+    max-height: 220px;
+  }
+}
+
+/* 容器查询支持 */
+@container (max-width: 1200px) {
+  .calendar-content {
+    grid-template-columns: 1fr;
+  }
+
+  .right-panel {
+    flex-direction: row;
+  }
+}
+
+@container (max-width: 768px) {
+  .right-panel {
+    flex-direction: column;
+  }
+
+  .calendar-day {
+    min-height: 60px;
+  }
+}
+
+@container (max-width: 480px) {
+  .calendar-day {
+    min-height: 50px;
+  }
+
+  .day-income,
+  .day-expense {
+    display: none;
+  }
+}

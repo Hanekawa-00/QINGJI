@@ -362,12 +362,178 @@
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
-/* 响应式 */
-@media (max-width: 1024px) {
+/* 响应式布局 */
+
+/* 超大屏幕优化 (>= 1536px) */
+@media (min-width: 1536px) {
+  .dashboard {
+    max-width: 1600px;
+  }
+
   .stats-grid {
+    gap: var(--spacing-4);
+  }
+
+  .stats-value {
+    font-size: var(--font-size-4xl);
+  }
+}
+
+/* 大屏幕 (1280px - 1535px) */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .dashboard {
+    max-width: 1280px;
+  }
+}
+
+/* 中等桌面屏幕 (1024px - 1279px) */
+@media (max-width: 1279px) {
+  .dashboard {
+    max-width: 1024px;
+  }
+
+  .activity-section {
     grid-template-columns: 1fr;
   }
 
+  .highlights-card {
+    margin-top: var(--spacing-3);
+  }
+}
+
+/* 平板横屏 (768px - 1023px) */
+@media (max-width: 1023px) {
+  .dashboard {
+    padding: var(--spacing-4);
+  }
+
+  .dashboard-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-bars {
+    height: 10rem;
+  }
+}
+
+/* 平板竖屏 (640px - 767px) */
+@media (max-width: 767px) {
+  .dashboard {
+    padding: var(--spacing-3);
+  }
+
+  .dashboard-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .stats-value {
+    font-size: var(--font-size-2xl);
+  }
+
+  .activity-section {
+    gap: var(--spacing-2);
+  }
+
+  .chart-value {
+    font-size: var(--font-size-2xl);
+  }
+
+  .chart-bars {
+    height: 8rem;
+    gap: 0.5rem;
+  }
+
+  .transactions-section {
+    padding: var(--spacing-2);
+  }
+
+  .transaction-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* 小屏手机 (< 640px) */
+@media (max-width: 639px) {
+  .dashboard {
+    padding: var(--spacing-2);
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .month-selector {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .dashboard-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .dashboard-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .stats-card {
+    padding: var(--spacing-2);
+  }
+
+  .stats-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .chart-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .chart-bars {
+    height: 6rem;
+  }
+
+  .transaction-name,
+  .transaction-amount {
+    font-size: var(--font-size-xs);
+  }
+
+  .transaction-category {
+    font-size: 10px;
+  }
+
+  .transaction-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .transaction-icon .material-symbols-outlined {
+    font-size: 18px;
+  }
+}
+
+/* 容器查询支持 */
+@container (max-width: 768px) {
   .activity-section {
     grid-template-columns: 1fr;
   }

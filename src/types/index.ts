@@ -100,3 +100,29 @@ export interface PeriodStatistics {
   dailyReports: DailyReport[]
   dailyStats: number[] // 每日支出金额数组，用于图表显示
 }
+
+/**
+ * 日历日期数据
+ */
+export interface CalendarDay {
+  date: string // YYYY-MM-DD 格式
+  day: number // 日期（1-31）
+  isCurrentMonth: boolean // 是否属于当前月
+  isToday: boolean // 是否是今天
+  isSelected: boolean // 是否被选中
+  income: number // 当日收入
+  expense: number // 当日支出
+  transactions: Transaction[] // 当日交易列表
+}
+
+/**
+ * 月度日历数据
+ */
+export interface MonthCalendar {
+  year: number
+  month: number // 0-11
+  days: CalendarDay[] // 包含42天（6周）的数据
+  totalIncome: number // 本月总收入
+  totalExpense: number // 本月总支出
+  balance: number // 本月余额
+}

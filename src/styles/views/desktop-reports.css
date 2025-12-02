@@ -480,3 +480,278 @@
 .text-muted {
   color: var(--color-text-muted) !important;
 }
+
+/* ==================== 响应式布局 ==================== */
+
+/* 超大屏幕优化 (>= 1536px) */
+@media (min-width: 1536px) {
+  .reports {
+    max-width: 1400px;
+  }
+
+  .stats-grid {
+    gap: var(--spacing-4);
+  }
+}
+
+/* 大屏幕 (1280px - 1535px) */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  .reports {
+    max-width: 1200px;
+  }
+}
+
+/* 中等桌面屏幕 (1024px - 1279px) */
+@media (max-width: 1279px) {
+  .reports {
+    max-width: 1024px;
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+
+  .category-report-card {
+    margin-top: var(--spacing-3);
+  }
+
+  .category-content {
+    flex-direction: row;
+    gap: var(--spacing-4);
+  }
+
+  .pie-chart-wrapper {
+    flex-shrink: 0;
+  }
+
+  .category-list {
+    flex: 1;
+  }
+}
+
+/* 平板横屏 (768px - 1023px) */
+@media (max-width: 1023px) {
+  .reports {
+    padding: var(--spacing-4);
+  }
+
+  .reports-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-3);
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .period-selector,
+  .period-type-selector {
+    flex: 1;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-bars-container {
+    grid-template-columns: repeat(15, 1fr);
+  }
+}
+
+/* 平板竖屏 (640px - 767px) */
+@media (max-width: 767px) {
+  .reports {
+    padding: var(--spacing-3);
+  }
+
+  .reports-title {
+    font-size: var(--font-size-xl);
+  }
+
+  .reports-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2);
+  }
+
+  .stats-card {
+    padding: var(--spacing-2);
+  }
+
+  .stats-value {
+    font-size: var(--font-size-2xl);
+  }
+
+  .chart-title,
+  .category-title,
+  .daily-report-title {
+    font-size: var(--font-size-base);
+  }
+
+  .daily-chart-card,
+  .category-report-card,
+  .daily-report-section {
+    padding: var(--spacing-3);
+  }
+
+  .chart-bars-container {
+    grid-template-columns: repeat(10, 1fr);
+    height: 160px;
+  }
+
+  .chart-y-axis {
+    height: 160px;
+  }
+
+  .category-content {
+    flex-direction: column;
+  }
+
+  .pie-chart {
+    width: 112px;
+    height: 112px;
+  }
+}
+
+/* 小屏手机 (< 640px) */
+@media (max-width: 639px) {
+  .reports {
+    padding: var(--spacing-2);
+  }
+
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    flex-direction: column;
+    width: 100%;
+    gap: var(--spacing-2);
+  }
+
+  .period-selector {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .period-type-selector {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .reports-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .stats-card {
+    padding: var(--spacing-2);
+  }
+
+  .stats-value {
+    font-size: var(--font-size-xl);
+  }
+
+  .stats-change {
+    font-size: 10px;
+  }
+
+  .chart-title,
+  .category-title,
+  .daily-report-title {
+    font-size: var(--font-size-sm);
+  }
+
+  .daily-chart-card,
+  .category-report-card,
+  .daily-report-section {
+    padding: var(--spacing-2);
+  }
+
+  .chart-bars-container {
+    grid-template-columns: repeat(7, 1fr);
+    height: 120px;
+    gap: 1px;
+  }
+
+  .chart-y-axis {
+    height: 120px;
+    font-size: 10px;
+  }
+
+  .chart-x-axis {
+    font-size: 9px;
+  }
+
+  .pie-chart {
+    width: 96px;
+    height: 96px;
+  }
+
+  .pie-label {
+    font-size: var(--font-size-xs);
+  }
+
+  .pie-value {
+    font-size: var(--font-size-base);
+  }
+
+  .category-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .category-icon .material-symbols-outlined {
+    font-size: 16px;
+  }
+
+  .category-name-row,
+  .category-stats-row {
+    font-size: var(--font-size-xs);
+  }
+
+  .table-header,
+  .table-row {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-1) 0;
+  }
+
+  .daily-report-subtitle {
+    font-size: 10px;
+  }
+}
+
+/* 极小屏手机 (< 480px) */
+@media (max-width: 479px) {
+  .period-display {
+    min-width: 80px;
+    font-size: var(--font-size-sm);
+  }
+
+  .toggle-btn {
+    padding: 4px var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+
+  .table-header,
+  .table-row {
+    grid-template-columns: 0.8fr 1fr 1fr 0.8fr;
+  }
+}
+
+/* 容器查询支持 */
+@container (max-width: 1024px) {
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@container (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
