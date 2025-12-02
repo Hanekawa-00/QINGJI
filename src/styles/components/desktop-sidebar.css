@@ -1,0 +1,126 @@
+/**
+ * 桌面端侧边栏样式
+ */
+
+.desktop-sidebar {
+  width: 16rem; /* 256px */
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  background: rgba(17, 26, 22, 0.7); /* var(--color-surface) with opacity */
+  border-right: 1px solid rgba(26, 43, 36, 0.8);
+  padding: var(--spacing-3);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Logo 区域 */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo-circle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary-border);
+}
+
+.logo-text {
+  flex: 1;
+}
+
+.app-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-strong);
+  line-height: var(--line-height-tight);
+}
+
+.app-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  line-height: var(--line-height-tight);
+}
+
+/* 导航菜单 */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+}
+
+.nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-strong);
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  transition: all var(--duration-fast) var(--ease-in-out);
+  cursor: pointer;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-item.active {
+  background: var(--color-primary);
+  color: var(--color-background-dark);
+  font-weight: var(--font-weight-semibold);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+.nav-item .material-symbols-outlined {
+  font-size: 1rem;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* 余额卡片 */
+.balance-card {
+  margin-top: auto;
+  padding: var(--spacing-2);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-primary-border);
+}
+
+.balance-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.balance-amount {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-strong);
+  margin-bottom: 0.5rem;
+}
+
+.balance-change {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* 滚动条优化 */
+.desktop-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.desktop-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}

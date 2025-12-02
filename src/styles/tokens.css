@@ -1,0 +1,139 @@
+/**
+ * 设计令牌 (Design Tokens)
+ * 跨平台UI/UX一致性的基础
+ * 与 NaiveUI 和 Vant 主题同步
+ */
+
+:root {
+  /* ===== 品牌色彩 ===== */
+  --color-primary: #2bd776;
+  --color-primary-hover: #25c269;
+  --color-primary-pressed: #1fad5c;
+  --color-primary-light: rgba(43, 215, 118, 0.1);
+  --color-primary-border: rgba(43, 215, 118, 0.5);
+  
+  /* ===== 中性色阶 ===== */
+  --color-background-base: #ffffff;
+  --color-background-dark: #0b1210;
+  --color-surface: #111a16;
+  --color-surface-hover: #1a2b24;
+  --color-border: #1a2b24;
+  --color-border-light: rgba(26, 43, 36, 0.6);
+  
+  /* ===== 文本色彩 ===== */
+  --color-text-base: #0f0f0f;
+  --color-text-strong: #e8f1ec;
+  --color-text-muted: #7b8c82;
+  --color-text-disabled: #4a5a52;
+  
+  /* ===== 语义色彩 ===== */
+  --color-success: #2bd776;
+  --color-warning: #f0b429;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* 收入和支出 */
+  --color-income: #34d399;
+  --color-expense: #f87171;
+  
+  /* ===== 字体系统 ===== */
+  --font-family-base: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'Consolas', 'Monaco', 'Courier New', monospace;
+  
+  /* 字重 */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* 字号 */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  
+  /* 行高 */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  /* ===== 间距系统 (8点网格) ===== */
+  --spacing-1: 0.5rem;   /* 8px */
+  --spacing-2: 1rem;     /* 16px */
+  --spacing-3: 1.5rem;   /* 24px */
+  --spacing-4: 2rem;     /* 32px */
+  --spacing-5: 2.5rem;   /* 40px */
+  --spacing-6: 3rem;     /* 48px */
+  --spacing-8: 4rem;     /* 64px */
+  --spacing-10: 5rem;    /* 80px */
+  
+  /* ===== 圆角规范 ===== */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-base: 0.4rem;  /* 6.4px */
+  --radius-md: 0.5rem;    /* 8px */
+  --radius-lg: 0.7rem;    /* 11.2px */
+  --radius-xl: 1rem;      /* 16px */
+  --radius-2xl: 1.5rem;   /* 24px */
+  --radius-full: 9999px;
+  
+  /* ===== 阴影层级 ===== */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-base: 0 4px 6px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --shadow-primary: 0 20px 40px rgba(43, 215, 118, 0.35);
+  
+  /* ===== Z-index 层级 ===== */
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-tooltip: 1600;
+  
+  /* ===== 动画时长 ===== */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 350ms;
+  
+  /* ===== 缓动函数 ===== */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* ===== 断点 (与响应式设计配合) ===== */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  /* ===== 触摸目标尺寸 ===== */
+  --touch-target-min: 44px;   /* 移动端最小点击区域 */
+  --touch-target-comfortable: 48px;
+}
+
+/* ===== 深色主题 (默认) ===== */
+[data-theme="dark"], .dark {
+  --color-background: var(--color-background-dark);
+  --color-text: var(--color-text-strong);
+  --color-text-secondary: var(--color-text-muted);
+}
+
+/* ===== 浅色主题 ===== */
+[data-theme="light"], .light {
+  --color-background: var(--color-background-base);
+  --color-text: var(--color-text-base);
+  --color-text-secondary: #6b7280;
+  --color-surface: #f9fafb;
+  --color-surface-hover: #f3f4f6;
+  --color-border: #e5e7eb;
+  --color-border-light: rgba(229, 231, 235, 0.6);
+}

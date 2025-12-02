@@ -1,0 +1,119 @@
+/**
+ * 基础样式
+ * 应用全局样式和重置
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-text);
+  background: var(--color-background);
+  min-height: 100vh;
+}
+
+/* 深色主题背景渐变 */
+body[data-theme="dark"],
+body.dark {
+  background: radial-gradient(
+      circle at 15% 20%, 
+      #123125 0, 
+      rgba(18, 49, 37, 0) 28%
+    ),
+    radial-gradient(
+      circle at 80% 10%, 
+      #1b2d2a 0, 
+      rgba(27, 45, 42, 0) 30%
+    ),
+    var(--color-background-dark);
+}
+
+/* 链接 */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-in-out);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* 按钮基础样式重置 */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  outline: none;
+}
+
+/* 输入框基础样式 */
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+}
+
+/* 滚动条样式 (WebKit) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  transition: background var(--duration-fast) var(--ease-in-out);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-surface-hover);
+}
+
+/* 选中文本样式 */
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+/* 通用工具类 */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-success {
+  color: var(--color-success);
+}
+
+.text-income {
+  color: var(--color-income);
+}
+
+.text-expense {
+  color: var(--color-expense);
+}
+
+.text-muted {
+  color: var(--color-text-secondary);
+}
