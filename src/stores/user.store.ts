@@ -1,13 +1,19 @@
 /**
  * 用户数据状态管理
  * 业务逻辑 100% 跨平台共享
+ * 支持 SQLite 数据库持久化
  */
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Transaction, Category, Statistics, CategoryReport, DailyReport, PeriodStatistics, ReportPeriod } from '@/types'
+import * as db from '@/services/database'
 
 export const useUserStore = defineStore('user', () => {
+  // 数据库初始化状态
+  const isInitialized = ref(false)
+  const isLoading = ref(false)
+  const dbError = ref<string | null>(null)
   // 生成模拟数据的辅助函数
   const generateMockData = (): Transaction[] => {
     const now = new Date()
@@ -274,21 +280,52 @@ export const useUserStore = defineStore('user', () => {
   /**
    * 添加交易记录
    */
-  function addTransaction(transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) {
+  async function addTransaction(transaction: Omit<Transaction, 'id' | 'createdAt' | 'updatedAt'>) {
     const now = new Date().toISOString()
+    
+    // 如果在 Tauri 环境，保存到数据库
+    if (isInitialized.value) {
+      try {
+        const id = await db.addTransaction(transaction)
+        const newTransaction: Transaction = {
+          ...transaction,
+          id,
+          createdAt: now,
+          updatedAt: now
+        }
+        transactions.value.unshift(newTransaction)
+        return id
+      } catch (error) {
+        console.error('Failed to save transaction to database:', error)
+        dbError.value = String(error)
+      }
+    }
+    
+    // 回退到内存存储
     const newTransaction: Transaction = {
       ...transaction,
-      id: Date.now().toString(),
+      id: `txn-${Date.now()}`,
       createdAt: now,
       updatedAt: now
     }
     transactions.value.unshift(newTransaction)
+    return newTransaction.id
   }
 
   /**
    * 删除交易记录
    */
-  function deleteTransaction(id: string) {
+  async function deleteTransaction(id: string) {
+    // 如果在 Tauri 环境，从数据库删除
+    if (isInitialized.value) {
+      try {
+        await db.deleteTransaction(id)
+      } catch (error) {
+        console.error('Failed to delete transaction from database:', error)
+        dbError.value = String(error)
+      }
+    }
+    
     const index = transactions.value.findIndex(t => t.id === id)
     if (index !== -1) {
       transactions.value.splice(index, 1)
@@ -298,7 +335,17 @@ export const useUserStore = defineStore('user', () => {
   /**
    * 更新交易记录
    */
-  function updateTransaction(id: string, updates: Partial<Transaction>) {
+  async function updateTransaction(id: string, updates: Partial<Transaction>) {
+    // 如果在 Tauri 环境，更新数据库
+    if (isInitialized.value) {
+      try {
+        await db.updateTransaction(id, updates)
+      } catch (error) {
+        console.error('Failed to update transaction in database:', error)
+        dbError.value = String(error)
+      }
+    }
+    
     const transaction = transactions.value.find(t => t.id === id)
     if (transaction) {
       Object.assign(transaction, {
@@ -516,11 +563,35 @@ export const useUserStore = defineStore('user', () => {
   /**
    * 添加新分类
    */
-  function addCategory(data: { name: string; icon: string; type: 'expense' | 'income' }) {
-    const newId = String(Date.now())
+  async function addCategory(data: { name: string; icon: string; type: 'expense' | 'income' }) {
     const colors = ['#36a2e8', '#f6b756', '#ef5f9a', '#2bd776', '#9966ff', '#ff6b6b', '#4ecdc4']
     const randomColor = colors[Math.floor(Math.random() * colors.length)]
     
+    // 如果在 Tauri 环境，保存到数据库
+    if (isInitialized.value) {
+      try {
+        const newId = await db.addCategory({
+          name: data.name,
+          icon: data.icon,
+          type: data.type,
+          color: randomColor
+        })
+        categories.value.push({
+          id: newId,
+          name: data.name,
+          icon: data.icon,
+          type: data.type,
+          color: randomColor
+        })
+        return newId
+      } catch (error) {
+        console.error('Failed to save category to database:', error)
+        dbError.value = String(error)
+      }
+    }
+    
+    // 回退到内存存储
+    const newId = `cat-${Date.now()}`
     categories.value.push({
       id: newId,
       name: data.name,
@@ -528,14 +599,69 @@ export const useUserStore = defineStore('user', () => {
       type: data.type,
       color: randomColor
     })
-    
     return newId
+  }
+
+  /**
+   * 初始化数据库连接并加载数据
+   * 在 App.vue 中调用
+   */
+  async function initialize() {
+    if (isInitialized.value || isLoading.value) return
+    
+    isLoading.value = true
+    dbError.value = null
+    
+    try {
+      // 从数据库加载分类
+      const dbCategories = await db.getAllCategories()
+      if (dbCategories.length > 0) {
+        categories.value = dbCategories
+      }
+      
+      // 从数据库加载交易记录
+      const dbTransactions = await db.getAllTransactions()
+      transactions.value = dbTransactions
+      
+      isInitialized.value = true
+      console.log('Database initialized successfully')
+      console.log(`Loaded ${dbCategories.length} categories and ${dbTransactions.length} transactions`)
+    } catch (error) {
+      console.error('Failed to initialize database:', error)
+      dbError.value = String(error)
+      // 保持使用模拟数据作为回退
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * 刷新数据（从数据库重新加载）
+   */
+  async function refresh() {
+    if (!isInitialized.value) return
+    
+    try {
+      const dbTransactions = await db.getAllTransactions()
+      transactions.value = dbTransactions
+      
+      const dbCategories = await db.getAllCategories()
+      if (dbCategories.length > 0) {
+        categories.value = dbCategories
+      }
+    } catch (error) {
+      console.error('Failed to refresh data:', error)
+      dbError.value = String(error)
+    }
   }
 
   return {
     // 状态
     transactions,
     categories,
+    isInitialized,
+    isLoading,
+    dbError,
     
     // 计算属性
     totalBalance,
@@ -546,6 +672,8 @@ export const useUserStore = defineStore('user', () => {
     statistics,
     
     // 方法
+    initialize,
+    refresh,
     addTransaction,
     deleteTransaction,
     updateTransaction,
