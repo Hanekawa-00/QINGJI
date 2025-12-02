@@ -11,8 +11,19 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BarLineChart: typeof import('./src/components/common/charts/BarLineChart.vue')['default']
     DesktopSidebar: typeof import('./src/components/desktop/DesktopSidebar.vue')['default']
+    GroupedTransactionList: typeof import('./src/components/desktop/GroupedTransactionList.vue')['default']
+    MonthYearPicker: typeof import('./src/components/desktop/MonthYearPicker.vue')['default']
+    NDatePicker: typeof import('naive-ui')['NDatePicker']
+    NList: typeof import('naive-ui')['NList']
+    NListItem: typeof import('naive-ui')['NListItem']
+    NTag: typeof import('naive-ui')['NTag']
+    NThing: typeof import('naive-ui')['NThing']
+    PieChart: typeof import('./src/components/common/charts/PieChart.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    TransactionItem: typeof import('./src/components/desktop/TransactionItem.vue')['default']
+    TransactionList: typeof import('./src/components/desktop/TransactionList.vue')['default']
   }
 }

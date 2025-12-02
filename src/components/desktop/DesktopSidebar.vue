@@ -1,28 +1,49 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { h, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { NMenu, NCard, NStatistic } from 'naive-ui'
+import type { MenuOption } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 
-// 菜单项
-const menuItems = [
-  { id: 'dashboard', label: 'Overview', icon: 'dashboard', path: '/desktop' },
-  { id: 'calendar', label: 'Calendar', icon: 'calendar_month', path: '/desktop/calendar' },
-  { id: 'reports', label: 'Reports', icon: 'list_alt', path: '/desktop/reports' },
-  { id: 'entry', label: 'New Entry', icon: 'edit_square', path: '/desktop/entry' }
+// Material Icon 渲染函数
+const renderIcon = (iconName: string) => {
+  return () => h('span', { class: 'material-symbols-outlined menu-icon' }, iconName)
+}
+
+// NaiveUI 菜单选项
+const menuOptions: MenuOption[] = [
+  {
+    label: 'Overview',
+    key: '/desktop',
+    icon: renderIcon('dashboard')
+  },
+  {
+    label: 'Calendar',
+    key: '/desktop/calendar',
+    icon: renderIcon('calendar_month')
+  },
+  {
+    label: 'Reports',
+    key: '/desktop/reports',
+    icon: renderIcon('list_alt')
+  },
+  {
+    label: 'New Entry',
+    key: '/desktop/entry',
+    icon: renderIcon('edit_square')
+  }
 ]
 
 // 当前激活的菜单项
-const activeMenuItem = computed(() => {
-  return menuItems.find(item => item.path === route.path)?.id || 'dashboard'
-})
+const activeKey = computed(() => route.path)
 
-// 导航到指定页面
-function navigateTo(path: string) {
-  router.push(path)
+// 菜单选择处理
+const handleMenuSelect = (key: string) => {
+  router.push(key)
 }
 
 // 格式化余额
@@ -46,25 +67,103 @@ const formattedBalance = computed(() => {
     </div>
 
     <!-- 导航菜单 -->
-    <nav class="sidebar-nav">
-      <button
-        v-for="item in menuItems"
-        :key="item.id"
-        :class="['nav-item', { active: activeMenuItem === item.id }]"
-        @click="navigateTo(item.path)"
-      >
-        <span class="material-symbols-outlined">{{ item.icon }}</span>
-        {{ item.label }}
-      </button>
-    </nav>
+    <n-menu
+      :value="activeKey"
+      :options="menuOptions"
+      :indent="16"
+      class="sidebar-menu"
+      @update:value="handleMenuSelect"
+    />
 
     <!-- 余额卡片 -->
-    <div class="balance-card">
-      <p class="balance-label">Current Balance</p>
-      <p class="balance-amount">{{ formattedBalance }}</p>
-      <p class="balance-change">+5.2% vs last week</p>
-    </div>
+    <n-card class="balance-card" :bordered="true" size="small">
+      <n-statistic label="Current Balance" :value="formattedBalance" tabular-nums>
+        <template #suffix>
+          <span class="balance-change">+5.2% vs last week</span>
+        </template>
+      </n-statistic>
+    </n-card>
   </aside>
 </template>
 
-<style scoped src="@/styles/components/desktop-sidebar.css"></style>
+<style scoped>
+.desktop-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  height: 100%;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(43, 215, 118, 0.2);
+  border: 1px solid rgba(43, 215, 118, 0.5);
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.app-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.sidebar-menu {
+  flex: 1;
+}
+
+.sidebar-menu :deep(.n-menu-item-content) {
+  border-radius: 8px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+
+.sidebar-menu :deep(.n-menu-item-content:not(.n-menu-item-content--selected):hover) {
+  border-color: rgba(26, 43, 36, 0.6);
+}
+
+.sidebar-menu :deep(.n-menu-item-content--selected) {
+  box-shadow: 0 20px 40px rgba(43, 215, 118, 0.35);
+}
+
+.menu-icon {
+  font-size: 18px;
+}
+
+.balance-card {
+  margin-top: auto;
+  background: var(--color-surface) !important;
+  border-color: rgba(43, 215, 118, 0.2) !important;
+}
+
+.balance-card :deep(.n-statistic-value) {
+  font-size: 1.5rem !important;
+  font-weight: 700;
+}
+
+.balance-change {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 8px;
+}
+</style>

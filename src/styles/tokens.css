@@ -134,6 +134,25 @@
   --touch-target-comfortable: 48px;
 }
 
+/* ===== 桌面端滚动行为优化 ===== */
+html, body {
+  /* 禁用过度滚动的弹性效果 */
+  overscroll-behavior: none;
+  /* 禁用水平滚动 */
+  overflow-x: hidden;
+}
+
+/* 防止页面被拖拽 */
+body {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* 允许文本选择 */
+p, span, h1, h2, h3, h4, h5, h6, li, td, th, label {
+  user-select: text;
+}
+
 /* ===== 深色主题 (默认) ===== */
 [data-theme="dark"], .dark {
   --color-background: var(--color-background-dark);

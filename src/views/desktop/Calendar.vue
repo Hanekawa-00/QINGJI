@@ -1,8 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { 
+  NCard, 
+  NButton, 
+  NSpace
+} from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
+import { formatCurrency } from '@/hooks'
+import { TransactionList, MonthYearPicker } from '@/components/desktop'
 import type { CalendarDay, MonthCalendar } from '@/types'
 
+const router = useRouter()
 const userStore = useUserStore()
 
 // 当前选择的年月
@@ -11,16 +20,18 @@ const selectedYear = ref(currentDate.getFullYear())
 const selectedMonth = ref(currentDate.getMonth())
 const selectedDate = ref(currentDate.toISOString().split('T')[0])
 
+// 月份选择器时间戳
+const monthPickerTimestamp = computed({
+  get: () => new Date(selectedYear.value, selectedMonth.value, 1).getTime(),
+  set: (val: number) => {
+    const date = new Date(val)
+    selectedYear.value = date.getFullYear()
+    selectedMonth.value = date.getMonth()
+  }
+})
+
 // 星期标签
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-// 格式化货币
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount)
-}
 
 // 格式化日期显示
 const monthYearDisplay = computed(() => {
@@ -158,15 +169,10 @@ const goToNextMonth = () => {
   }
 }
 
-// 格式化交易金额
-const formatTransactionAmount = (transaction: any) => {
-  const amount = formatCurrency(transaction.amount)
-  return transaction.type === 'income' ? `+${amount}` : `-${amount}`
-}
 
-// 获取交易金额颜色类
-const getAmountClass = (type: string) => {
-  return type === 'income' ? 'text-income' : 'text-expense'
+// 导航到新建条目
+const navigateToEntry = () => {
+  router.push('/desktop/entry')
 }
 </script>
 
@@ -178,119 +184,378 @@ const getAmountClass = (type: string) => {
         <h1 class="calendar-title">Calendar</h1>
         <p class="calendar-subtitle">Same logic as mobile calendar, tuned for desktop.</p>
       </div>
-      <div class="header-right">
-        <button class="month-selector">
-          <span class="material-symbols-outlined">calendar_month</span>
-          <span>{{ monthYearDisplay }}</span>
-          <span class="material-symbols-outlined icon-expand">expand_more</span>
-        </button>
-        <button class="add-button">
-          <span class="material-symbols-outlined">add</span>
-        </button>
-      </div>
+      <n-space align="center">
+<MonthYearPicker v-model:value="monthPickerTimestamp" />
+        <n-button type="primary" circle @click="navigateToEntry">
+          <template #icon>
+            <span class="material-symbols-outlined">add</span>
+          </template>
+        </n-button>
+      </n-space>
     </header>
 
     <!-- Main Content -->
-    <section class="calendar-content">
+    <div class="calendar-layout">
       <!-- Calendar Grid -->
-      <div class="calendar-grid-panel">
-        <!-- Month Navigation -->
-        <div class="month-navigation">
-          <button class="nav-btn" @click="goToPreviousMonth">
-            <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          <h2 class="current-month">{{ monthYearDisplay }}</h2>
-          <button class="nav-btn" @click="goToNextMonth">
-            <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
-
-        <!-- Week Days Header -->
-        <div class="week-days">
-          <span v-for="day in weekDays" :key="day" class="week-day">{{ day }}</span>
-        </div>
-
-        <!-- Calendar Days -->
-        <div class="calendar-days">
-          <div
-            v-for="day in calendarData.days"
-            :key="day.date"
-            :class="[
-              'calendar-day',
-              {
-                'not-current-month': !day.isCurrentMonth,
-                'today': day.isToday,
-                'selected': day.isSelected,
-                'has-transactions': day.transactions.length > 0
-              }
-            ]"
-            @click="selectDate(day)"
-          >
-            <span class="day-number">{{ day.day }}</span>
-            <span v-if="day.income > 0" class="day-income">+{{ day.income.toFixed(0) }}</span>
-            <span v-if="day.expense > 0" class="day-expense">-{{ day.expense.toFixed(0) }}</span>
+      <div class="calendar-left">
+        <n-card class="calendar-grid-card" :bordered="true">
+          <!-- Month Navigation -->
+          <div class="month-navigation">
+            <n-button text @click="goToPreviousMonth">
+              <span class="material-symbols-outlined">chevron_left</span>
+            </n-button>
+            <h2 class="current-month">{{ monthYearDisplay }}</h2>
+            <n-button text @click="goToNextMonth">
+              <span class="material-symbols-outlined">chevron_right</span>
+            </n-button>
           </div>
-        </div>
+
+          <!-- Week Days Header -->
+          <div class="week-days">
+            <span v-for="day in weekDays" :key="day" class="week-day">{{ day }}</span>
+          </div>
+
+          <!-- Calendar Days -->
+          <div class="calendar-days">
+            <div
+              v-for="day in calendarData.days"
+              :key="day.date"
+              :class="[
+                'calendar-day',
+                {
+                  'not-current-month': !day.isCurrentMonth,
+                  'today': day.isToday,
+                  'selected': day.isSelected,
+                  'has-transactions': day.transactions.length > 0
+                }
+              ]"
+              @click="selectDate(day)"
+            >
+              <span class="day-number">{{ day.day }}</span>
+              <span v-if="day.income > 0" class="day-income">+{{ day.income.toFixed(0) }}</span>
+              <span v-if="day.expense > 0" class="day-expense">-{{ day.expense.toFixed(0) }}</span>
+            </div>
+          </div>
+        </n-card>
       </div>
 
       <!-- Right Panel: Stats & Transactions -->
-      <div class="right-panel">
-        <!-- Month Statistics -->
-        <div class="month-stats-card">
-          <div class="stat-item">
-            <p class="stat-label">Income</p>
-            <p class="stat-value income">{{ formatCurrency(calendarData.totalIncome) }}</p>
-          </div>
-          <div class="stat-item">
-            <p class="stat-label">Expense</p>
-            <p class="stat-value expense">{{ formatCurrency(calendarData.totalExpense) }}</p>
-          </div>
-          <div class="stat-item">
-            <p class="stat-label">Balance</p>
-            <p class="stat-value">{{ formatCurrency(calendarData.balance) }}</p>
-          </div>
-        </div>
-
-        <!-- Selected Day Transactions -->
-        <div class="day-transactions-card">
-          <div class="card-header">
-            <h2 class="day-title">{{ selectedDateDisplay }}</h2>
-            <div class="day-summary">
-              <span>In: {{ formatCurrency(selectedDayData?.income || 0) }}</span>
-              <span>Out: {{ formatCurrency(selectedDayData?.expense || 0) }}</span>
-            </div>
-          </div>
-
-          <div class="transactions-list">
-            <div
-              v-if="selectedDayData && selectedDayData.transactions.length > 0"
-              v-for="transaction in selectedDayData.transactions"
-              :key="transaction.id"
-              class="transaction-item"
-            >
-              <div 
-                class="transaction-icon"
-                :class="transaction.type"
-              >
-                <span class="material-symbols-outlined">{{ transaction.categoryIcon }}</span>
+      <div class="calendar-right">
+        <n-space vertical :size="16">
+          <!-- Month Statistics -->
+          <n-card class="month-stats-card" :bordered="true">
+            <div class="stats-row">
+              <div class="stat-item">
+                <p class="stat-label">Income</p>
+                <p class="stat-value income">{{ formatCurrency(calendarData.totalIncome) }}</p>
               </div>
-              <div class="transaction-info">
-                <p class="transaction-name">{{ transaction.description }}</p>
-                <p class="transaction-category">{{ transaction.category }}</p>
+              <div class="stat-item">
+                <p class="stat-label">Expense</p>
+                <p class="stat-value expense">{{ formatCurrency(calendarData.totalExpense) }}</p>
               </div>
-              <span :class="['transaction-amount', getAmountClass(transaction.type)]">
-                {{ formatTransactionAmount(transaction) }}
-              </span>
+              <div class="stat-item">
+                <p class="stat-label">Balance</p>
+                <p class="stat-value">{{ formatCurrency(calendarData.balance) }}</p>
+              </div>
             </div>
-            <div v-else class="empty-state">
-              <span class="material-symbols-outlined">event_busy</span>
-              <p>No transactions on this day</p>
-            </div>
-          </div>
-        </div>
+          </n-card>
+
+          <!-- Selected Day Transactions -->
+          <n-card class="day-transactions-card" :bordered="true">
+            <template #header>
+              <div class="card-header">
+                <h2 class="day-title">{{ selectedDateDisplay }}</h2>
+                <div class="day-summary">
+                  <span>In: {{ formatCurrency(selectedDayData?.income || 0) }}</span>
+                  <span>Out: {{ formatCurrency(selectedDayData?.expense || 0) }}</span>
+                </div>
+              </div>
+            </template>
+
+            <TransactionList 
+              :transactions="selectedDayData?.transactions || []"
+              hoverable
+              empty-text="No transactions on this day"
+              empty-icon="event_busy"
+            />
+          </n-card>
+        </n-space>
       </div>
-    </section>
+    </div>
   </div>
 </template>
 
-<style scoped src="@/styles/views/desktop-calendar.css"></style>
+<style scoped>
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.calendar-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .calendar-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.calendar-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.calendar-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.icon-expand {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  margin-left: 4px;
+}
+
+/* 布局容器 */
+.calendar-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.calendar-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.calendar-right {
+  width: 100%;
+}
+
+/* 宽屏状态：左右布局 (≥1100px 才启用) */
+@media (min-width: 1100px) {
+  .calendar-layout {
+    flex-direction: row;
+  }
+  
+  .calendar-left {
+    flex: 0 0 auto;
+    width: 480px;
+    flex-shrink: 0;
+  }
+  
+  .calendar-right {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* 日历卡片 */
+.calendar-grid-card {
+  background: var(--color-surface) !important;
+  border-color: rgba(43, 215, 118, 0.2) !important;
+  overflow: hidden;
+}
+
+.month-stats-card,
+.day-transactions-card {
+  background: var(--color-surface) !important;
+  border-color: rgba(43, 215, 118, 0.2) !important;
+}
+
+/* 交易列表文本溢出处理 */
+.day-transactions-card :deep(.n-thing-header__title),
+.day-transactions-card :deep(.n-thing-main__description) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 月份导航 */
+.month-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.current-month {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 0;
+  min-width: 120px;
+  text-align: center;
+}
+
+/* 星期标题 */
+.week-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.week-day {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* 日历日期 */
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  height: 70px;
+  min-width: 0;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: rgba(11, 18, 16, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.calendar-day:hover {
+  border-color: rgba(43, 215, 118, 0.4);
+}
+
+.calendar-day.not-current-month {
+  opacity: 0.3;
+}
+
+.calendar-day.today {
+  border-color: var(--color-primary);
+}
+
+.calendar-day.selected {
+  border-color: rgba(43, 215, 118, 0.6);
+  background: rgba(43, 215, 118, 0.2);
+  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.25);
+}
+
+.day-number {
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.calendar-day.selected .day-number {
+  font-weight: 700;
+}
+
+.day-income {
+  font-size: 0.6875rem;
+  color: var(--color-income);
+}
+
+.day-expense {
+  font-size: 0.6875rem;
+  color: var(--color-expense);
+}
+
+/* 统计卡片 */
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-strong);
+  margin: 4px 0 0 0;
+  white-space: nowrap;
+}
+
+.stat-value.income {
+  color: var(--color-income);
+}
+
+.stat-value.expense {
+  color: var(--color-expense);
+}
+
+/* 日期交易卡片 */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.day-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.day-summary {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* 交易项 */
+.transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.transaction-icon.income {
+  background: rgba(77, 230, 165, 0.1);
+  color: var(--color-income);
+}
+
+.transaction-icon.expense {
+  background: rgba(239, 95, 154, 0.1);
+  color: var(--color-expense);
+}
+
+.transaction-amount {
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: var(--color-text-muted);
+}
+</style>

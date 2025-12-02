@@ -1,0 +1,85 @@
+/**
+ * 交易数据组合式函数
+ * 可跨平台复用（桌面端/移动端）
+ */
+
+import { computed, type Ref } from 'vue'
+import { useUserStore } from '@/stores/user.store'
+import type { Transaction } from '@/types'
+
+export interface GroupedTransactions {
+  date: string
+  dateDisplay: string
+  transactions: Transaction[]
+  dayIncome: number
+  dayExpense: number
+}
+
+/**
+ * 获取指定月份的交易记录
+ */
+export function useMonthlyTransactions(timestampRef: Ref<number>) {
+  const userStore = useUserStore()
+
+  const monthlyTransactions = computed(() => {
+    const date = new Date(timestampRef.value)
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    
+    return userStore.transactions.filter(t => {
+      const tDate = new Date(t.date)
+      return tDate.getFullYear() === year && tDate.getMonth() === month
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  })
+
+  return monthlyTransactions
+}
+
+/**
+ * 按日期分组交易记录
+ */
+export function useGroupedTransactions(transactions: Ref<Transaction[]>) {
+  return computed((): GroupedTransactions[] => {
+    const groups: Record<string, GroupedTransactions> = {}
+    
+    transactions.value.forEach(t => {
+      if (!groups[t.date]) {
+        const date = new Date(t.date)
+        groups[t.date] = {
+          date: t.date,
+          dateDisplay: date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric'
+          }),
+          transactions: [],
+          dayIncome: 0,
+          dayExpense: 0
+        }
+      }
+      groups[t.date].transactions.push(t)
+      if (t.type === 'income') {
+        groups[t.date].dayIncome += t.amount
+      } else {
+        groups[t.date].dayExpense += t.amount
+      }
+    })
+    
+    return Object.values(groups).sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
+  })
+}
+
+/**
+ * 交易数据组合式函数
+ */
+export function useTransactions(timestampRef: Ref<number>) {
+  const monthlyTransactions = useMonthlyTransactions(timestampRef)
+  const groupedTransactions = useGroupedTransactions(monthlyTransactions)
+
+  return {
+    monthlyTransactions,
+    groupedTransactions
+  }
+}

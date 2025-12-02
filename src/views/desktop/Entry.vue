@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { 
+  NCard, 
+  NGrid, 
+  NGi, 
+  NButton, 
+  NSpace,
+  NInput,
+  NRadioGroup,
+  NRadioButton,
+  NDatePicker,
+  useMessage
+} from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 import type { TransactionType } from '@/types'
 
 const userStore = useUserStore()
+const message = useMessage()
 
 // 交易类型
 const transactionType = ref<TransactionType>('expense')
@@ -17,8 +30,18 @@ const selectedCategory = ref<string>('1') // 默认选择Food & Drink
 // 描述
 const description = ref('')
 
-// 日期
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+// 日期 (NDatePicker 使用时间戳)
+const selectedDateTimestamp = ref<number>(Date.now())
+
+// 格式化日期用于提交（使用本地时间避免时区问题）
+const selectedDate = computed(() => {
+  const date = new Date(selectedDateTimestamp.value)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+})
+
 
 // 格式化金额显示
 const formattedAmount = computed(() => {
@@ -59,16 +82,6 @@ const handleKeypad = (key: string) => {
   }
 }
 
-// 切换交易类型
-const switchTransactionType = (type: TransactionType) => {
-  transactionType.value = type
-  // 切换类型后自动选择第一个可用分类
-  const firstCategory = availableCategories.value[0]
-  if (firstCategory) {
-    selectedCategory.value = firstCategory.id
-  }
-}
-
 // 选择分类
 const selectCategory = (categoryId: string) => {
   selectedCategory.value = categoryId
@@ -78,13 +91,13 @@ const selectCategory = (categoryId: string) => {
 const saveTransaction = () => {
   const amount = parseFloat(amountDisplay.value)
   if (amount <= 0) {
-    alert('Please enter a valid amount')
+    message.warning('Please enter a valid amount')
     return
   }
 
   const category = userStore.categories.find(c => c.id === selectedCategory.value)
   if (!category) {
-    alert('Please select a category')
+    message.warning('Please select a category')
     return
   }
 
@@ -100,15 +113,10 @@ const saveTransaction = () => {
   // 重置表单
   amountDisplay.value = '0'
   description.value = ''
-  selectedDate.value = new Date().toISOString().split('T')[0]
+  selectedDateTimestamp.value = Date.now()
   
-  alert('Transaction saved successfully!')
+  message.success('Transaction saved successfully!')
 }
-
-// 获取选中分类信息
-const selectedCategoryInfo = computed(() => {
-  return userStore.categories.find(c => c.id === selectedCategory.value)
-})
 </script>
 
 <template>
@@ -119,120 +127,302 @@ const selectedCategoryInfo = computed(() => {
         <h1 class="entry-title">New Entry</h1>
         <p class="entry-subtitle">Desktop form mirrors mobile flow.</p>
       </div>
-      <div class="header-right">
-        <button class="date-button">
-          <span class="material-symbols-outlined">calendar_today</span>
-          <span>Today</span>
-        </button>
-      </div>
     </header>
 
     <!-- Main Content -->
-    <section class="entry-content">
+    <n-grid cols="1 m:3" :x-gap="24" :y-gap="16" responsive="screen" class="entry-content">
       <!-- Left Panel: Form -->
-      <div class="form-panel">
-        <!-- Transaction Type & Amount -->
-        <div class="type-amount-section">
-          <div class="type-toggle">
-            <label 
-              :class="['type-option', { active: transactionType === 'expense' }]"
-              @click="switchTransactionType('expense')"
-            >
-              <span>Expense</span>
-              <input 
-                type="radio" 
-                name="transaction-type" 
-                value="expense"
-                v-model="transactionType"
-              />
-            </label>
-            <label 
-              :class="['type-option', { active: transactionType === 'income' }]"
-              @click="switchTransactionType('income')"
-            >
-              <span>Income</span>
-              <input 
-                type="radio" 
-                name="transaction-type" 
-                value="income"
-                v-model="transactionType"
-              />
-            </label>
+      <n-gi span="1 m:2">
+        <n-card class="form-card" :bordered="true">
+          <!-- Transaction Type & Amount -->
+          <div class="type-amount-section">
+            <n-radio-group v-model:value="transactionType" name="transaction-type">
+              <n-radio-button value="expense">Expense</n-radio-button>
+              <n-radio-button value="income">Income</n-radio-button>
+            </n-radio-group>
+            <div class="amount-display">
+              <p class="amount-label">Amount</p>
+              <p class="amount-value">{{ formattedAmount }}</p>
+            </div>
           </div>
-          <div class="amount-display">
-            <p class="amount-label">Amount</p>
-            <p class="amount-value">{{ formattedAmount }}</p>
-          </div>
-        </div>
 
-        <!-- Category Selection -->
-        <div class="category-section">
-          <p class="section-label">Category</p>
-          <div class="category-grid">
-            <button
-              v-for="category in availableCategories"
-              :key="category.id"
-              :class="['category-item', { selected: selectedCategory === category.id }]"
-              @click="selectCategory(category.id)"
-            >
-              <span class="material-symbols-outlined">{{ category.icon }}</span>
-              <span class="category-name">{{ category.name }}</span>
-            </button>
-            <button class="category-item add-category">
-              <span class="material-symbols-outlined">add_circle</span>
-              <span class="category-name">Add New</span>
-            </button>
+          <!-- Category Selection -->
+          <div class="category-section">
+            <p class="section-label">Category</p>
+            <div class="category-grid">
+              <div
+                v-for="category in availableCategories"
+                :key="category.id"
+                :class="['category-item', { selected: selectedCategory === category.id }]"
+                @click="selectCategory(category.id)"
+              >
+                <span class="material-symbols-outlined">{{ category.icon }}</span>
+                <span class="category-name">{{ category.name }}</span>
+              </div>
+              <div class="category-item add-category">
+                <span class="material-symbols-outlined">add_circle</span>
+                <span class="category-name">Add New</span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <!-- Description & Tags -->
-        <div class="description-section">
-          <input 
-            v-model="description"
-            class="description-input" 
-            placeholder="Add a brief description..." 
-          />
-          <div class="tag-buttons">
-            <button class="tag-btn">
-              <span class="material-symbols-outlined">calendar_today</span>
-              <span>Today</span>
-            </button>
-            <button class="tag-btn">
-              <span class="material-symbols-outlined">image</span>
-              <span>Image</span>
-            </button>
+          <!-- Description & Tags -->
+          <div class="description-section">
+            <n-input 
+              v-model:value="description"
+              placeholder="Add a brief description..." 
+              size="large"
+            />
+            <n-space :size="8" class="tag-buttons">
+              <n-date-picker
+                v-model:value="selectedDateTimestamp"
+                type="date"
+                size="small"
+                :actions="['now', 'confirm']"
+              >
+                <template #date-icon>
+                  <span class="material-symbols-outlined" style="font-size: 16px;">calendar_today</span>
+                </template>
+              </n-date-picker>
+              <!-- <n-button quaternary size="medium">
+                <template #icon>
+                  <span class="material-symbols-outlined">image</span>
+                </template>
+                Image
+              </n-button> -->
+            </n-space>
           </div>
-        </div>
-      </div>
+        </n-card>
+      </n-gi>
 
       <!-- Right Panel: Keypad -->
-      <div class="keypad-panel">
-        <p class="keypad-label">Quick Keypad</p>
-        <div class="keypad-grid">
-          <button class="keypad-btn" @click="handleKeypad('1')">1</button>
-          <button class="keypad-btn" @click="handleKeypad('2')">2</button>
-          <button class="keypad-btn" @click="handleKeypad('3')">3</button>
-          <button class="keypad-btn operator" @click="handleKeypad('+')">+</button>
-          
-          <button class="keypad-btn" @click="handleKeypad('4')">4</button>
-          <button class="keypad-btn" @click="handleKeypad('5')">5</button>
-          <button class="keypad-btn" @click="handleKeypad('6')">6</button>
-          <button class="keypad-btn operator" @click="handleKeypad('-')">-</button>
-          
-          <button class="keypad-btn" @click="handleKeypad('7')">7</button>
-          <button class="keypad-btn" @click="handleKeypad('8')">8</button>
-          <button class="keypad-btn" @click="handleKeypad('9')">9</button>
-          <button class="keypad-btn operator" @click="handleKeypad('backspace')">
-            <span class="material-symbols-outlined">backspace</span>
-          </button>
-          
-          <button class="keypad-btn" @click="handleKeypad('.')">.</button>
-          <button class="keypad-btn" @click="handleKeypad('0')">0</button>
-          <button class="keypad-btn save-btn" @click="saveTransaction">Save</button>
-        </div>
-      </div>
-    </section>
+      <n-gi>
+        <n-card class="keypad-card" :bordered="true">
+          <template #header>
+            <span class="keypad-label">Quick Keypad</span>
+          </template>
+          <div class="keypad-grid">
+            <n-button class="keypad-btn" @click="handleKeypad('1')">1</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('2')">2</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('3')">3</n-button>
+            <n-button class="keypad-btn operator" @click="handleKeypad('+')">+</n-button>
+            
+            <n-button class="keypad-btn" @click="handleKeypad('4')">4</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('5')">5</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('6')">6</n-button>
+            <n-button class="keypad-btn operator" @click="handleKeypad('-')">-</n-button>
+            
+            <n-button class="keypad-btn" @click="handleKeypad('7')">7</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('8')">8</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('9')">9</n-button>
+            <n-button class="keypad-btn operator" @click="handleKeypad('backspace')">
+              <span class="material-symbols-outlined">backspace</span>
+            </n-button>
+            
+            <n-button class="keypad-btn" @click="handleKeypad('.')">.</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('0')">0</n-button>
+            <n-button type="primary" class="keypad-btn save-btn" @click="saveTransaction">Save</n-button>
+          </div>
+        </n-card>
+      </n-gi>
+    </n-grid>
   </div>
 </template>
 
-<style scoped src="@/styles/views/desktop-entry.css"></style>
+<style scoped>
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.entry-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .entry-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.entry-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.entry-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.entry-content {
+  margin-top: 8px;
+}
+
+/* 表单卡片 */
+.form-card,
+.keypad-card {
+  background: var(--color-surface) !important;
+  border-color: rgba(43, 215, 118, 0.2) !important;
+}
+
+/* 类型和金额 */
+.type-amount-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.amount-display {
+  text-align: right;
+}
+
+.amount-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.amount-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 4px 0 0 0;
+}
+
+/* 分类选择 */
+.category-section {
+  margin-bottom: 24px;
+}
+
+.section-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin: 0 0 12px 0;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .category-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  min-width: 80px;
+  background: rgba(11, 18, 16, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-item:hover {
+  border-color: rgba(43, 215, 118, 0.4);
+}
+
+.category-item.selected {
+  border-color: var(--color-primary);
+  background: rgba(43, 215, 118, 0.2);
+  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.25);
+}
+
+.category-item.selected .material-symbols-outlined {
+  color: var(--color-primary);
+}
+
+.category-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+/* 描述输入 */
+.description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tag-buttons {
+  margin-top: 8px;
+}
+
+/* 键盘区域 */
+.keypad-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.keypad-card {
+  min-width: 280px;
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.keypad-btn {
+  width: 100% !important;
+  aspect-ratio: 1 !important;
+  height: unset !important;
+  min-width: unset !important;
+  max-width: unset !important;
+  padding: 0 !important;
+  font-size: clamp(16px, 4vw, 22px) !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+  background: var(--color-surface) !important;
+  border: 1px solid rgba(43, 215, 118, 0.15) !important;
+  color: var(--color-text-strong) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.keypad-btn:hover {
+  background: var(--color-surface-hover) !important;
+}
+
+.keypad-btn:active {
+  background: var(--color-surface-active) !important;
+}
+
+.keypad-btn.operator {
+  color: var(--color-primary) !important;
+}
+
+.keypad-btn.save-btn {
+  grid-column: span 2;
+  aspect-ratio: unset !important;
+  height: 100% !important;
+  border-radius: 9999px !important;
+  background: var(--color-primary) !important;
+  color: var(--color-background-dark) !important;
+  border-color: rgba(43, 215, 118, 0.7) !important;
+  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.35);
+  font-size: clamp(14px, 3vw, 18px) !important;
+}
+</style>

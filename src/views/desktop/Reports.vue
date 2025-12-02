@@ -1,6 +1,22 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, h } from 'vue'
+import { 
+  NCard, 
+  NGrid, 
+  NGi, 
+  NButton, 
+  NSpace,
+  NStatistic,
+  NDataTable,
+  NRadioGroup,
+  NRadioButton,
+  NProgress,
+  NSelect
+} from 'naive-ui'
+import type { DataTableColumns } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
+import { formatCurrency } from '@/hooks'
+import { MonthYearPicker, BarLineChart, PieChart } from '@/components/desktop'
 import type { ReportPeriod } from '@/types'
 
 const userStore = useUserStore()
@@ -13,22 +29,23 @@ const currentDate = new Date()
 const selectedYear = ref(currentDate.getFullYear())
 const selectedMonth = ref(currentDate.getMonth())
 
-// 格式化货币
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount)
-}
-
-// 格式化日期显示
-const dateDisplay = computed(() => {
-  if (selectedPeriod.value === 'month') {
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    return `${monthNames[selectedMonth.value]} ${selectedYear.value}`
-  } else {
-    return `${selectedYear.value}`
+// 期间选择器时间戳
+const periodPickerTimestamp = computed({
+  get: () => new Date(selectedYear.value, selectedMonth.value, 1).getTime(),
+  set: (val: number) => {
+    const date = new Date(val)
+    selectedYear.value = date.getFullYear()
+    selectedMonth.value = date.getMonth()
   }
+})
+
+// 年份选择器选项
+const yearOptions = computed(() => {
+  const current = new Date().getFullYear()
+  return Array.from({ length: 7 }, (_, i) => ({
+    label: String(current - 5 + i),
+    value: current - 5 + i
+  }))
 })
 
 // 获取当前期间的统计数据
@@ -74,44 +91,90 @@ const formatChangePercentage = (value: number) => {
   return `${sign} ${Math.abs(value).toFixed(1)}%`
 }
 
-// 获取最大支出值（用于归一化柱状图高度）
-const maxDailyExpense = computed(() => {
-  return Math.max(...periodStats.value.dailyStats, 1)
-})
+// 图表类型（柱状图/折线图）
+type ChartViewType = 'bar' | 'line'
+const chartViewType = ref<ChartViewType>('bar')
 
-// 归一化柱状图高度
-const normalizeHeight = (value: number) => {
-  return (value / maxDailyExpense.value) * 100
-}
+// 图表数据类型（支出/收入/两者）
+type ChartDataType = 'expense' | 'income' | 'both'
+const chartDataType = ref<ChartDataType>('both')
+
+// ECharts 图表数据
+const echartsData = computed(() => {
+  const { expenseStats, incomeStats } = periodStats.value
+  
+  // 生成标签
+  const labels = selectedPeriod.value === 'month'
+    ? Array.from({ length: expenseStats.length }, (_, i) => String(i + 1))
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  
+  return labels.map((label, i) => ({
+    label,
+    income: incomeStats[i] ?? 0,
+    expense: expenseStats[i] ?? 0
+  }))
+})
 
 // 当前选择的分类类型（expense/income）
 const selectedCategoryType = ref<'expense' | 'income'>('expense')
 
 // 过滤后的分类报告
 const filteredCategoryReports = computed(() => {
-  return periodStats.value.categoryReports
+  return selectedCategoryType.value === 'expense' 
+    ? periodStats.value.expenseCategoryReports 
+    : periodStats.value.incomeCategoryReports
 })
 
-// 格式化日期（用于每日报告）
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr)
-  return `${date.getMonth() + 1}-${String(date.getDate()).padStart(2, '0')}`
-}
+// 饼图总金额
+const pieChartTotal = computed(() => {
+  return selectedCategoryType.value === 'expense' 
+    ? periodStats.value.totalExpense 
+    : periodStats.value.totalIncome
+})
 
-// 图表标签
-const chartLabels = computed(() => {
+// ECharts 饼图数据
+const pieChartData = computed(() => {
+  return filteredCategoryReports.value.slice(0, 6).map(report => ({
+    name: report.categoryName,
+    value: report.totalAmount,
+    color: report.categoryColor
+  }))
+})
+
+// 报告表格列配置（根据期间类型动态）
+const reportColumns = computed((): DataTableColumns<any> => [
+  {
+    title: selectedPeriod.value === 'month' ? 'Date' : 'Month',
+    key: 'date',
+    width: 100
+  },
+  {
+    title: 'Income',
+    key: 'income',
+    render: (row) => h('span', { style: { color: 'var(--color-income)' } }, formatCurrency(row.income))
+  },
+  {
+    title: 'Expense',
+    key: 'expense',
+    render: (row) => h('span', { style: { color: 'var(--color-expense)' } }, formatCurrency(row.expense))
+  },
+  {
+    title: 'Balance',
+    key: 'balance',
+    render: (row) => h(
+      'span',
+      { style: { color: row.balance >= 0 ? 'var(--color-income)' : 'var(--color-expense)' } },
+      formatCurrency(row.balance)
+    )
+  }
+])
+
+// 报告数据（月度显示每日，年度显示每月）
+const reportData = computed(() => {
   if (selectedPeriod.value === 'month') {
-    // 显示月初、月中、月末日期
-    const year = selectedYear.value
-    const month = selectedMonth.value + 1
-    return [
-      `${month}-01`,
-      `${month}-15`,
-      `${month}-30`
-    ]
+    return periodStats.value.dailyReports.slice(0, 15)
   } else {
-    // 显示季度
-    return ['Q1', 'Q2', 'Q3', 'Q4']
+    return periodStats.value.monthlyReports
   }
 })
 </script>
@@ -124,247 +187,429 @@ const chartLabels = computed(() => {
         <h1 class="reports-title">Statistical Report</h1>
         <p class="reports-subtitle">Desktop view, same logic as mobile stats.</p>
       </div>
-      <div class="header-right">
+      <n-space align="center" :size="16">
         <!-- 期间选择器 -->
-        <div class="period-selector">
-          <button class="period-nav-btn" @click="goToPrevious">
+        <n-space align="center" :size="8">
+          <n-button text @click="goToPrevious">
             <span class="material-symbols-outlined">chevron_left</span>
-          </button>
-          <span class="period-display">{{ dateDisplay }}</span>
-          <button class="period-nav-btn" @click="goToNext">
+          </n-button>
+          <!-- 月度：使用 MonthYearPicker -->
+          <MonthYearPicker 
+            v-if="selectedPeriod === 'month'"
+            v-model:value="periodPickerTimestamp" 
+          />
+          <!-- 年度：使用年份下拉框 -->
+          <n-select
+            v-else
+            v-model:value="selectedYear"
+            :options="yearOptions"
+            size="small"
+            :style="{ width: '90px' }"
+          />
+          <n-button text @click="goToNext">
             <span class="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
+          </n-button>
+        </n-space>
 
         <!-- 期间类型切换 -->
-        <div class="period-type-selector">
-          <label class="period-type-option">
-            <input 
-              type="radio" 
-              name="period" 
-              value="month"
-              v-model="selectedPeriod"
-            />
-            <span>Month</span>
-          </label>
-          <label class="period-type-option">
-            <input 
-              type="radio" 
-              name="period" 
-              value="year"
-              v-model="selectedPeriod"
-            />
-            <span>Year</span>
-          </label>
-        </div>
-      </div>
+        <n-radio-group v-model:value="selectedPeriod" name="period">
+          <n-radio-button value="month">Month</n-radio-button>
+          <n-radio-button value="year">Year</n-radio-button>
+        </n-radio-group>
+      </n-space>
     </header>
 
     <!-- 统计卡片 -->
-    <section class="stats-grid">
-      <div class="stats-card">
-        <p class="stats-label">Expense</p>
-        <p class="stats-value">{{ formatCurrency(periodStats.totalExpense) }}</p>
-        <p :class="['stats-change', periodStats.expenseChange >= 0 ? 'text-pink' : 'text-primary']">
-          {{ formatChangePercentage(periodStats.expenseChange) }} vs last {{ selectedPeriod }}
-        </p>
-      </div>
-
-      <div class="stats-card">
-        <p class="stats-label">Income</p>
-        <p class="stats-value">{{ formatCurrency(periodStats.totalIncome) }}</p>
-        <p class="stats-change text-muted">
-          {{ periodStats.totalIncome > 0 ? 'Income logged' : 'No income logged' }}
-        </p>
-      </div>
-
-      <div class="stats-card">
-        <p class="stats-label">Balance</p>
-        <p :class="['stats-value', periodStats.balance >= 0 ? 'text-primary' : 'text-pink']">
-          {{ formatCurrency(periodStats.balance) }}
-        </p>
-        <p class="stats-change text-muted">
-          {{ periodStats.balance >= 0 ? 'Surplus' : 'Needs attention' }}
-        </p>
-      </div>
-
-      <div class="stats-card">
-        <p class="stats-label">Avg. Daily Expense</p>
-        <p class="stats-value">{{ formatCurrency(periodStats.avgDailyExpense) }}</p>
-        <p class="stats-change text-muted">Steady spending</p>
-      </div>
-    </section>
+    <n-grid cols="1 s:2 l:4" :x-gap="24" :y-gap="16" responsive="screen" class="stats-grid">
+      <n-gi>
+        <n-card class="stats-card" :bordered="true">
+          <n-statistic label="Expense" :value="formatCurrency(periodStats.totalExpense)" tabular-nums>
+            <template #suffix>
+              <span :class="['stats-change', periodStats.expenseChange >= 0 ? 'text-pink' : 'text-primary']">
+                {{ formatChangePercentage(periodStats.expenseChange) }} vs last {{ selectedPeriod }}
+              </span>
+            </template>
+          </n-statistic>
+        </n-card>
+      </n-gi>
+      <n-gi>
+        <n-card class="stats-card" :bordered="true">
+          <n-statistic label="Income" :value="formatCurrency(periodStats.totalIncome)" tabular-nums>
+            <template #suffix>
+              <span class="stats-change text-muted">
+                {{ periodStats.totalIncome > 0 ? 'Income logged' : 'No income logged' }}
+              </span>
+            </template>
+          </n-statistic>
+        </n-card>
+      </n-gi>
+      <n-gi>
+        <n-card class="stats-card" :bordered="true">
+          <n-statistic label="Balance" tabular-nums>
+            <template #default>
+              <span :style="{ color: periodStats.balance >= 0 ? 'var(--color-income)' : 'var(--color-expense)' }">
+                {{ formatCurrency(periodStats.balance) }}
+              </span>
+            </template>
+            <template #suffix>
+              <span class="stats-change text-muted">
+                {{ periodStats.balance >= 0 ? 'Surplus' : 'Needs attention' }}
+              </span>
+            </template>
+          </n-statistic>
+        </n-card>
+      </n-gi>
+      <n-gi>
+        <n-card class="stats-card" :bordered="true">
+          <n-statistic label="Avg. Daily Expense" :value="formatCurrency(periodStats.avgDailyExpense)" tabular-nums>
+            <template #suffix>
+              <span class="stats-change text-muted">Steady spending</span>
+            </template>
+          </n-statistic>
+        </n-card>
+      </n-gi>
+    </n-grid>
 
     <!-- 图表和分类报告 -->
-    <section class="charts-section">
-      <!-- 每日统计图表 -->
-      <div class="daily-chart-card">
-        <div class="chart-header">
-          <h3 class="chart-title">Daily Statistics</h3>
-          <div class="chart-actions">
-            <span class="material-symbols-outlined icon-active">bar_chart</span>
-            <span class="material-symbols-outlined">show_chart</span>
-          </div>
-        </div>
-
-        <div class="chart-content">
-          <!-- Y轴标签 -->
-          <div class="chart-y-axis">
-            <span>{{ Math.round(maxDailyExpense) }}</span>
-            <span>{{ Math.round(maxDailyExpense * 0.66) }}</span>
-            <span>{{ Math.round(maxDailyExpense * 0.33) }}</span>
-            <span>0</span>
-          </div>
-
-          <!-- 图表区域 -->
-          <div class="chart-area">
-            <div class="chart-bars-container">
-              <div
-                v-for="(value, index) in periodStats.dailyStats.slice(0, 20)"
-                :key="index"
-                class="chart-bar"
-                :style="{ height: `${normalizeHeight(value)}%` }"
-              ></div>
+    <n-grid cols="1 l:2" :x-gap="24" :y-gap="16" responsive="screen" class="charts-section">
+      <!-- 统计图表 -->
+      <n-gi>
+        <n-card class="daily-chart-card" :bordered="true">
+          <template #header>
+            <div class="chart-header">
+              <h3 class="chart-title">{{ selectedPeriod === 'month' ? 'Daily' : 'Monthly' }} Statistics</h3>
+              <n-space :size="8">
+                <!-- 图表类型切换 -->
+                <n-button 
+                  text 
+                  :class="{ 'icon-active': chartViewType === 'bar' }"
+                  @click="chartViewType = 'bar'"
+                >
+                  <span class="material-symbols-outlined">bar_chart</span>
+                </n-button>
+                <n-button 
+                  text 
+                  :class="{ 'icon-active': chartViewType === 'line' }"
+                  @click="chartViewType = 'line'"
+                >
+                  <span class="material-symbols-outlined">show_chart</span>
+                </n-button>
+                <!-- 数据类型切换 -->
+                <n-radio-group v-model:value="chartDataType" size="small">
+                  <n-radio-button value="expense">Expense</n-radio-button>
+                  <n-radio-button value="income">Income</n-radio-button>
+                  <n-radio-button value="both">Both</n-radio-button>
+                </n-radio-group>
+              </n-space>
             </div>
-            
-            <!-- X轴标签 -->
-            <div class="chart-x-axis">
-              <span v-for="(label, index) in chartLabels" :key="index">{{ label }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+          </template>
+
+          <!-- ECharts 图表 -->
+          <BarLineChart
+            :data="echartsData"
+            :type="chartViewType"
+            :show-income="chartDataType === 'income' || chartDataType === 'both'"
+            :show-expense="chartDataType === 'expense' || chartDataType === 'both'"
+            height="280px"
+          />
+        </n-card>
+      </n-gi>
 
       <!-- 分类报告 -->
-      <div class="category-report-card">
-        <div class="category-header">
-          <h3 class="category-title">Categorized Report</h3>
-          
-          <!-- 分类类型切换 -->
-          <div class="category-type-toggle">
-            <button 
-              :class="['toggle-btn', { active: selectedCategoryType === 'expense' }]"
-              @click="selectedCategoryType = 'expense'"
-            >
-              Expense
-            </button>
-            <button 
-              :class="['toggle-btn', { active: selectedCategoryType === 'income' }]"
-              @click="selectedCategoryType = 'income'"
-            >
-              Income
-            </button>
-          </div>
-        </div>
-
-        <div class="category-content">
-          <!-- 饼图 -->
-          <div class="pie-chart-wrapper">
-            <div class="pie-chart-center">
-              <p class="pie-label">Expense</p>
-              <p class="pie-value">100%</p>
-            </div>
-            <svg class="pie-chart" viewBox="0 0 36 36">
-              <circle cx="18" cy="18" r="15.915" fill="none" stroke="var(--color-border)" stroke-width="3"></circle>
-              <circle 
-                v-for="(report, index) in filteredCategoryReports.slice(0, 4)" 
-                :key="report.categoryId"
-                cx="18" 
-                cy="18" 
-                r="15.915" 
-                fill="none" 
-                :stroke="report.categoryColor"
-                :stroke-dasharray="`${report.percentage} ${100 - report.percentage}`"
-                :stroke-dashoffset="index === 0 ? 0 : -filteredCategoryReports.slice(0, index).reduce((sum, r) => sum + r.percentage, 0)"
-                stroke-width="3"
-              ></circle>
-            </svg>
-          </div>
-
-          <!-- 分类列表 -->
-          <div class="category-list">
-            <div
-              v-for="report in filteredCategoryReports.slice(0, 5)"
-              :key="report.categoryId"
-              class="category-item"
-            >
-              <div 
-                class="category-icon"
-                :style="{ 
-                  backgroundColor: `${report.categoryColor}20`,
-                  borderColor: `${report.categoryColor}30`,
-                  color: report.categoryColor
-                }"
-              >
-                <span class="material-symbols-outlined">{{ report.categoryIcon }}</span>
-              </div>
+      <n-gi>
+        <n-card class="category-report-card" :bordered="true">
+          <template #header>
+            <div class="category-header">
+              <h3 class="category-title">Categorized Report</h3>
               
-              <div class="category-details">
-                <div class="category-name-row">
-                  <span class="category-name">{{ report.categoryName }}</span>
-                  <span class="category-amount">{{ formatCurrency(report.totalAmount) }}</span>
+              <!-- 分类类型切换 -->
+              <n-radio-group v-model:value="selectedCategoryType" size="small">
+                <n-radio-button value="expense">Expense</n-radio-button>
+                <n-radio-button value="income">Income</n-radio-button>
+              </n-radio-group>
+            </div>
+          </template>
+
+          <div class="category-content">
+            <!-- ECharts 饼图 -->
+            <div class="pie-chart-wrapper">
+              <PieChart
+                :data="pieChartData"
+                :center-label="selectedCategoryType === 'expense' ? 'Expense' : 'Income'"
+                :center-value="formatCurrency(pieChartTotal)"
+                height="180px"
+              />
+            </div>
+
+            <!-- 分类列表 -->
+            <div class="category-list">
+              <div
+                v-for="report in filteredCategoryReports.slice(0, 5)"
+                :key="report.categoryId"
+                class="category-item"
+              >
+                <div 
+                  class="category-icon"
+                  :style="{ 
+                    backgroundColor: `${report.categoryColor}20`,
+                    borderColor: `${report.categoryColor}30`,
+                    color: report.categoryColor
+                  }"
+                >
+                  <span class="material-symbols-outlined">{{ report.categoryIcon }}</span>
                 </div>
                 
-                <div class="category-stats-row">
-                  <span class="category-percentage">{{ report.percentage.toFixed(0) }}%</span>
-                  <span :class="['category-change', report.change >= 0 ? 'text-pink' : 'text-primary']">
-                    <span class="material-symbols-outlined">
-                      {{ report.change >= 0 ? 'arrow_upward' : 'arrow_downward' }}
+                <div class="category-details">
+                  <div class="category-name-row">
+                    <span class="category-name">{{ report.categoryName }}</span>
+                    <span class="category-amount">{{ formatCurrency(report.totalAmount) }}</span>
+                  </div>
+                  
+                  <div class="category-stats-row">
+                    <span class="category-percentage">{{ report.percentage.toFixed(0) }}%</span>
+                    <span :class="['category-change', report.change >= 0 ? 'text-pink' : 'text-primary']">
+                      <span class="material-symbols-outlined icon-small">
+                        {{ report.change >= 0 ? 'arrow_upward' : 'arrow_downward' }}
+                      </span>
+                      {{ Math.abs(report.change).toFixed(2) }}
                     </span>
-                    {{ Math.abs(report.change).toFixed(2) }}
-                  </span>
-                </div>
-                
-                <div class="category-progress">
-                  <div 
-                    class="category-progress-bar"
-                    :style="{ 
-                      width: `${report.percentage}%`,
-                      backgroundColor: report.categoryColor
-                    }"
-                  ></div>
+                  </div>
+                  
+                  <n-progress 
+                    type="line" 
+                    :percentage="report.percentage" 
+                    :show-indicator="false"
+                    :color="report.categoryColor"
+                    :height="4"
+                  />
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
+        </n-card>
+      </n-gi>
+    </n-grid>
 
-    <!-- 每日报告表格 -->
-    <section class="daily-report-section">
-      <div class="daily-report-header">
-        <h3 class="daily-report-title">Daily Report</h3>
-        <p class="daily-report-subtitle">
-          Avg. Daily Expense: {{ formatCurrency(periodStats.avgDailyExpense) }}
-        </p>
-      </div>
-
-      <div class="daily-report-table">
-        <div class="table-header">
-          <span>Date</span>
-          <span>Income</span>
-          <span>Expense</span>
-          <span>Balance</span>
+    <!-- 收支报告表格 -->
+    <n-card class="daily-report-card" :bordered="true">
+      <template #header>
+        <div class="daily-report-header">
+          <h3 class="daily-report-title">{{ selectedPeriod === 'month' ? 'Daily' : 'Monthly' }} Report</h3>
+          <span class="daily-report-subtitle">
+            Avg. {{ selectedPeriod === 'month' ? 'Daily' : 'Monthly' }} Expense: {{ formatCurrency(periodStats.avgDailyExpense) }}
+          </span>
         </div>
-        
-        <div class="table-body">
-          <div
-            v-for="report in periodStats.dailyReports.slice(0, 10)"
-            :key="report.date"
-            class="table-row"
-          >
-            <span>{{ formatDate(report.date) }}</span>
-            <span>{{ formatCurrency(report.income) }}</span>
-            <span>{{ formatCurrency(report.expense) }}</span>
-            <span :class="report.balance >= 0 ? 'text-primary' : 'text-pink'">
-              {{ formatCurrency(report.balance) }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
+      </template>
+      <n-data-table
+        :columns="reportColumns"
+        :data="reportData"
+        :bordered="false"
+        size="small"
+      />
+    </n-card>
   </div>
 </template>
 
-<style scoped src="@/styles/views/desktop-reports.css"></style>
+<style scoped>
+.reports {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reports-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .reports-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.reports-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.reports-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.period-display {
+  font-weight: 600;
+  color: var(--color-text-strong);
+  min-width: 100px;
+  text-align: center;
+}
+
+/* 统计卡片 */
+.stats-grid {
+  margin-top: 8px;
+}
+
+.stats-card {
+  background: var(--color-surface) !important;
+  border-color: rgba(43, 215, 118, 0.2) !important;
+}
+
+.stats-card :deep(.n-statistic-value) {
+  font-size: 1.5rem !important;
+  font-weight: 700;
+}
+
+.stats-change {
+  display: block;
+  font-size: 0.75rem;
+  margin-top: 8px;
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-pink {
+  color: var(--color-expense);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+/* 图表区域 */
+.charts-section {
+  margin-top: 8px;
+}
+
+.daily-chart-card,
+.category-report-card,
+.daily-report-card {
+  background: var(--color-surface) !important;
+  border-color: rgba(43, 215, 118, 0.2) !important;
+}
+
+.chart-header,
+.category-header,
+.daily-report-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.chart-title,
+.category-title,
+.daily-report-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.daily-report-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.icon-active {
+  color: var(--color-primary) !important;
+}
+
+/* 分类报告 */
+.category-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+@media (min-width: 640px) {
+  .category-content {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.pie-chart-wrapper {
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+}
+
+.category-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.category-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.category-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.category-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.category-name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.category-name {
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.category-amount {
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.category-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 4px 0;
+}
+
+.category-percentage {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.category-change {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.75rem;
+}
+
+.icon-small {
+  font-size: 14px;
+}
+</style>

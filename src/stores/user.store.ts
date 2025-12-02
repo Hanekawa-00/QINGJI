@@ -8,187 +8,147 @@ import { ref, computed } from 'vue'
 import type { Transaction, Category, Statistics, CategoryReport, DailyReport, PeriodStatistics, ReportPeriod } from '@/types'
 
 export const useUserStore = defineStore('user', () => {
-  // 交易记录
-  const transactions = ref<Transaction[]>([
-    // 2024年11月数据（用于对比）
-    {
-      id: 'nov-1',
-      type: 'expense',
-      amount: 15.50,
-      category: 'Food & Drink',
-      categoryIcon: 'local_cafe',
-      description: 'Cafe Latte',
-      date: '2024-11-30',
-      createdAt: '2024-11-30T10:30:00',
-      updatedAt: '2024-11-30T10:30:00'
-    },
-    {
-      id: 'nov-2',
-      type: 'expense',
-      amount: 17.50,
-      category: 'Food & Drink',
-      categoryIcon: 'restaurant',
-      description: 'Lunch',
-      date: '2024-11-14',
-      createdAt: '2024-11-14T12:30:00',
-      updatedAt: '2024-11-14T12:30:00'
-    },
-    // 2024年12月数据（当前月）
-    {
-      id: 'dec-1',
+  // 生成模拟数据的辅助函数
+  const generateMockData = (): Transaction[] => {
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
+    const currentDay = now.getDate()
+    
+    const data: Transaction[] = []
+    
+    // 上月数据（用于对比）
+    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
+    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
+    const lastMonthDays = new Date(lastMonthYear, lastMonth + 1, 0).getDate()
+    
+    // 上月收入
+    data.push({
+      id: 'lm-salary',
       type: 'income',
-      amount: 2900.00,
+      amount: 5200.00,
       category: 'Income',
       categoryIcon: 'receipt_long',
       description: 'Monthly Salary',
-      date: '2024-12-01',
-      createdAt: '2024-12-01T09:00:00',
-      updatedAt: '2024-12-01T09:00:00'
-    },
-    {
-      id: 'dec-2',
-      type: 'expense',
-      amount: 8.50,
-      category: 'Food & Drink',
-      categoryIcon: 'local_cafe',
-      description: 'Coffee',
-      date: '2024-12-02',
-      createdAt: '2024-12-02T08:30:00',
-      updatedAt: '2024-12-02T08:30:00'
-    },
-    {
-      id: 'dec-3',
-      type: 'expense',
-      amount: 45.00,
-      category: 'Transport',
-      categoryIcon: 'directions_car',
-      description: 'Gas',
-      date: '2024-12-03',
-      createdAt: '2024-12-03T17:00:00',
-      updatedAt: '2024-12-03T17:00:00'
-    },
-    {
-      id: 'dec-4',
-      type: 'expense',
-      amount: 120.00,
-      category: 'Shopping',
-      categoryIcon: 'shopping_cart',
-      description: 'Groceries',
-      date: '2024-12-05',
-      createdAt: '2024-12-05T14:20:00',
-      updatedAt: '2024-12-05T14:20:00'
-    },
-    {
-      id: 'dec-5',
-      type: 'expense',
-      amount: 25.00,
-      category: 'Food & Drink',
-      categoryIcon: 'restaurant',
-      description: 'Dinner',
-      date: '2024-12-07',
-      createdAt: '2024-12-07T19:30:00',
-      updatedAt: '2024-12-07T19:30:00'
-    },
-    {
-      id: 'dec-6',
-      type: 'expense',
-      amount: 15.00,
-      category: 'Transport',
-      categoryIcon: 'directions_car',
-      description: 'Parking',
-      date: '2024-12-09',
-      createdAt: '2024-12-09T10:00:00',
-      updatedAt: '2024-12-09T10:00:00'
-    },
-    {
-      id: 'dec-7',
-      type: 'expense',
-      amount: 89.99,
-      category: 'Shopping',
-      categoryIcon: 'shopping_cart',
-      description: 'Amazon Purchase',
-      date: '2024-12-10',
-      createdAt: '2024-12-10T14:20:00',
-      updatedAt: '2024-12-10T14:20:00'
-    },
-    {
-      id: 'dec-8',
-      type: 'expense',
-      amount: 12.50,
-      category: 'Food & Drink',
-      categoryIcon: 'local_cafe',
-      description: 'Brunch',
-      date: '2024-12-12',
-      createdAt: '2024-12-12T11:00:00',
-      updatedAt: '2024-12-12T11:00:00'
-    },
-    {
-      id: 'dec-9',
-      type: 'expense',
-      amount: 35.00,
-      category: 'Transport',
-      categoryIcon: 'directions_car',
-      description: 'Gas',
-      date: '2024-12-15',
-      createdAt: '2024-12-15T16:30:00',
-      updatedAt: '2024-12-15T16:30:00'
-    },
-    {
-      id: 'dec-10',
-      type: 'expense',
-      amount: 65.00,
-      category: 'Shopping',
-      categoryIcon: 'shopping_cart',
-      description: 'Clothing',
-      date: '2024-12-18',
-      createdAt: '2024-12-18T13:00:00',
-      updatedAt: '2024-12-18T13:00:00'
-    },
-    {
-      id: 'dec-11',
-      type: 'expense',
-      amount: 18.00,
-      category: 'Food & Drink',
-      categoryIcon: 'restaurant',
-      description: 'Lunch',
-      date: '2024-12-20',
-      createdAt: '2024-12-20T12:30:00',
-      updatedAt: '2024-12-20T12:30:00'
-    },
-    {
-      id: 'dec-12',
-      type: 'expense',
-      amount: 50.00,
-      category: 'Shopping',
-      categoryIcon: 'shopping_cart',
-      description: 'Books',
-      date: '2024-12-22',
-      createdAt: '2024-12-22T15:00:00',
-      updatedAt: '2024-12-22T15:00:00'
-    },
-    {
-      id: 'dec-13',
-      type: 'expense',
-      amount: 22.00,
-      category: 'Food & Drink',
-      categoryIcon: 'restaurant',
-      description: 'Dinner',
-      date: '2024-12-25',
-      createdAt: '2024-12-25T19:00:00',
-      updatedAt: '2024-12-25T19:00:00'
-    },
-    {
-      id: 'dec-14',
-      type: 'expense',
-      amount: 30.00,
-      category: 'Transport',
-      categoryIcon: 'directions_car',
-      description: 'Car Wash',
-      date: '2024-12-28',
-      createdAt: '2024-12-28T10:00:00',
-      updatedAt: '2024-12-28T10:00:00'
+      date: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-01`,
+      createdAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-01T09:00:00`,
+      updatedAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-01T09:00:00`
+    })
+    
+    // 上月支出 (随机分布)
+    const lastMonthExpenses = [
+      { day: 3, amount: 45.50, cat: 'Food & Drink', icon: 'restaurant', desc: 'Family Dinner' },
+      { day: 5, amount: 68.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
+      { day: 8, amount: 156.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Groceries' },
+      { day: 12, amount: 28.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee & Snacks' },
+      { day: 15, amount: 89.99, cat: 'Shopping', icon: 'shopping_cart', desc: 'Electronics' },
+      { day: 18, amount: 35.00, cat: 'Transport', icon: 'directions_car', desc: 'Parking Fee' },
+      { day: 22, amount: 42.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Lunch Meeting' },
+      { day: 25, amount: 120.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Clothing' },
+      { day: 28, amount: 55.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' }
+    ]
+    
+    lastMonthExpenses.forEach((exp, idx) => {
+      if (exp.day <= lastMonthDays) {
+        data.push({
+          id: `lm-${idx}`,
+          type: 'expense',
+          amount: exp.amount,
+          category: exp.cat,
+          categoryIcon: exp.icon,
+          description: exp.desc,
+          date: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}`,
+          createdAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${10 + idx}:00:00`,
+          updatedAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${10 + idx}:00:00`
+        })
+      }
+    })
+    
+    // 本月收入
+    data.push({
+      id: 'cm-salary',
+      type: 'income',
+      amount: 5200.00,
+      category: 'Income',
+      categoryIcon: 'receipt_long',
+      description: 'Monthly Salary',
+      date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`,
+      createdAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01T09:00:00`,
+      updatedAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01T09:00:00`
+    })
+    
+    // 本月额外收入
+    if (currentDay >= 15) {
+      data.push({
+        id: 'cm-bonus',
+        type: 'income',
+        amount: 800.00,
+        category: 'Income',
+        categoryIcon: 'receipt_long',
+        description: 'Project Bonus',
+        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15`,
+        createdAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15T14:00:00`,
+        updatedAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15T14:00:00`
+      })
     }
-  ])
+    
+    // 本月支出 (根据当前日期动态生成)
+    const currentMonthExpenses = [
+      { day: 1, amount: 8.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Morning Coffee' },
+      { day: 1, amount: 25.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Dinner' },
+      { day: 2, amount: 45.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
+      { day: 2, amount: 22.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Lunch' },
+      { day: 3, amount: 135.50, cat: 'Shopping', icon: 'shopping_cart', desc: 'Groceries' },
+      { day: 4, amount: 12.00, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee' },
+      { day: 5, amount: 68.99, cat: 'Shopping', icon: 'shopping_cart', desc: 'Home Supplies' },
+      { day: 6, amount: 38.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Weekend Brunch' },
+      { day: 7, amount: 15.00, cat: 'Transport', icon: 'directions_car', desc: 'Parking' },
+      { day: 8, amount: 28.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee & Pastry' },
+      { day: 9, amount: 89.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Books' },
+      { day: 10, amount: 42.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Business Lunch' },
+      { day: 11, amount: 55.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
+      { day: 12, amount: 18.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Afternoon Tea' },
+      { day: 13, amount: 156.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Clothing' },
+      { day: 14, amount: 32.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Dinner Date' },
+      { day: 15, amount: 25.00, cat: 'Transport', icon: 'directions_car', desc: 'Car Wash' },
+      { day: 16, amount: 9.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee' },
+      { day: 17, amount: 78.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Electronics Accessories' },
+      { day: 18, amount: 45.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Family Dinner' },
+      { day: 19, amount: 62.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
+      { day: 20, amount: 15.00, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee Meeting' },
+      { day: 21, amount: 198.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Gift Shopping' },
+      { day: 22, amount: 35.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Lunch' },
+      { day: 23, amount: 20.00, cat: 'Transport', icon: 'directions_car', desc: 'Parking' },
+      { day: 24, amount: 125.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Groceries' },
+      { day: 25, amount: 55.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Holiday Dinner' },
+      { day: 26, amount: 48.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
+      { day: 27, amount: 85.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Home Decor' },
+      { day: 28, amount: 22.00, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee & Snacks' },
+      { day: 29, amount: 30.00, cat: 'Transport', icon: 'directions_car', desc: 'Toll Fee' },
+      { day: 30, amount: 42.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Dinner' }
+    ]
+    
+    currentMonthExpenses.forEach((exp, idx) => {
+      if (exp.day <= currentDay) {
+        data.push({
+          id: `cm-${idx}`,
+          type: 'expense',
+          amount: exp.amount,
+          category: exp.cat,
+          categoryIcon: exp.icon,
+          description: exp.desc,
+          date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}`,
+          createdAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${8 + (idx % 12)}:${(idx * 7) % 60}:00`,
+          updatedAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${8 + (idx % 12)}:${(idx * 7) % 60}:00`
+        })
+      }
+    })
+    
+    return data
+  }
+
+  // 交易记录
+  const transactions = ref<Transaction[]>(generateMockData())
 
   // 分类列表
   const categories = ref<Category[]>([
@@ -244,11 +204,50 @@ export const useUserStore = defineStore('user', () => {
   })
 
   /**
-   * 本周活动数据（7天）
+   * 本周每日支出数据（7天，基于真实交易）
+   */
+  const weeklyExpenses = computed(() => {
+    const now = new Date()
+    const today = now.getDay() // 0 = Sunday
+    
+    // 获取本周每天的支出金额
+    const dailyExpenses: number[] = []
+    
+    for (let i = 0; i < 7; i++) {
+      // 计算每天的日期 (Mon=0 to Sun=6)
+      const dayOffset = i - ((today + 6) % 7) // 将周一作为起点
+      const date = new Date(now)
+      date.setDate(now.getDate() + dayOffset)
+      const dateStr = date.toISOString().split('T')[0]
+      
+      // 计算该天的支出
+      const dayExpense = transactions.value
+        .filter(t => t.date === dateStr && t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0)
+      
+      dailyExpenses.push(dayExpense)
+    }
+    
+    return dailyExpenses
+  })
+
+  /**
+   * 本周活动百分比（用于柱状图）
    */
   const weeklyActivity = computed(() => {
-    // 模拟数据：7天的支出金额百分比
-    return [40, 70, 90, 60, 20, 30, 50]
+    const expenses = weeklyExpenses.value
+    if (!expenses || expenses.length === 0) return [0, 0, 0, 0, 0, 0, 0]
+    const maxExpense = Math.max(...expenses, 1)
+    return expenses.map(exp => Math.round((exp / maxExpense) * 100) || 0)
+  })
+
+  /**
+   * 本周总支出
+   */
+  const weeklyTotal = computed(() => {
+    const expenses = weeklyExpenses.value
+    if (!expenses || expenses.length === 0) return 0
+    return expenses.reduce((sum, exp) => sum + (exp || 0), 0)
   })
 
   /**
@@ -268,6 +267,7 @@ export const useUserStore = defineStore('user', () => {
     monthlyIncome: monthlyIncome.value,
     monthlyExpense: monthlyExpense.value,
     weeklyActivity: weeklyActivity.value,
+    weeklyTotal: weeklyTotal.value,
     dailyAverage: monthlyExpense.value / 30
   }))
 
@@ -362,57 +362,63 @@ export const useUserStore = defineStore('user', () => {
     const daysInPeriod = period === 'month' ? 30 : 365
     const avgDailyExpense = totalExpense / daysInPeriod
 
-    // 计算分类报告
-    const categoryMap = new Map<string, CategoryReport>()
-    
-    currentTransactions
-      .filter(t => t.type === 'expense')
-      .forEach(t => {
-        const category = categories.value.find(c => c.name === t.category)
-        if (!category) return
+    // 通用分类报告计算函数
+    const buildCategoryReports = (type: 'expense' | 'income') => {
+      const categoryMap = new Map<string, CategoryReport>()
+      const total = type === 'expense' ? totalExpense : totalIncome
+      
+      currentTransactions
+        .filter(t => t.type === type)
+        .forEach(t => {
+          const category = categories.value.find(c => c.name === t.category)
+          if (!category) return
 
-        if (!categoryMap.has(category.id)) {
-          categoryMap.set(category.id, {
-            categoryId: category.id,
-            categoryName: category.name,
-            categoryIcon: category.icon,
-            categoryColor: category.color,
-            totalAmount: 0,
-            percentage: 0,
-            change: 0,
-            changePercentage: 0,
-            transactionCount: 0
-          })
-        }
+          if (!categoryMap.has(category.id)) {
+            categoryMap.set(category.id, {
+              categoryId: category.id,
+              categoryName: category.name,
+              categoryIcon: category.icon,
+              categoryColor: category.color,
+              totalAmount: 0,
+              percentage: 0,
+              change: 0,
+              changePercentage: 0,
+              transactionCount: 0
+            })
+          }
 
-        const report = categoryMap.get(category.id)!
-        report.totalAmount += t.amount
-        report.transactionCount += 1
-      })
+          const report = categoryMap.get(category.id)!
+          report.totalAmount += t.amount
+          report.transactionCount += 1
+        })
 
-    // 计算上期各分类的支出
-    const previousCategoryMap = new Map<string, number>()
-    previousTransactions
-      .filter(t => t.type === 'expense')
-      .forEach(t => {
-        const category = categories.value.find(c => c.name === t.category)
-        if (!category) return
+      // 计算上期各分类的金额
+      const previousCategoryMap = new Map<string, number>()
+      previousTransactions
+        .filter(t => t.type === type)
+        .forEach(t => {
+          const category = categories.value.find(c => c.name === t.category)
+          if (!category) return
+          
+          const current = previousCategoryMap.get(category.id) || 0
+          previousCategoryMap.set(category.id, current + t.amount)
+        })
+
+      // 计算百分比和变化
+      return Array.from(categoryMap.values()).map(report => {
+        report.percentage = total === 0 ? 0 : (report.totalAmount / total) * 100
         
-        const current = previousCategoryMap.get(category.id) || 0
-        previousCategoryMap.set(category.id, current + t.amount)
-      })
+        const previousAmount = previousCategoryMap.get(report.categoryId) || 0
+        report.change = report.totalAmount - previousAmount
+        report.changePercentage = previousAmount === 0 ? 0 : 
+          ((report.totalAmount - previousAmount) / previousAmount) * 100
+        
+        return report
+      }).sort((a, b) => b.totalAmount - a.totalAmount)
+    }
 
-    // 计算百分比和变化
-    const categoryReports = Array.from(categoryMap.values()).map(report => {
-      report.percentage = totalExpense === 0 ? 0 : (report.totalAmount / totalExpense) * 100
-      
-      const previousAmount = previousCategoryMap.get(report.categoryId) || 0
-      report.change = report.totalAmount - previousAmount
-      report.changePercentage = previousAmount === 0 ? 0 : 
-        ((report.totalAmount - previousAmount) / previousAmount) * 100
-      
-      return report
-    }).sort((a, b) => b.totalAmount - a.totalAmount)
+    const expenseCategoryReports = buildCategoryReports('expense')
+    const incomeCategoryReports = buildCategoryReports('income')
 
     // 计算每日报告
     const dailyMap = new Map<string, DailyReport>()
@@ -439,16 +445,18 @@ export const useUserStore = defineStore('user', () => {
     const dailyReports = Array.from(dailyMap.values())
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-    // 生成每日统计数据（用于柱状图）
-    const dailyStats: number[] = []
-    const daysCount = period === 'month' ? 30 : 12 // 月份显示30天，年份显示12个月
+    // 生成每日/月度统计数据（用于柱状图）
+    const expenseStats: number[] = []
+    const incomeStats: number[] = []
     
     if (period === 'month') {
       // 按日统计
-      for (let day = 1; day <= daysCount; day++) {
+      const daysInMonth = new Date(year, (month ?? 0) + 1, 0).getDate()
+      for (let day = 1; day <= daysInMonth; day++) {
         const dateStr = `${year}-${String((month ?? 0) + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
         const dayData = dailyMap.get(dateStr)
-        dailyStats.push(dayData?.expense || 0)
+        expenseStats.push(dayData?.expense || 0)
+        incomeStats.push(dayData?.income || 0)
       }
     } else {
       // 按月统计
@@ -459,7 +467,28 @@ export const useUserStore = defineStore('user', () => {
             return t.type === 'expense' && date.getMonth() === m
           })
           .reduce((sum, t) => sum + t.amount, 0)
-        dailyStats.push(monthExpense)
+        const monthIncome = currentTransactions
+          .filter(t => {
+            const date = new Date(t.date)
+            return t.type === 'income' && date.getMonth() === m
+          })
+          .reduce((sum, t) => sum + t.amount, 0)
+        expenseStats.push(monthExpense)
+        incomeStats.push(monthIncome)
+      }
+    }
+
+    // 生成月度报告（用于年度报表底部表格）
+    const monthlyReports: DailyReport[] = []
+    if (period === 'year') {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      for (let m = 0; m < 12; m++) {
+        monthlyReports.push({
+          date: monthNames[m],
+          income: incomeStats[m],
+          expense: expenseStats[m],
+          balance: incomeStats[m] - expenseStats[m]
+        })
       }
     }
 
@@ -472,9 +501,15 @@ export const useUserStore = defineStore('user', () => {
       balance: totalIncome - totalExpense,
       avgDailyExpense,
       expenseChange,
-      categoryReports,
+      expenseCategoryReports,
+      incomeCategoryReports,
       dailyReports,
-      dailyStats
+      monthlyReports,
+      expenseStats,
+      incomeStats,
+      // 保持向后兼容
+      categoryReports: expenseCategoryReports,
+      dailyStats: expenseStats
     }
   }
 

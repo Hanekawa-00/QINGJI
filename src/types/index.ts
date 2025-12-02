@@ -41,6 +41,7 @@ export interface Statistics {
   monthlyIncome: number
   monthlyExpense: number
   weeklyActivity: number[]
+  weeklyTotal: number
   dailyAverage: number
 }
 
@@ -96,9 +97,14 @@ export interface PeriodStatistics {
   balance: number
   avgDailyExpense: number
   expenseChange: number // 相比上期的变化百分比
-  categoryReports: CategoryReport[]
+  expenseCategoryReports: CategoryReport[] // 支出分类报告
+  incomeCategoryReports: CategoryReport[] // 收入分类报告
+  categoryReports: CategoryReport[] // 向后兼容（等同于支出分类）
   dailyReports: DailyReport[]
-  dailyStats: number[] // 每日支出金额数组，用于图表显示
+  monthlyReports: DailyReport[] // 月度报告（年度视图用）
+  expenseStats: number[] // 每日/月支出金额数组
+  incomeStats: number[] // 每日/月收入金额数组
+  dailyStats: number[] // 向后兼容（等同于支出统计）
 }
 
 /**
