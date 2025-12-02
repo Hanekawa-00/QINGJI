@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /**
  * 按日期分组的交易记录列表组件
+ * 支持编辑/删除操作
  * 可跨平台复用（桌面端/移动端）
  */
 import { NList, NEmpty } from 'naive-ui'
@@ -13,6 +14,7 @@ interface Props {
   groups: GroupedTransactions[]
   hoverable?: boolean
   clickable?: boolean
+  showActions?: boolean
   emptyText?: string
   emptyIcon?: string
 }
@@ -20,12 +22,15 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   hoverable: true,
   clickable: false,
+  showActions: true,
   emptyText: 'No transactions',
   emptyIcon: 'receipt_long'
 })
 
 const emit = defineEmits<{
   itemClick: [transaction: Transaction]
+  edit: [transaction: Transaction]
+  delete: [transaction: Transaction]
 }>()
 </script>
 
@@ -47,7 +52,10 @@ const emit = defineEmits<{
           :key="transaction.id"
           :transaction="transaction"
           :clickable="clickable"
+          :show-actions="showActions"
           @click="emit('itemClick', $event)"
+          @edit="emit('edit', $event)"
+          @delete="emit('delete', $event)"
         />
       </n-list>
     </template>

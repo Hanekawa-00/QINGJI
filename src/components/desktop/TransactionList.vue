@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /**
  * 交易记录列表组件
+ * 支持编辑/删除操作
  * 桌面端专用 (NaiveUI)
  */
 import { NList, NEmpty } from 'naive-ui'
@@ -11,6 +12,7 @@ interface Props {
   transactions: Transaction[]
   hoverable?: boolean
   clickable?: boolean
+  showActions?: boolean
   emptyText?: string
   emptyIcon?: string
 }
@@ -18,12 +20,15 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   hoverable: true,
   clickable: false,
+  showActions: true,
   emptyText: 'No transactions',
   emptyIcon: 'receipt_long'
 })
 
 const emit = defineEmits<{
   itemClick: [transaction: Transaction]
+  edit: [transaction: Transaction]
+  delete: [transaction: Transaction]
 }>()
 </script>
 
@@ -34,7 +39,10 @@ const emit = defineEmits<{
       :key="transaction.id"
       :transaction="transaction"
       :clickable="clickable"
+      :show-actions="showActions"
       @click="emit('itemClick', $event)"
+      @edit="emit('edit', $event)"
+      @delete="emit('delete', $event)"
     />
   </n-list>
   <n-empty v-else :description="emptyText">

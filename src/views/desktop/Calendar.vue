@@ -8,11 +8,15 @@ import {
 } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 import { formatCurrency } from '@/hooks'
-import { TransactionList, MonthYearPicker } from '@/components/desktop'
-import type { CalendarDay, MonthCalendar } from '@/types'
+import { TransactionList, MonthYearPicker, EditTransactionModal } from '@/components/desktop'
+import type { CalendarDay, MonthCalendar, Transaction } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// 编辑弹窗状态
+const showEditModal = ref(false)
+const editingTransaction = ref<Transaction | null>(null)
 
 // 当前选择的年月
 const currentDate = new Date()
@@ -174,6 +178,17 @@ const goToNextMonth = () => {
 const navigateToEntry = () => {
   router.push('/desktop/entry')
 }
+
+// 编辑交易记录
+const handleEdit = (transaction: Transaction) => {
+  editingTransaction.value = transaction
+  showEditModal.value = true
+}
+
+// 删除交易记录
+const handleDelete = async (transaction: Transaction) => {
+  await userStore.deleteTransaction(transaction.id)
+}
 </script>
 
 <template>
@@ -277,11 +292,19 @@ const navigateToEntry = () => {
               hoverable
               empty-text="No transactions on this day"
               empty-icon="event_busy"
+              @edit="handleEdit"
+              @delete="handleDelete"
             />
           </n-card>
         </n-space>
       </div>
     </div>
+
+    <!-- 编辑弹窗 -->
+    <EditTransactionModal
+      v-model:show="showEditModal"
+      :transaction="editingTransaction"
+    />
   </div>
 </template>
 

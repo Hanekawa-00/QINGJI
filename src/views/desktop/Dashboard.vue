@@ -18,10 +18,15 @@ import {
   useChartData,
   useTransactions
 } from '@/hooks'
-import { GroupedTransactionList, MonthYearPicker, BarLineChart } from '@/components/desktop'
+import { GroupedTransactionList, MonthYearPicker, BarLineChart, EditTransactionModal } from '@/components/desktop'
+import type { Transaction } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
+
+// 编辑弹窗状态
+const showEditModal = ref(false)
+const editingTransaction = ref<Transaction | null>(null)
 
 // 统计卡片数据
 const statsCards = computed(() => [
@@ -77,6 +82,17 @@ const isCurrentMonth = computed(() => {
 // 导航到新建条目
 const navigateToEntry = () => {
   router.push('/desktop/entry')
+}
+
+// 编辑交易记录
+const handleEdit = (transaction: Transaction) => {
+  editingTransaction.value = transaction
+  showEditModal.value = true
+}
+
+// 删除交易记录
+const handleDelete = async (transaction: Transaction) => {
+  await userStore.deleteTransaction(transaction.id)
 }
 </script>
 
@@ -147,8 +163,16 @@ const navigateToEntry = () => {
         hoverable
         empty-text="No transactions this month"
         empty-icon="event_busy"
+        @edit="handleEdit"
+        @delete="handleDelete"
       />
     </n-card>
+
+    <!-- 编辑弹窗 -->
+    <EditTransactionModal
+      v-model:show="showEditModal"
+      :transaction="editingTransaction"
+    />
   </div>
 </template>
 

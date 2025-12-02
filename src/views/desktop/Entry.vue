@@ -148,8 +148,19 @@ const selectCategory = (categoryId: string) => {
   selectedCategory.value = categoryId
 }
 
+// 重置表单
+const resetForm = () => {
+  transactionType.value = 'expense'
+  amountDisplay.value = '0'
+  pendingOperator.value = null
+  storedValue.value = 0
+  description.value = ''
+  selectedDateTimestamp.value = Date.now()
+  selectedCategory.value = '1'
+}
+
 // 保存交易
-const saveTransaction = () => {
+const saveTransaction = async () => {
   const amount = parseFloat(amountDisplay.value)
   if (amount <= 0) {
     message.warning('Please enter a valid amount')
@@ -162,7 +173,7 @@ const saveTransaction = () => {
     return
   }
 
-  userStore.addTransaction({
+  await userStore.addTransaction({
     type: transactionType.value,
     amount,
     category: category.name,
@@ -170,13 +181,9 @@ const saveTransaction = () => {
     description: description.value || `${category.name} transaction`,
     date: selectedDate.value
   })
-
-  // 重置表单
-  amountDisplay.value = '0'
-  description.value = ''
-  selectedDateTimestamp.value = Date.now()
   
   message.success('Transaction saved successfully!')
+  resetForm()
 }
 </script>
 
