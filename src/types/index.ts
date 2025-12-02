@@ -53,3 +53,50 @@ export interface User {
   email?: string
   avatar?: string
 }
+
+/**
+ * 报告期间类型
+ */
+export type ReportPeriod = 'month' | 'year'
+
+/**
+ * 分类报告
+ */
+export interface CategoryReport {
+  categoryId: string
+  categoryName: string
+  categoryIcon: string
+  categoryColor: string
+  totalAmount: number
+  percentage: number
+  change: number // 相比上期的变化金额
+  changePercentage: number // 相比上期的变化百分比
+  transactionCount: number
+}
+
+/**
+ * 每日报告
+ */
+export interface DailyReport {
+  date: string
+  income: number
+  expense: number
+  balance: number
+}
+
+/**
+ * 时间范围统计
+ */
+export interface PeriodStatistics {
+  period: ReportPeriod
+  year: number
+  month?: number // 仅在 period 为 'month' 时有值
+  totalIncome: number
+  totalExpense: number
+  balance: number
+  avgDailyExpense: number
+  expenseChange: number // 相比上期的变化百分比
+  categoryReports: CategoryReport[]
+  dailyReports: DailyReport[]
+  dailyStats: number[] // 每日支出金额数组，用于图表显示
+}

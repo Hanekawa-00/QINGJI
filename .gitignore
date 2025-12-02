@@ -23,10 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 
-# ClaudeCode
-# CLAUDE.md 
-# .claude 
-# .mcp.json
+# ClaudeCode # doc # Codex # Qoder
 
-# doc
-# docs/
+CLAUDE.md 
+.claude 
+.mcp.json
+
+docs/
+
+AGENTS.md
+
+.qoder/
