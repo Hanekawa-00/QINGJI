@@ -22,6 +22,7 @@
   --color-primary-alpha-70: rgba(43, 215, 118, 0.7);
   
   /* ===== 中性色阶 ===== */
+  --color-background: #0b1210;  /* 默认深色，由主题系统动态更新 */
   --color-background-base: #ffffff;
   --color-background-dark: #0b1210;
   --color-surface: #111a16;

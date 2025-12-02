@@ -35,6 +35,11 @@ const menuOptions: MenuOption[] = [
     label: 'New Entry',
     key: '/desktop/entry',
     icon: renderIcon('edit_square')
+  },
+  {
+    label: 'Settings',
+    key: '/desktop/settings',
+    icon: renderIcon('settings')
   }
 ]
 
@@ -105,8 +110,8 @@ const formattedBalance = computed(() => {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(43, 215, 118, 0.2);
-  border: 1px solid rgba(43, 215, 118, 0.5);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 50%, transparent);
 }
 
 .logo-text {
@@ -142,7 +147,7 @@ const formattedBalance = computed(() => {
 }
 
 .sidebar-menu :deep(.n-menu-item-content--selected) {
-  box-shadow: 0 20px 40px rgba(43, 215, 118, 0.35);
+  box-shadow: 0 20px 40px color-mix(in srgb, var(--color-primary) 35%, transparent);
 }
 
 .menu-icon {
@@ -152,7 +157,7 @@ const formattedBalance = computed(() => {
 .balance-card {
   margin-top: auto;
   background: var(--color-surface) !important;
-  border-color: rgba(43, 215, 118, 0.2) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
 }
 
 .balance-card :deep(.n-statistic-value) {

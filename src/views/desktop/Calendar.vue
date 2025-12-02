@@ -362,14 +362,14 @@ const navigateToEntry = () => {
 /* 日历卡片 */
 .calendar-grid-card {
   background: var(--color-surface) !important;
-  border-color: rgba(43, 215, 118, 0.2) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
   overflow: hidden;
 }
 
 .month-stats-card,
 .day-transactions-card {
   background: var(--color-surface) !important;
-  border-color: rgba(43, 215, 118, 0.2) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
 }
 
 /* 交易列表文本溢出处理 */
@@ -427,7 +427,7 @@ const navigateToEntry = () => {
   min-width: 0;
   border-radius: 8px;
   border: 1px solid var(--color-border);
-  background: rgba(11, 18, 16, 0.6);
+  background: color-mix(in srgb, var(--color-background) 60%, transparent);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -437,7 +437,7 @@ const navigateToEntry = () => {
 }
 
 .calendar-day:hover {
-  border-color: rgba(43, 215, 118, 0.4);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .calendar-day.not-current-month {
@@ -449,9 +449,9 @@ const navigateToEntry = () => {
 }
 
 .calendar-day.selected {
-  border-color: rgba(43, 215, 118, 0.6);
-  background: rgba(43, 215, 118, 0.2);
-  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.25);
+  border-color: color-mix(in srgb, var(--color-primary) 60%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .day-number {

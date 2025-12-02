@@ -513,6 +513,25 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 添加新分类
+   */
+  function addCategory(data: { name: string; icon: string; type: 'expense' | 'income' }) {
+    const newId = String(Date.now())
+    const colors = ['#36a2e8', '#f6b756', '#ef5f9a', '#2bd776', '#9966ff', '#ff6b6b', '#4ecdc4']
+    const randomColor = colors[Math.floor(Math.random() * colors.length)]
+    
+    categories.value.push({
+      id: newId,
+      name: data.name,
+      icon: data.icon,
+      type: data.type,
+      color: randomColor
+    })
+    
+    return newId
+  }
+
   return {
     // 状态
     transactions,
@@ -530,6 +549,7 @@ export const useUserStore = defineStore('user', () => {
     addTransaction,
     deleteTransaction,
     updateTransaction,
-    getPeriodStatistics
+    getPeriodStatistics,
+    addCategory
   }
 })

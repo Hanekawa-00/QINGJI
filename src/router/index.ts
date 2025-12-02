@@ -34,6 +34,11 @@ const desktopRoutes = [
         path: 'entry',
         name: 'DesktopEntry',
         component: () => import('@/views/desktop/Entry.vue')
+      },
+      {
+        path: 'settings',
+        name: 'DesktopSettings',
+        component: () => import('@/views/desktop/Settings.vue')
       }
     ]
   }

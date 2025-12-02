@@ -5,3 +5,6 @@
 
 // ECharts 图表组件
 export { BarLineChart, PieChart } from './charts'
+
+// 主题切换组件
+export { default as ThemeSwitcher } from './ThemeSwitcher.vue'

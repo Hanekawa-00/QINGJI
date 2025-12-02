@@ -15,6 +15,7 @@ import {
   GridComponent
 } from 'echarts/components'
 import VChart, { THEME_KEY } from 'vue-echarts'
+import { useThemeStore } from '@/stores/theme.store'
 
 // 注册必要的 ECharts 组件
 use([
@@ -29,6 +30,10 @@ use([
 
 // 提供深色主题
 provide(THEME_KEY, 'dark')
+
+// 获取主题颜色
+const themeStore = useThemeStore()
+const colors = computed(() => themeStore.currentColors)
 
 interface ChartDataItem {
   label: string
@@ -58,17 +63,21 @@ const option = computed(() => {
 
   const series: any[] = []
 
+  const incomeColor = colors.value.income
+  const expenseColor = colors.value.expense
+  const primaryColor = colors.value.primary
+
   if (props.showIncome) {
     series.push({
       name: 'Income',
       type: props.type,
       data: incomeData,
       itemStyle: {
-        color: '#4de6a5',
+        color: incomeColor,
         borderRadius: props.type === 'bar' ? [4, 4, 0, 0] : 0
       },
       lineStyle: {
-        color: '#4de6a5',
+        color: incomeColor,
         width: 2
       },
       smooth: true,
@@ -83,11 +92,11 @@ const option = computed(() => {
       type: props.type,
       data: expenseData,
       itemStyle: {
-        color: '#ef5f9a',
+        color: expenseColor,
         borderRadius: props.type === 'bar' ? [4, 4, 0, 0] : 0
       },
       lineStyle: {
-        color: '#ef5f9a',
+        color: expenseColor,
         width: 2
       },
       smooth: true,
@@ -96,14 +105,18 @@ const option = computed(() => {
     })
   }
 
+  const surfaceColor = colors.value.surface
+  const textColor = colors.value.textStrong
+  const mutedColor = colors.value.textMuted
+
   return {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(17, 26, 22, 0.95)',
-      borderColor: 'rgba(43, 215, 118, 0.3)',
+      backgroundColor: surfaceColor + 'f2',
+      borderColor: primaryColor + '4d',
       textStyle: {
-        color: '#e8f5f0'
+        color: textColor
       },
       axisPointer: {
         type: props.type === 'bar' ? 'shadow' : 'line'
@@ -111,7 +124,7 @@ const option = computed(() => {
       formatter: (params: any) => {
         let result = `<div style="font-weight: 600; margin-bottom: 4px;">${params[0].axisValue}</div>`
         params.forEach((item: any) => {
-          const color = item.seriesName === 'Income' ? '#4de6a5' : '#ef5f9a'
+          const color = item.seriesName === 'Income' ? incomeColor : expenseColor
           result += `<div style="display: flex; justify-content: space-between; gap: 16px;">
             <span style="color: ${color};">● ${item.seriesName}</span>
             <span style="font-weight: 600;">$${item.value.toLocaleString()}</span>
@@ -124,7 +137,7 @@ const option = computed(() => {
       show: props.showIncome && props.showExpense,
       bottom: 0,
       textStyle: {
-        color: '#8fa89e'
+        color: mutedColor
       },
       itemWidth: 12,
       itemHeight: 12
@@ -141,14 +154,14 @@ const option = computed(() => {
       data: labels,
       axisLine: {
         lineStyle: {
-          color: 'rgba(43, 215, 118, 0.2)'
+          color: primaryColor + '33'
         }
       },
       axisTick: {
         show: false
       },
       axisLabel: {
-        color: '#8fa89e',
+        color: mutedColor,
         fontSize: 11,
         interval: props.data.length > 15 ? 'auto' : 0,
         rotate: props.data.length > 20 ? 45 : 0
@@ -158,7 +171,7 @@ const option = computed(() => {
       type: 'value',
       splitLine: {
         lineStyle: {
-          color: 'rgba(43, 215, 118, 0.1)'
+          color: primaryColor + '1a'
         }
       },
       axisLine: {
@@ -168,7 +181,7 @@ const option = computed(() => {
         show: false
       },
       axisLabel: {
-        color: '#8fa89e',
+        color: mutedColor,
         fontSize: 11,
         formatter: (value: number) => {
           if (value >= 1000) {

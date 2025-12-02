@@ -199,7 +199,7 @@ const navigateToEntry = () => {
 
 .stats-card {
   background: var(--color-surface) !important;
-  border-color: rgba(43, 215, 118, 0.2) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
 }
 
 .stats-card :deep(.n-statistic-value) {
@@ -221,7 +221,7 @@ const navigateToEntry = () => {
 
 .activity-chart-card {
   background: var(--color-surface) !important;
-  border-color: rgba(43, 215, 118, 0.2) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
   height: 100%;
 }
 
@@ -239,7 +239,7 @@ const navigateToEntry = () => {
 /* 交易卡片 */
 .transactions-card {
   background: var(--color-surface) !important;
-  border-color: rgba(43, 215, 118, 0.2) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
 }
 
 .transactions-header {

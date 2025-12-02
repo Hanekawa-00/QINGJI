@@ -4,6 +4,320 @@
  */
 
 import type { GlobalThemeOverrides } from 'naive-ui'
+import type { ThemeColors } from '@/types'
+
+/**
+ * 根据主题颜色生成 NaiveUI 深色主题覆盖
+ */
+export function createDarkThemeOverrides(colors: ThemeColors): GlobalThemeOverrides {
+  return {
+    common: {
+      primaryColor: colors.primary,
+      primaryColorHover: colors.primaryHover,
+      primaryColorPressed: colors.primaryPressed,
+      primaryColorSuppl: colors.primary,
+      
+      successColor: colors.primary,
+      successColorHover: colors.primaryHover,
+      successColorPressed: colors.primaryPressed,
+      
+      warningColor: '#f0b429',
+      warningColorHover: '#f5c142',
+      warningColorPressed: '#d9a224',
+      
+      errorColor: '#ef4444',
+      errorColorHover: '#f16464',
+      errorColorPressed: '#d93d3d',
+      
+      infoColor: '#3b82f6',
+      infoColorHover: '#5b9af7',
+      infoColorPressed: '#2563eb',
+      
+      bodyColor: colors.backgroundDark,
+      cardColor: colors.surface,
+      modalColor: colors.surface,
+      popoverColor: colors.surface,
+      tableColor: colors.surface,
+      inputColor: `${colors.backgroundDark}99`,
+      codeColor: colors.surface,
+      tagColor: `${colors.primary}1a`,
+      avatarColor: `${colors.primary}33`,
+      
+      borderColor: colors.border,
+      dividerColor: colors.border,
+      
+      textColorBase: colors.textStrong,
+      textColor1: colors.textStrong,
+      textColor2: colors.textMuted,
+      textColor3: colors.textMuted,
+      textColorDisabled: `${colors.textMuted}80`,
+      placeholderColor: colors.textMuted,
+      
+      borderRadius: '6px',
+      borderRadiusSmall: '4px',
+      
+      fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamilyMono: "'Consolas', 'Monaco', 'Courier New', monospace",
+      fontWeightStrong: '600',
+      
+      boxShadow1: '0 2px 4px rgba(0, 0, 0, 0.2)',
+      boxShadow2: '0 4px 8px rgba(0, 0, 0, 0.25)',
+      boxShadow3: '0 10px 20px rgba(0, 0, 0, 0.3)',
+      
+      hoverColor: `${colors.primary}14`,
+      pressedColor: `${colors.primary}1f`,
+    },
+    
+    Button: {
+      textColorPrimary: colors.backgroundDark,
+      textColorHoverPrimary: colors.backgroundDark,
+      textColorPressedPrimary: colors.backgroundDark,
+      textColorFocusPrimary: colors.backgroundDark,
+      colorPrimary: colors.primary,
+      colorHoverPrimary: colors.primaryHover,
+      colorPressedPrimary: colors.primaryPressed,
+      colorFocusPrimary: colors.primary,
+      borderPrimary: `1px solid ${colors.primary}`,
+      borderHoverPrimary: `1px solid ${colors.primaryHover}`,
+      borderPressedPrimary: `1px solid ${colors.primaryPressed}`,
+      
+      textColor: colors.textStrong,
+      color: 'transparent',
+      colorHover: `${colors.primary}1a`,
+      colorPressed: `${colors.primary}26`,
+      border: `1px solid ${colors.primary}33`,
+      borderHover: `1px solid ${colors.primary}66`,
+      borderPressed: `1px solid ${colors.primary}80`,
+      
+      borderRadiusMedium: '9999px',
+      borderRadiusSmall: '9999px',
+      borderRadiusLarge: '9999px',
+      borderRadiusTiny: '9999px',
+    },
+    
+    Card: {
+      color: colors.surface,
+      colorEmbedded: colors.backgroundDark,
+      borderColor: `${colors.primary}33`,
+      borderRadius: '16px',
+      titleTextColor: colors.textStrong,
+      textColor: colors.textStrong,
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.35)',
+    },
+    
+    Menu: {
+      color: 'transparent',
+      itemTextColor: colors.textStrong,
+      itemTextColorHover: colors.textStrong,
+      itemTextColorActive: colors.backgroundDark,
+      itemTextColorActiveHover: colors.backgroundDark,
+      itemTextColorChildActive: colors.primary,
+      itemColorHover: 'rgba(255, 255, 255, 0.05)',
+      itemColorActive: colors.primary,
+      itemColorActiveHover: colors.primaryHover,
+      borderRadius: '8px',
+      itemIconColor: colors.textStrong,
+      itemIconColorHover: colors.textStrong,
+      itemIconColorActive: colors.backgroundDark,
+      itemIconColorActiveHover: colors.backgroundDark,
+      itemIconColorChildActive: colors.primary,
+    },
+    
+    Input: {
+      color: `${colors.backgroundDark}99`,
+      colorFocus: `${colors.backgroundDark}cc`,
+      border: `1px solid ${colors.primary}33`,
+      borderHover: `1px solid ${colors.primary}66`,
+      borderFocus: `1px solid ${colors.primary}`,
+      textColor: colors.textStrong,
+      placeholderColor: colors.textMuted,
+      caretColor: colors.primary,
+      borderRadius: '8px',
+    },
+    
+    Radio: {
+      buttonTextColor: colors.textMuted,
+      buttonTextColorActive: colors.backgroundDark,
+      buttonColorActive: colors.primary,
+      buttonBorderColor: `${colors.primary}33`,
+      buttonBorderColorActive: colors.primary,
+      buttonBorderColorHover: `${colors.primary}66`,
+      boxShadowFocus: `0 0 12px ${colors.primary}66`,
+      buttonBoxShadowFocus: `0 0 12px ${colors.primary}66`,
+      dotColorActive: colors.primary,
+    },
+    
+    Tabs: {
+      tabTextColorLine: colors.textMuted,
+      tabTextColorActiveLine: colors.textStrong,
+      tabTextColorHoverLine: colors.textStrong,
+      barColor: colors.primary,
+      tabBorderColor: colors.border,
+      tabColorSegment: colors.surface,
+      tabTextColorSegment: colors.textMuted,
+      tabTextColorActiveSegment: colors.textStrong,
+      colorSegment: `${colors.primary}1a`,
+      tabColorActiveSegment: colors.primary,
+    },
+    
+    DataTable: {
+      thColor: colors.surface,
+      thTextColor: colors.textMuted,
+      tdColor: colors.surface,
+      tdTextColor: colors.textStrong,
+      borderColor: colors.border,
+      thColorHover: colors.surface,
+      tdColorHover: `${colors.primary}0d`,
+    },
+    
+    Statistic: {
+      valueTextColor: colors.textStrong,
+      labelTextColor: colors.textMuted,
+    },
+    
+    List: {
+      color: 'transparent',
+      colorHover: `${colors.primary}0d`,
+      textColor: colors.textStrong,
+      borderColor: colors.border,
+    },
+    
+    DatePicker: {
+      itemBorderRadius: '8px',
+      itemColorActive: colors.primary,
+      itemTextColorActive: colors.backgroundDark,
+      panelColor: colors.surface,
+      calendarTitleTextColor: colors.textStrong,
+    },
+    
+    Layout: {
+      color: colors.backgroundDark,
+      siderColor: `${colors.surface}b3`,
+      siderBorderColor: `${colors.border}cc`,
+      headerColor: colors.surface,
+      headerBorderColor: colors.border,
+    },
+    
+    Divider: {
+      color: colors.border,
+      textColor: colors.textMuted,
+    },
+    
+    Tag: {
+      colorBordered: `${colors.primary}1a`,
+      borderPrimary: `1px solid ${colors.primary}80`,
+      textColorPrimary: colors.primary,
+    },
+    
+    Icon: {
+      color: colors.textStrong,
+    },
+    
+    Scrollbar: {
+      color: `${colors.primary}4d`,
+      colorHover: `${colors.primary}80`,
+    },
+  }
+}
+
+/**
+ * 根据主题颜色生成 NaiveUI 浅色主题覆盖
+ */
+export function createLightThemeOverrides(colors: ThemeColors): GlobalThemeOverrides {
+  return {
+    common: {
+      primaryColor: colors.primary,
+      primaryColorHover: colors.primaryHover,
+      primaryColorPressed: colors.primaryPressed,
+      primaryColorSuppl: colors.primary,
+      
+      successColor: colors.primary,
+      successColorHover: colors.primaryHover,
+      successColorPressed: colors.primaryPressed,
+      
+      warningColor: '#f0b429',
+      warningColorHover: '#f5c142',
+      warningColorPressed: '#d9a224',
+      
+      errorColor: '#ef4444',
+      errorColorHover: '#f16464',
+      errorColorPressed: '#d93d3d',
+      
+      infoColor: '#3b82f6',
+      infoColorHover: '#5b9af7',
+      infoColorPressed: '#2563eb',
+      
+      bodyColor: colors.background,
+      cardColor: colors.surface,
+      modalColor: colors.surface,
+      popoverColor: colors.surface,
+      
+      borderColor: colors.border,
+      dividerColor: colors.border,
+      
+      textColorBase: colors.textStrong,
+      textColor1: colors.textStrong,
+      textColor2: colors.textMuted,
+      textColor3: colors.textMuted,
+      textColorDisabled: `${colors.textMuted}80`,
+      placeholderColor: colors.textMuted,
+      
+      borderRadius: '6px',
+      borderRadiusSmall: '4px',
+      
+      fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontFamilyMono: "'Consolas', 'Monaco', 'Courier New', monospace",
+      fontWeightStrong: '600',
+    },
+    
+    Button: {
+      textColorPrimary: '#ffffff',
+      colorPrimary: colors.primary,
+      colorHoverPrimary: colors.primaryHover,
+      colorPressedPrimary: colors.primaryPressed,
+    },
+    
+    Card: {
+      color: colors.surface,
+      borderColor: colors.border,
+      borderRadius: '16px',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
+    },
+    
+    Menu: {
+      color: 'transparent',
+      itemTextColor: colors.textStrong,
+      itemTextColorHover: colors.textStrong,
+      itemTextColorActive: '#ffffff',
+      itemTextColorActiveHover: '#ffffff',
+      itemTextColorChildActive: colors.primary,
+      itemIconColor: colors.textMuted,
+      itemIconColorHover: colors.textStrong,
+      itemIconColorActive: '#ffffff',
+      itemIconColorActiveHover: '#ffffff',
+      itemIconColorCollapsed: colors.textMuted,
+      itemColorHover: `${colors.primary}0d`,
+      itemColorActive: colors.primary,
+      itemColorActiveHover: colors.primaryHover,
+      borderRadius: '8px',
+    },
+    
+    Input: {
+      border: `1px solid ${colors.border}`,
+      borderHover: `1px solid ${colors.primary}`,
+      borderFocus: `1px solid ${colors.primary}`,
+      caretColor: colors.primary,
+      borderRadius: '8px',
+    },
+    
+    Radio: {
+      buttonTextColorActive: '#ffffff',
+      buttonColorActive: colors.primary,
+      buttonBorderColorActive: colors.primary,
+      dotColorActive: colors.primary,
+    },
+  }
+}
 
 /**
  * 深色主题覆盖

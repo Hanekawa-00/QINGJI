@@ -18,11 +18,13 @@ declare module 'vue' {
     NDatePicker: typeof import('naive-ui')['NDatePicker']
     NList: typeof import('naive-ui')['NList']
     NListItem: typeof import('naive-ui')['NListItem']
+    NPopover: typeof import('naive-ui')['NPopover']
     NTag: typeof import('naive-ui')['NTag']
     NThing: typeof import('naive-ui')['NThing']
     PieChart: typeof import('./src/components/common/charts/PieChart.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    ThemeSwitcher: typeof import('./src/components/common/ThemeSwitcher.vue')['default']
     TransactionItem: typeof import('./src/components/desktop/TransactionItem.vue')['default']
     TransactionList: typeof import('./src/components/desktop/TransactionList.vue')['default']
   }

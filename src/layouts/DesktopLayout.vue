@@ -44,14 +44,14 @@ const collapsedWidth = 0
 .desktop-layout {
   min-height: 100vh;
   min-width: 800px;
-  background: radial-gradient(circle at 15% 20%, #123125 0, rgba(18, 49, 37, 0) 28%),
-              radial-gradient(circle at 80% 10%, #1b2d2a 0, rgba(27, 45, 42, 0) 30%),
-              var(--color-background-dark);
+  background: radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--color-primary) 15%, var(--color-background)) 0, transparent 28%),
+              radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--color-primary) 10%, var(--color-background)) 0, transparent 30%),
+              var(--color-background);
 }
 
 .desktop-sider {
-  background: rgba(17, 26, 22, 0.7) !important;
-  border-right: 1px solid rgba(26, 43, 36, 0.8) !important;
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent) !important;
+  border-right: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent) !important;
 }
 
 .desktop-content {

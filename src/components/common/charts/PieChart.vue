@@ -14,6 +14,7 @@ import {
   LegendComponent
 } from 'echarts/components'
 import VChart, { THEME_KEY } from 'vue-echarts'
+import { useThemeStore } from '@/stores/theme.store'
 
 // 注册必要的 ECharts 组件
 use([
@@ -26,6 +27,10 @@ use([
 
 // 提供深色主题
 provide(THEME_KEY, 'dark')
+
+// 获取主题颜色
+const themeStore = useThemeStore()
+const colors = computed(() => themeStore.currentColors)
 
 interface ChartDataItem {
   name: string
@@ -52,21 +57,23 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const option = computed(() => {
+  const c = colors.value
+  
   return {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(17, 26, 22, 0.95)',
-      borderColor: 'rgba(43, 215, 118, 0.3)',
+      backgroundColor: c.surface + 'f2',
+      borderColor: c.primary + '4d',
       textStyle: {
-        color: '#e8f5f0'
+        color: c.textStrong
       },
       formatter: (params: any) => {
         return `<div style="font-weight: 600;">${params.name}</div>
           <div style="display: flex; justify-content: space-between; gap: 16px; margin-top: 4px;">
             <span style="color: ${params.color};">●</span>
             <span>$${params.value.toLocaleString()}</span>
-            <span style="color: #8fa89e;">(${params.percent}%)</span>
+            <span style="color: ${c.textMuted};">(${params.percent}%)</span>
           </div>`
       }
     },
@@ -83,7 +90,7 @@ const option = computed(() => {
             type: 'text',
             style: {
               text: props.centerLabel,
-              fill: '#8fa89e',
+              fill: c.textMuted,
               fontSize: 12,
               textAlign: 'center'
             },
@@ -93,7 +100,7 @@ const option = computed(() => {
             type: 'text',
             style: {
               text: props.centerValue,
-              fill: '#e8f5f0',
+              fill: c.textStrong,
               fontSize: 16,
               fontWeight: 'bold',
               textAlign: 'center'
@@ -111,7 +118,7 @@ const option = computed(() => {
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 4,
-          borderColor: '#111a16',
+          borderColor: c.surface,
           borderWidth: 2
         },
         label: {
@@ -137,9 +144,9 @@ const option = computed(() => {
       }
     ],
     color: [
-      '#2bd776',
-      '#4de6a5',
-      '#ef5f9a',
+      c.primary,
+      c.income,
+      c.expense,
       '#f7a35c',
       '#7cb5ec',
       '#8085e9',

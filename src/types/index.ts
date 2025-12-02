@@ -132,3 +132,43 @@ export interface MonthCalendar {
   totalExpense: number // 本月总支出
   balance: number // 本月余额
 }
+
+/**
+ * 主题模式
+ */
+export type ThemeMode = 'light' | 'dark' | 'system'
+
+/**
+ * 主题名称（预设主题）
+ */
+export type ThemeName = 'default' | 'ocean' | 'sunset' | 'forest' | 'lavender'
+
+/**
+ * 主题颜色配置
+ */
+export interface ThemeColors {
+  primary: string
+  primaryHover: string
+  primaryPressed: string
+  background: string
+  backgroundDark: string
+  surface: string
+  surfaceHover: string
+  border: string
+  textStrong: string
+  textMuted: string
+  income: string
+  expense: string
+}
+
+/**
+ * 主题配置
+ */
+export interface ThemeConfig {
+  name: ThemeName
+  label: string
+  colors: {
+    light: ThemeColors
+    dark: ThemeColors
+  }
+}

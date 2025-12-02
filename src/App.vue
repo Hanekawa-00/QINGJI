@@ -3,19 +3,22 @@ import { onMounted, computed } from 'vue'
 import { NConfigProvider, NGlobalStyle, NMessageProvider, NDialogProvider, NLoadingBarProvider, darkTheme } from 'naive-ui'
 import { useAppStore } from '@/stores/app.store'
 import { useThemeStore } from '@/stores/theme.store'
-import { darkThemeOverrides, lightThemeOverrides } from '@/config/naive-ui-theme'
+import { createDarkThemeOverrides, createLightThemeOverrides } from '@/config/naive-ui-theme'
 
 const appStore = useAppStore()
 const themeStore = useThemeStore()
 
 // 根据当前主题返回 NaiveUI 主题配置
 const naiveTheme = computed(() => {
-  return themeStore.activeTheme === 'dark' ? darkTheme : null
+  return themeStore.resolvedMode === 'dark' ? darkTheme : null
 })
 
-// 根据当前主题返回主题覆盖
+// 根据当前主题颜色动态生成主题覆盖
 const naiveThemeOverrides = computed(() => {
-  return themeStore.activeTheme === 'dark' ? darkThemeOverrides : lightThemeOverrides
+  const colors = themeStore.currentColors
+  return themeStore.resolvedMode === 'dark' 
+    ? createDarkThemeOverrides(colors) 
+    : createLightThemeOverrides(colors)
 })
 
 onMounted(async () => {
@@ -36,7 +39,7 @@ onMounted(async () => {
     <n-loading-bar-provider>
       <n-message-provider>
         <n-dialog-provider>
-          <div id="app" :data-theme="themeStore.activeTheme">
+          <div id="app" :data-theme="themeStore.resolvedMode">
             <router-view v-if="appStore.isInitialized" />
             <div v-else class="loading">
               <p>Loading...</p>

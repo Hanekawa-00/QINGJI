@@ -10,6 +10,9 @@ import {
   NRadioGroup,
   NRadioButton,
   NDatePicker,
+  NModal,
+  NForm,
+  NFormItem,
   useMessage
 } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
@@ -23,6 +26,13 @@ const transactionType = ref<TransactionType>('expense')
 
 // 金额输入
 const amountDisplay = ref('0')
+const pendingOperator = ref<'+' | '-' | null>(null)
+const storedValue = ref<number>(0)
+
+// 添加新分类
+const showAddCategory = ref(false)
+const newCategory = ref({ name: '', icon: 'category' })
+const categoryIcons = ['restaurant', 'local_cafe', 'shopping_bag', 'directions_car', 'home', 'sports_esports', 'movie', 'flight', 'fitness_center', 'pets', 'school', 'medical_services', 'attach_money', 'work', 'card_giftcard']
 
 // 选中的分类
 const selectedCategory = ref<string>('1') // 默认选择Food & Drink
@@ -46,10 +56,20 @@ const selectedDate = computed(() => {
 // 格式化金额显示
 const formattedAmount = computed(() => {
   const amount = parseFloat(amountDisplay.value) || 0
-  return new Intl.NumberFormat('en-US', {
+  const formatted = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD'
   }).format(amount)
+  
+  // 显示待计算状态
+  if (pendingOperator.value) {
+    const storedFormatted = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(storedValue.value)
+    return `${storedFormatted} ${pendingOperator.value} ${formatted}`
+  }
+  return formatted
 })
 
 // 分类列表（根据交易类型过滤）
@@ -70,8 +90,31 @@ const handleKeypad = (key: string) => {
       amountDisplay.value += '.'
     }
   } else if (key === '+' || key === '-') {
-    // 计算器功能（简化版本）
-    // 这里可以扩展实现完整的计算器功能
+    // 计算器功能
+    if (pendingOperator.value && storedValue.value !== 0) {
+      // 先计算之前的运算
+      const current = parseFloat(amountDisplay.value) || 0
+      if (pendingOperator.value === '+') {
+        amountDisplay.value = String(storedValue.value + current)
+      } else {
+        amountDisplay.value = String(storedValue.value - current)
+      }
+    }
+    storedValue.value = parseFloat(amountDisplay.value) || 0
+    pendingOperator.value = key as '+' | '-'
+    amountDisplay.value = '0'
+  } else if (key === '=') {
+    // 执行计算
+    if (pendingOperator.value && storedValue.value !== 0) {
+      const current = parseFloat(amountDisplay.value) || 0
+      if (pendingOperator.value === '+') {
+        amountDisplay.value = String(storedValue.value + current)
+      } else {
+        amountDisplay.value = String(Math.max(0, storedValue.value - current))
+      }
+      pendingOperator.value = null
+      storedValue.value = 0
+    }
   } else {
     // 数字输入
     if (amountDisplay.value === '0') {
@@ -80,6 +123,24 @@ const handleKeypad = (key: string) => {
       amountDisplay.value += key
     }
   }
+}
+
+// 添加新分类
+const handleAddCategory = () => {
+  if (!newCategory.value.name.trim()) {
+    message.warning('Please enter a category name')
+    return
+  }
+  
+  userStore.addCategory({
+    name: newCategory.value.name,
+    icon: newCategory.value.icon,
+    type: transactionType.value
+  })
+  
+  message.success('Category added!')
+  showAddCategory.value = false
+  newCategory.value = { name: '', icon: 'category' }
 }
 
 // 选择分类
@@ -159,7 +220,7 @@ const saveTransaction = () => {
                 <span class="material-symbols-outlined">{{ category.icon }}</span>
                 <span class="category-name">{{ category.name }}</span>
               </div>
-              <div class="category-item add-category">
+              <div class="category-item add-category" @click="showAddCategory = true">
                 <span class="material-symbols-outlined">add_circle</span>
                 <span class="category-name">Add New</span>
               </div>
@@ -219,13 +280,41 @@ const saveTransaction = () => {
               <span class="material-symbols-outlined">backspace</span>
             </n-button>
             
-            <n-button class="keypad-btn" @click="handleKeypad('.')">.</n-button>
+            <n-button class="keypad-btn operator" @click="handleKeypad('=')">=</n-button>
             <n-button class="keypad-btn" @click="handleKeypad('0')">0</n-button>
+            <n-button class="keypad-btn" @click="handleKeypad('.')">.</n-button>
             <n-button type="primary" class="keypad-btn save-btn" @click="saveTransaction">Save</n-button>
           </div>
         </n-card>
       </n-gi>
     </n-grid>
+
+    <!-- Add Category Modal -->
+    <n-modal v-model:show="showAddCategory" preset="card" title="Add New Category" style="width: 400px;">
+      <n-form>
+        <n-form-item label="Category Name">
+          <n-input v-model:value="newCategory.name" placeholder="Enter category name" />
+        </n-form-item>
+        <n-form-item label="Icon">
+          <div class="icon-picker">
+            <div
+              v-for="icon in categoryIcons"
+              :key="icon"
+              :class="['icon-option', { selected: newCategory.icon === icon }]"
+              @click="newCategory.icon = icon"
+            >
+              <span class="material-symbols-outlined">{{ icon }}</span>
+            </div>
+          </div>
+        </n-form-item>
+      </n-form>
+      <template #footer>
+        <n-space justify="end">
+          <n-button @click="showAddCategory = false">Cancel</n-button>
+          <n-button type="primary" @click="handleAddCategory">Add</n-button>
+        </n-space>
+      </template>
+    </n-modal>
   </div>
 </template>
 
@@ -293,7 +382,7 @@ const saveTransaction = () => {
 }
 
 .amount-value {
-  font-size: 2.25rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--color-text-strong);
   margin: 4px 0 0 0;
@@ -319,7 +408,7 @@ const saveTransaction = () => {
 
 @media (min-width: 768px) {
   .category-grid {
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
@@ -332,19 +421,19 @@ const saveTransaction = () => {
   border-radius: 12px;
   border: 1px solid var(--color-border);
   min-width: 80px;
-  background: rgba(11, 18, 16, 0.6);
+  background: color-mix(in srgb, var(--color-background) 60%, transparent);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .category-item:hover {
-  border-color: rgba(43, 215, 118, 0.4);
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 .category-item.selected {
   border-color: var(--color-primary);
-  background: rgba(43, 215, 118, 0.2);
-  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.25);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .category-item.selected .material-symbols-outlined {
@@ -395,7 +484,7 @@ const saveTransaction = () => {
   font-weight: 600 !important;
   border-radius: 50% !important;
   background: var(--color-surface) !important;
-  border: 1px solid rgba(43, 215, 118, 0.15) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
   color: var(--color-text-strong) !important;
   display: flex !important;
   align-items: center !important;
@@ -420,9 +509,41 @@ const saveTransaction = () => {
   height: 100% !important;
   border-radius: 9999px !important;
   background: var(--color-primary) !important;
-  color: var(--color-background-dark) !important;
-  border-color: rgba(43, 215, 118, 0.7) !important;
-  box-shadow: 0 10px 30px rgba(43, 215, 118, 0.35);
+  color: var(--color-background) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 70%, transparent) !important;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
   font-size: clamp(14px, 3vw, 18px) !important;
+}
+
+/* Icon Picker */
+.icon-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.icon-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icon-option:hover {
+  border-color: var(--color-primary);
+}
+
+.icon-option.selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.icon-option .material-symbols-outlined {
+  font-size: 24px;
 }
 </style>
