@@ -1,0 +1,9 @@
+/**
+ * 视图样式统一导入
+ * 在需要的组件中导入使用
+ */
+
+@import './dashboard.css';
+@import './calendar.css';
+@import './entry.css';
+@import './reports.css';

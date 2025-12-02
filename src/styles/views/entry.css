@@ -1,0 +1,234 @@
+/**
+ * Entry 记账页面样式
+ * 可跨平台复用的基础样式
+ */
+
+/* ===== 页面布局 ===== */
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ===== 页面头部 ===== */
+.entry-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 640px) {
+  .entry-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.entry-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 0;
+}
+
+.entry-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 4px 0 0 0;
+}
+
+.entry-content {
+  margin-top: 8px;
+}
+
+/* ===== 表单卡片 ===== */
+.form-card,
+.keypad-card {
+  background: var(--color-surface) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
+}
+
+/* ===== 类型和金额 ===== */
+.type-amount-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.amount-display {
+  text-align: right;
+}
+
+.amount-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.amount-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  margin: 4px 0 0 0;
+}
+
+/* ===== 分类选择 ===== */
+.category-section {
+  margin-bottom: 24px;
+}
+
+.section-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin: 0 0 12px 0;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .category-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  min-width: 80px;
+  background: color-mix(in srgb, var(--color-background) 60%, transparent);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-item:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+.category-item.selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+.category-item.selected .material-symbols-outlined {
+  color: var(--color-primary);
+}
+
+.category-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+/* ===== 描述输入 ===== */
+.description-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tag-buttons {
+  margin-top: 8px;
+}
+
+/* ===== 键盘区域 ===== */
+.keypad-label {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.keypad-card {
+  min-width: 280px;
+}
+
+.keypad-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.keypad-btn {
+  width: 100% !important;
+  aspect-ratio: 1 !important;
+  height: unset !important;
+  min-width: unset !important;
+  max-width: unset !important;
+  padding: 0 !important;
+  font-size: clamp(16px, 4vw, 22px) !important;
+  font-weight: 600 !important;
+  border-radius: 50% !important;
+  background: var(--color-surface) !important;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
+  color: var(--color-text-strong) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.keypad-btn:hover {
+  background: var(--color-surface-hover) !important;
+}
+
+.keypad-btn:active {
+  background: var(--color-surface-active) !important;
+}
+
+.keypad-btn.operator {
+  color: var(--color-primary) !important;
+}
+
+.keypad-btn.save-btn {
+  grid-column: span 2;
+  aspect-ratio: unset !important;
+  height: 100% !important;
+  border-radius: 9999px !important;
+  background: var(--color-primary) !important;
+  color: var(--color-background) !important;
+  border-color: color-mix(in srgb, var(--color-primary) 70%, transparent) !important;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  font-size: clamp(14px, 3vw, 18px) !important;
+}
+
+/* ===== Icon Picker ===== */
+.icon-picker {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.icon-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.icon-option:hover {
+  border-color: var(--color-primary);
+}
+
+.icon-option.selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-primary);
+}
+
+.icon-option .material-symbols-outlined {
+  font-size: 24px;
+}

@@ -8,161 +8,19 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Transaction, Category, Statistics, CategoryReport, DailyReport, PeriodStatistics, ReportPeriod } from '@/types'
 import * as db from '@/services/database'
+import { generateMockTransactions, defaultCategories } from './user/mock-data'
 
 export const useUserStore = defineStore('user', () => {
   // 数据库初始化状态
   const isInitialized = ref(false)
   const isLoading = ref(false)
   const dbError = ref<string | null>(null)
-  // 生成模拟数据的辅助函数
-  const generateMockData = (): Transaction[] => {
-    const now = new Date()
-    const currentYear = now.getFullYear()
-    const currentMonth = now.getMonth()
-    const currentDay = now.getDate()
-    
-    const data: Transaction[] = []
-    
-    // 上月数据（用于对比）
-    const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1
-    const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear
-    const lastMonthDays = new Date(lastMonthYear, lastMonth + 1, 0).getDate()
-    
-    // 上月收入
-    data.push({
-      id: 'lm-salary',
-      type: 'income',
-      amount: 5200.00,
-      category: 'Income',
-      categoryIcon: 'receipt_long',
-      description: 'Monthly Salary',
-      date: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-01`,
-      createdAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-01T09:00:00`,
-      updatedAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-01T09:00:00`
-    })
-    
-    // 上月支出 (随机分布)
-    const lastMonthExpenses = [
-      { day: 3, amount: 45.50, cat: 'Food & Drink', icon: 'restaurant', desc: 'Family Dinner' },
-      { day: 5, amount: 68.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
-      { day: 8, amount: 156.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Groceries' },
-      { day: 12, amount: 28.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee & Snacks' },
-      { day: 15, amount: 89.99, cat: 'Shopping', icon: 'shopping_cart', desc: 'Electronics' },
-      { day: 18, amount: 35.00, cat: 'Transport', icon: 'directions_car', desc: 'Parking Fee' },
-      { day: 22, amount: 42.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Lunch Meeting' },
-      { day: 25, amount: 120.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Clothing' },
-      { day: 28, amount: 55.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' }
-    ]
-    
-    lastMonthExpenses.forEach((exp, idx) => {
-      if (exp.day <= lastMonthDays) {
-        data.push({
-          id: `lm-${idx}`,
-          type: 'expense',
-          amount: exp.amount,
-          category: exp.cat,
-          categoryIcon: exp.icon,
-          description: exp.desc,
-          date: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}`,
-          createdAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${10 + idx}:00:00`,
-          updatedAt: `${lastMonthYear}-${String(lastMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${10 + idx}:00:00`
-        })
-      }
-    })
-    
-    // 本月收入
-    data.push({
-      id: 'cm-salary',
-      type: 'income',
-      amount: 5200.00,
-      category: 'Income',
-      categoryIcon: 'receipt_long',
-      description: 'Monthly Salary',
-      date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01`,
-      createdAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01T09:00:00`,
-      updatedAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-01T09:00:00`
-    })
-    
-    // 本月额外收入
-    if (currentDay >= 15) {
-      data.push({
-        id: 'cm-bonus',
-        type: 'income',
-        amount: 800.00,
-        category: 'Income',
-        categoryIcon: 'receipt_long',
-        description: 'Project Bonus',
-        date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15`,
-        createdAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15T14:00:00`,
-        updatedAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-15T14:00:00`
-      })
-    }
-    
-    // 本月支出 (根据当前日期动态生成)
-    const currentMonthExpenses = [
-      { day: 1, amount: 8.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Morning Coffee' },
-      { day: 1, amount: 25.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Dinner' },
-      { day: 2, amount: 45.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
-      { day: 2, amount: 22.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Lunch' },
-      { day: 3, amount: 135.50, cat: 'Shopping', icon: 'shopping_cart', desc: 'Groceries' },
-      { day: 4, amount: 12.00, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee' },
-      { day: 5, amount: 68.99, cat: 'Shopping', icon: 'shopping_cart', desc: 'Home Supplies' },
-      { day: 6, amount: 38.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Weekend Brunch' },
-      { day: 7, amount: 15.00, cat: 'Transport', icon: 'directions_car', desc: 'Parking' },
-      { day: 8, amount: 28.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee & Pastry' },
-      { day: 9, amount: 89.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Books' },
-      { day: 10, amount: 42.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Business Lunch' },
-      { day: 11, amount: 55.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
-      { day: 12, amount: 18.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Afternoon Tea' },
-      { day: 13, amount: 156.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Clothing' },
-      { day: 14, amount: 32.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Dinner Date' },
-      { day: 15, amount: 25.00, cat: 'Transport', icon: 'directions_car', desc: 'Car Wash' },
-      { day: 16, amount: 9.50, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee' },
-      { day: 17, amount: 78.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Electronics Accessories' },
-      { day: 18, amount: 45.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Family Dinner' },
-      { day: 19, amount: 62.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
-      { day: 20, amount: 15.00, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee Meeting' },
-      { day: 21, amount: 198.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Gift Shopping' },
-      { day: 22, amount: 35.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Lunch' },
-      { day: 23, amount: 20.00, cat: 'Transport', icon: 'directions_car', desc: 'Parking' },
-      { day: 24, amount: 125.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Groceries' },
-      { day: 25, amount: 55.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Holiday Dinner' },
-      { day: 26, amount: 48.00, cat: 'Transport', icon: 'directions_car', desc: 'Gas' },
-      { day: 27, amount: 85.00, cat: 'Shopping', icon: 'shopping_cart', desc: 'Home Decor' },
-      { day: 28, amount: 22.00, cat: 'Food & Drink', icon: 'local_cafe', desc: 'Coffee & Snacks' },
-      { day: 29, amount: 30.00, cat: 'Transport', icon: 'directions_car', desc: 'Toll Fee' },
-      { day: 30, amount: 42.00, cat: 'Food & Drink', icon: 'restaurant', desc: 'Dinner' }
-    ]
-    
-    currentMonthExpenses.forEach((exp, idx) => {
-      if (exp.day <= currentDay) {
-        data.push({
-          id: `cm-${idx}`,
-          type: 'expense',
-          amount: exp.amount,
-          category: exp.cat,
-          categoryIcon: exp.icon,
-          description: exp.desc,
-          date: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}`,
-          createdAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${8 + (idx % 12)}:${(idx * 7) % 60}:00`,
-          updatedAt: `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(exp.day).padStart(2, '0')}T${8 + (idx % 12)}:${(idx * 7) % 60}:00`
-        })
-      }
-    })
-    
-    return data
-  }
 
-  // 交易记录
-  const transactions = ref<Transaction[]>(generateMockData())
+  // 交易记录（初始使用模拟数据，数据库初始化后会被替换）
+  const transactions = ref<Transaction[]>(generateMockTransactions())
 
   // 分类列表
-  const categories = ref<Category[]>([
-    { id: '1', name: 'Food & Drink', icon: 'local_cafe', type: 'expense', color: '#36a2e8' },
-    { id: '2', name: 'Shopping', icon: 'shopping_cart', type: 'expense', color: '#f6b756' },
-    { id: '3', name: 'Transport', icon: 'directions_car', type: 'expense', color: '#ef5f9a' },
-    { id: '4', name: 'Income', icon: 'receipt_long', type: 'income', color: '#2bd776' }
-  ])
+  const categories = ref<Category[]>([...defaultCategories])
 
   /**
    * 计算总余额
