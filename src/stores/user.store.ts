@@ -264,9 +264,35 @@ export const useUserStore = defineStore('user', () => {
     const expenseChange = previousExpense === 0 ? 0 : 
       ((totalExpense - previousExpense) / previousExpense) * 100
 
-    // 计算平均每日支出
-    const daysInPeriod = period === 'month' ? 30 : 365
-    const avgDailyExpense = totalExpense / daysInPeriod
+    // 计算平均每日支出（当前期间使用实际天数）
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
+    const currentDay = now.getDate()
+    
+    let daysInPeriod: number
+    if (period === 'month') {
+      const targetMonth = month ?? 0
+      if (year === currentYear && targetMonth === currentMonth) {
+        // 当前月：从月初到今天的天数
+        daysInPeriod = currentDay
+      } else {
+        // 其他月份：该月的实际天数
+        daysInPeriod = new Date(year, targetMonth + 1, 0).getDate()
+      }
+    } else {
+      if (year === currentYear) {
+        // 当前年：从年初到今天的天数
+        const startOfYear = new Date(year, 0, 1)
+        daysInPeriod = Math.ceil((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      } else {
+        // 其他年份：该年的实际天数（考虑闰年）
+        const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0)
+        daysInPeriod = isLeapYear ? 366 : 365
+      }
+    }
+    
+    const avgDailyExpense = daysInPeriod > 0 ? totalExpense / daysInPeriod : 0
 
     // 通用分类报告计算函数
     const buildCategoryReports = (type: 'expense' | 'income') => {

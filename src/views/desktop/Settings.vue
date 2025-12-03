@@ -736,13 +736,13 @@ onMounted(() => {
           </div>
           <span class="setting-value">English</span>
         </div>
-        <div class="setting-item">
+        <!-- <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">Date Format</span>
             <span class="setting-description">How dates are displayed</span>
           </div>
           <span class="setting-value">YYYY-MM-DD</span>
-        </div>
+        </div> -->
       </n-card>
 
       <!-- 数据管理 -->
