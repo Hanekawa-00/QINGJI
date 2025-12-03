@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, h } from 'vue'
 import { 
   NCard, 
   NGrid, 
@@ -12,8 +12,6 @@ import {
   NRadioButton,
   NDatePicker,
   NModal,
-  NForm,
-  NFormItem,
   NSelect,
   NTooltip,
   useMessage
@@ -38,10 +36,11 @@ const amountDisplay = ref('0')
 const pendingOperator = ref<'+' | '-' | null>(null)
 const storedValue = ref<number>(0)
 
-// 添加新分类
-const showAddCategory = ref(false)
+// 分类管理
+const showCategoryManager = ref(false)
+const editingCategory = ref<{ id: string; name: string; icon: string } | null>(null)
 const newCategory = ref({ name: '', icon: 'category' })
-const categoryIcons = ['restaurant', 'local_cafe', 'shopping_bag', 'directions_car', 'home', 'sports_esports', 'movie', 'flight', 'fitness_center', 'pets', 'school', 'medical_services', 'attach_money', 'work', 'card_giftcard']
+const categoryIcons = ['restaurant', 'local_cafe', 'shopping_bag', 'directions_car', 'home', 'sports_esports', 'movie', 'flight', 'fitness_center', 'pets', 'school', 'medical_services', 'attach_money', 'work', 'card_giftcard', 'savings', 'payments', 'credit_card', 'account_balance', 'wallet']
 
 // 选中的分类
 const selectedCategory = ref<string>('1') // 默认选择Food & Drink
@@ -226,22 +225,67 @@ const handleKeypad = (key: string) => {
   }
 }
 
+// ==================== 分类管理 ====================
+
 // 添加新分类
-const handleAddCategory = () => {
+const handleAddCategory = async () => {
   if (!newCategory.value.name.trim()) {
     message.warning('Please enter a category name')
     return
   }
   
-  userStore.addCategory({
+  await userStore.addCategory({
     name: newCategory.value.name,
     icon: newCategory.value.icon,
     type: transactionType.value
   })
   
   message.success('Category added!')
-  showAddCategory.value = false
   newCategory.value = { name: '', icon: 'category' }
+}
+
+// 开始编辑分类
+const startEditCategory = (category: { id: string; name: string; icon: string }) => {
+  editingCategory.value = { ...category }
+}
+
+// 保存编辑分类
+const handleUpdateCategory = async () => {
+  if (!editingCategory.value) return
+  
+  if (!editingCategory.value.name.trim()) {
+    message.warning('Category name cannot be empty')
+    return
+  }
+  
+  await userStore.updateCategory(editingCategory.value.id, {
+    name: editingCategory.value.name,
+    icon: editingCategory.value.icon
+  })
+  
+  message.success('Category updated!')
+  editingCategory.value = null
+}
+
+// 取消编辑
+const cancelEditCategory = () => {
+  editingCategory.value = null
+}
+
+// 删除分类
+const handleDeleteCategory = async (categoryId: string) => {
+  const success = await userStore.deleteCategory(categoryId)
+  
+  if (success) {
+    message.success('Category deleted!')
+    // 如果删除的是当前选中的分类，重置选择
+    if (selectedCategory.value === categoryId) {
+      const firstCategory = availableCategories.value[0]
+      selectedCategory.value = firstCategory?.id || ''
+    }
+  } else {
+    message.error('Cannot delete category that has transactions')
+  }
 }
 
 // 选择分类
@@ -381,9 +425,9 @@ const saveTransaction = async () => {
                 <span class="material-symbols-outlined">{{ category.icon }}</span>
                 <span class="category-name">{{ category.name }}</span>
               </div>
-              <div class="category-item add-category" @click="showAddCategory = true">
-                <span class="material-symbols-outlined">add_circle</span>
-                <span class="category-name">Add New</span>
+              <div class="category-item add-category" @click="showCategoryManager = true">
+                <span class="material-symbols-outlined">settings</span>
+                <span class="category-name">Manage</span>
               </div>
             </div>
           </div>
@@ -450,29 +494,93 @@ const saveTransaction = async () => {
       </n-gi>
     </n-grid>
 
-    <!-- Add Category Modal -->
-    <n-modal v-model:show="showAddCategory" preset="card" title="Add New Category" style="width: 400px;">
-      <n-form>
-        <n-form-item label="Category Name">
-          <n-input v-model:value="newCategory.name" placeholder="Enter category name" />
-        </n-form-item>
-        <n-form-item label="Icon">
-          <div class="icon-picker">
-            <div
-              v-for="icon in categoryIcons"
-              :key="icon"
-              :class="['icon-option', { selected: newCategory.icon === icon }]"
-              @click="newCategory.icon = icon"
-            >
-              <span class="material-symbols-outlined">{{ icon }}</span>
-            </div>
+    <!-- Category Manager Modal -->
+    <n-modal v-model:show="showCategoryManager" preset="card" title="Manage Categories" style="width: 500px;">
+      <!-- 现有分类列表 -->
+      <div class="category-manager">
+        <p class="manager-subtitle">{{ transactionType === 'expense' ? 'Expense' : 'Income' }} Categories</p>
+        
+        <div class="category-list">
+          <div 
+            v-for="category in availableCategories" 
+            :key="category.id"
+            class="category-list-item"
+          >
+            <!-- 编辑模式 -->
+            <template v-if="editingCategory?.id === category.id">
+              <div class="edit-form">
+                <n-input 
+                  v-model:value="editingCategory.name" 
+                  placeholder="Category name"
+                  size="small"
+                  style="flex: 1"
+                />
+                <n-select
+                  v-model:value="editingCategory.icon"
+                  :options="categoryIcons.map(i => ({ label: i, value: i }))"
+                  size="small"
+                  style="width: 120px"
+                  :render-label="(option: any) => h('span', { class: 'material-symbols-outlined', style: 'font-size: 18px' }, option.label)"
+                />
+                <n-button size="small" type="primary" @click="handleUpdateCategory">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">check</span>
+                </n-button>
+                <n-button size="small" @click="cancelEditCategory">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+                </n-button>
+              </div>
+            </template>
+            
+            <!-- 显示模式 -->
+            <template v-else>
+              <div class="category-info">
+                <span class="material-symbols-outlined">{{ category.icon }}</span>
+                <span class="category-label">{{ category.name }}</span>
+              </div>
+              <div class="category-actions">
+                <n-button quaternary size="small" @click="startEditCategory(category)">
+                  <span class="material-symbols-outlined" style="font-size: 16px;">edit</span>
+                </n-button>
+                <n-button quaternary size="small" @click="handleDeleteCategory(category.id)">
+                  <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-expense);">delete</span>
+                </n-button>
+              </div>
+            </template>
           </div>
-        </n-form-item>
-      </n-form>
+          
+          <!-- 空状态 -->
+          <div v-if="availableCategories.length === 0" class="empty-categories">
+            No categories yet
+          </div>
+        </div>
+        
+        <!-- 添加新分类 -->
+        <div class="add-category-section">
+          <p class="manager-subtitle">Add New Category</p>
+          <div class="add-category-form">
+            <n-input 
+              v-model:value="newCategory.name" 
+              placeholder="Category name" 
+              size="small"
+              style="flex: 1"
+            />
+            <n-select
+              v-model:value="newCategory.icon"
+              :options="categoryIcons.map(i => ({ label: i, value: i }))"
+              size="small"
+              style="width: 120px"
+              :render-label="(option: any) => h('span', { class: 'material-symbols-outlined', style: 'font-size: 18px' }, option.label)"
+            />
+            <n-button type="primary" size="small" @click="handleAddCategory">
+              <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+            </n-button>
+          </div>
+        </div>
+      </div>
+      
       <template #footer>
         <n-space justify="end">
-          <n-button @click="showAddCategory = false">Cancel</n-button>
-          <n-button type="primary" @click="handleAddCategory">Add</n-button>
+          <n-button @click="showCategoryManager = false">Done</n-button>
         </n-space>
       </template>
     </n-modal>
@@ -753,5 +861,82 @@ const saveTransaction = async () => {
 
 .icon-option .material-symbols-outlined {
   font-size: 24px;
+}
+
+/* Category Manager */
+.category-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.manager-subtitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.category-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: var(--color-surface);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.category-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.category-info .material-symbols-outlined {
+  font-size: 20px;
+  color: var(--color-primary);
+}
+
+.category-label {
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.category-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.edit-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.empty-categories {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text-muted);
+}
+
+.add-category-section {
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+}
+
+.add-category-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 </style>

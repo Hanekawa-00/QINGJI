@@ -100,6 +100,41 @@ export async function deleteCategory(id: string): Promise<void> {
   await database.execute('DELETE FROM categories WHERE id = $1', [id])
 }
 
+/**
+ * 更新分类
+ */
+export async function updateCategory(id: string, data: Partial<Omit<Category, 'id'>>): Promise<void> {
+  const database = await getDatabase()
+  const updates: string[] = []
+  const values: (string | number)[] = []
+  let paramIndex = 1
+  
+  if (data.name !== undefined) {
+    updates.push(`name = $${paramIndex++}`)
+    values.push(data.name)
+  }
+  if (data.icon !== undefined) {
+    updates.push(`icon = $${paramIndex++}`)
+    values.push(data.icon)
+  }
+  if (data.type !== undefined) {
+    updates.push(`type = $${paramIndex++}`)
+    values.push(data.type)
+  }
+  if (data.color !== undefined) {
+    updates.push(`color = $${paramIndex++}`)
+    values.push(data.color)
+  }
+  
+  if (updates.length > 0) {
+    values.push(id)
+    await database.execute(
+      `UPDATE categories SET ${updates.join(', ')} WHERE id = $${paramIndex}`,
+      values
+    )
+  }
+}
+
 // ==================== 交易操作 ====================
 
 /**

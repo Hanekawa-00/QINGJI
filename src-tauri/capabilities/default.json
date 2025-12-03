@@ -23,6 +23,15 @@
     "dialog:allow-message",
     "fs:allow-write-text-file",
     "fs:allow-read-text-file",
-    "log:allow-log"
+    "store:allow-load",
+    "store:allow-delete",
+    "log:allow-log",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://**" },
+        { "url": "http://**" }
+      ]
+    }
   ]
 }

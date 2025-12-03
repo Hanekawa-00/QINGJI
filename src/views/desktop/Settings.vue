@@ -4,7 +4,7 @@
  * 包含主题设置、应用配置等
  */
 import { ref, computed, onMounted, watch } from 'vue'
-import { NCard, NSelect, NSpin, NProgress, useDialog, useMessage } from 'naive-ui'
+import { NCard, NSelect, NSpin, NProgress, NInput, useDialog, useMessage } from 'naive-ui'
 import { ThemeSwitcher } from '@/components/common'
 import { useCurrencyStore, useUserStore } from '@/stores'
 import type { CurrencyCode } from '@/types'
@@ -18,6 +18,18 @@ import {
   type ExportData,
   type CSVImportResult
 } from '@/services/data-transfer'
+import {
+  loadWebDAVConfig,
+  saveWebDAVConfig,
+  clearWebDAVConfig,
+  testConnection,
+  uploadToWebDAV,
+  downloadFromWebDAV,
+  loadSyncStatus,
+  WEBDAV_PRESETS,
+  type WebDAVConfig,
+  type SyncStatus
+} from '@/services/webdav'
 
 const currencyStore = useCurrencyStore()
 const userStore = useUserStore()
@@ -357,6 +369,190 @@ async function doImport(data: ExportData) {
     message.error('Failed to import data')
   }
 }
+
+// ==================== WebDAV 同步 ====================
+const webdavConfig = ref<WebDAVConfig>({
+  serverUrl: '',
+  username: '',
+  password: '',
+  remotePath: '/Qingzhang',
+  autoSync: false,
+  syncInterval: 30
+})
+const syncStatus = ref<SyncStatus>({
+  lastSyncTime: null,
+  lastSyncResult: null,
+  isSyncing: false
+})
+const isConfigured = ref(false)
+const isTesting = ref(false)
+const isSyncing = ref(false)
+
+// 预设选项
+const presetOptions = [
+  { label: '坚果云', value: 'jianguoyun' },
+  { label: 'Nextcloud', value: 'nextcloud' },
+  { label: 'ownCloud', value: 'owncloud' },
+  { label: '自定义', value: 'custom' }
+]
+const selectedPreset = ref('custom')
+
+// 加载 WebDAV 配置
+async function loadConfig() {
+  const config = await loadWebDAVConfig()
+  if (config) {
+    webdavConfig.value = config
+    isConfigured.value = true
+    
+    // 检测预设
+    if (config.serverUrl.includes('jianguoyun')) {
+      selectedPreset.value = 'jianguoyun'
+    }
+  }
+  
+  syncStatus.value = await loadSyncStatus()
+}
+
+// 应用预设
+function applyPreset(preset: string) {
+  const presetConfig = WEBDAV_PRESETS[preset as keyof typeof WEBDAV_PRESETS]
+  if (presetConfig) {
+    webdavConfig.value.serverUrl = presetConfig.serverUrl
+    webdavConfig.value.remotePath = presetConfig.defaultPath
+  }
+}
+
+// 监听预设变化
+watch(selectedPreset, (preset) => {
+  applyPreset(preset)
+})
+
+// 测试连接
+async function handleTestConnection() {
+  if (!webdavConfig.value.serverUrl || !webdavConfig.value.username) {
+    message.warning('Please fill in server URL and username')
+    return
+  }
+  
+  isTesting.value = true
+  try {
+    const result = await testConnection(webdavConfig.value)
+    if (result.success) {
+      message.success(result.message)
+    } else {
+      message.error(result.message)
+    }
+  } catch (error) {
+    message.error('Connection test failed')
+  } finally {
+    isTesting.value = false
+  }
+}
+
+// 保存配置
+async function handleSaveConfig() {
+  if (!webdavConfig.value.serverUrl || !webdavConfig.value.username) {
+    message.warning('Please fill in required fields')
+    return
+  }
+  
+  try {
+    await saveWebDAVConfig(webdavConfig.value)
+    isConfigured.value = true
+    message.success('WebDAV configuration saved')
+  } catch (error) {
+    message.error('Failed to save configuration')
+  }
+}
+
+// 清除配置
+async function handleClearConfig() {
+  dialog.warning({
+    title: 'Clear WebDAV Configuration',
+    content: 'This will remove all WebDAV settings. Continue?',
+    positiveText: 'Clear',
+    negativeText: 'Cancel',
+    onPositiveClick: async () => {
+      await clearWebDAVConfig()
+      webdavConfig.value = {
+        serverUrl: '',
+        username: '',
+        password: '',
+        remotePath: '/Qingzhang',
+        autoSync: false,
+        syncInterval: 30
+      }
+      isConfigured.value = false
+      message.success('Configuration cleared')
+    }
+  })
+}
+
+// 上传到云端
+async function handleUpload() {
+  if (!isConfigured.value) {
+    message.warning('Please configure WebDAV first')
+    return
+  }
+  
+  isSyncing.value = true
+  try {
+    const result = await uploadToWebDAV(
+      webdavConfig.value,
+      userStore.transactions,
+      userStore.categories,
+      currencyStore.primaryCurrency
+    )
+    
+    if (result.success) {
+      message.success(result.message)
+      syncStatus.value = await loadSyncStatus()
+    } else {
+      message.error(result.error || 'Upload failed')
+    }
+  } catch (error) {
+    message.error('Upload failed')
+  } finally {
+    isSyncing.value = false
+  }
+}
+
+// 从云端下载
+async function handleDownload() {
+  if (!isConfigured.value) {
+    message.warning('Please configure WebDAV first')
+    return
+  }
+  
+  isSyncing.value = true
+  try {
+    const result = await downloadFromWebDAV(webdavConfig.value)
+    
+    if (result.success && result.data) {
+      dialog.warning({
+        title: 'Restore from Cloud',
+        content: `Found ${result.data.transactions.length} transactions and ${result.data.categories.length} categories. This will merge with your current data. Continue?`,
+        positiveText: 'Restore',
+        negativeText: 'Cancel',
+        onPositiveClick: async () => {
+          await doImport(result.data!)
+          syncStatus.value = await loadSyncStatus()
+        }
+      })
+    } else {
+      message.error(result.error || 'Download failed')
+    }
+  } catch (error) {
+    message.error('Download failed')
+  } finally {
+    isSyncing.value = false
+  }
+}
+
+// 初始化加载配置
+onMounted(() => {
+  loadConfig()
+})
 </script>
 
 <template>
@@ -506,6 +702,122 @@ async function doImport(data: ExportData) {
         </div>
       </n-card>
 
+      <!-- WebDAV 云同步 -->
+      <n-card class="settings-card" title="Cloud Sync (WebDAV)">
+        <template #header-extra>
+          <span class="material-symbols-outlined">cloud_sync</span>
+        </template>
+        
+        <!-- 服务商预设 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Service Provider</span>
+            <span class="setting-description">Select your WebDAV provider or use custom</span>
+          </div>
+          <n-select
+            v-model:value="selectedPreset"
+            :options="presetOptions"
+            style="width: 160px"
+          />
+        </div>
+        
+        <!-- 服务器地址 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Server URL</span>
+            <span class="setting-description">WebDAV server address</span>
+          </div>
+          <n-input
+            v-model:value="webdavConfig.serverUrl"
+            placeholder="https://dav.example.com"
+            style="width: 280px"
+          />
+        </div>
+        
+        <!-- 用户名 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Username</span>
+            <span class="setting-description">Your account username</span>
+          </div>
+          <n-input
+            v-model:value="webdavConfig.username"
+            placeholder="username"
+            style="width: 200px"
+          />
+        </div>
+        
+        <!-- 密码 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Password</span>
+            <span class="setting-description">App-specific password recommended</span>
+          </div>
+          <n-input
+            v-model:value="webdavConfig.password"
+            type="password"
+            show-password-on="click"
+            placeholder="password"
+            style="width: 200px"
+          />
+        </div>
+        
+        <!-- 远程路径 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Remote Path</span>
+            <span class="setting-description">Folder path on server</span>
+          </div>
+          <n-input
+            v-model:value="webdavConfig.remotePath"
+            placeholder="/Qingzhang"
+            style="width: 160px"
+          />
+        </div>
+        
+        <!-- 配置操作按钮 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Configuration</span>
+            <span class="setting-description">Test connection and save settings</span>
+          </div>
+          <div class="export-buttons">
+            <button class="setting-btn" :disabled="isTesting" @click="handleTestConnection">
+              <n-spin v-if="isTesting" :size="14" />
+              <span v-else>Test</span>
+            </button>
+            <button class="setting-btn" @click="handleSaveConfig">Save</button>
+            <button v-if="isConfigured" class="setting-btn danger" @click="handleClearConfig">Clear</button>
+          </div>
+        </div>
+        
+        <!-- 同步操作 -->
+        <div v-if="isConfigured" class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Sync Actions</span>
+            <span class="setting-description">
+              {{ syncStatus.lastSyncTime ? `Last sync: ${new Date(syncStatus.lastSyncTime).toLocaleString()}` : 'Never synced' }}
+            </span>
+          </div>
+          <div class="export-buttons">
+            <button class="setting-btn primary" :disabled="isSyncing" @click="handleUpload">
+              <n-spin v-if="isSyncing" :size="14" />
+              <template v-else>
+                <span class="material-symbols-outlined" style="font-size: 16px;">cloud_upload</span>
+                Upload
+              </template>
+            </button>
+            <button class="setting-btn" :disabled="isSyncing" @click="handleDownload">
+              <n-spin v-if="isSyncing" :size="14" />
+              <template v-else>
+                <span class="material-symbols-outlined" style="font-size: 16px;">cloud_download</span>
+                Download
+              </template>
+            </button>
+          </div>
+        </div>
+      </n-card>
+
       <!-- 关于 -->
       <n-card class="settings-card" title="About">
         <template #header-extra>
@@ -635,6 +947,30 @@ async function doImport(data: ExportData) {
 .setting-btn .material-symbols-outlined {
   font-size: 16px;
   margin-right: 4px;
+}
+
+.setting-btn.primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-background);
+}
+
+.setting-btn.primary:hover {
+  background: color-mix(in srgb, var(--color-primary) 85%, white);
+}
+
+.setting-btn.danger {
+  border-color: var(--color-expense);
+  color: var(--color-expense);
+}
+
+.setting-btn.danger:hover {
+  background: color-mix(in srgb, var(--color-expense) 15%, transparent);
+}
+
+.setting-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 导出按钮组 */

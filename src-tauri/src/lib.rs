@@ -74,6 +74,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_http::init())
         // Logging for debugging
         .plugin(tauri_plugin_log::Builder::new().targets([
             Target::new(TargetKind::Stdout),

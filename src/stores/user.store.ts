@@ -515,6 +515,59 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * 更新分类
+   */
+  async function updateCategory(id: string, data: { name?: string; icon?: string }) {
+    const category = categories.value.find(c => c.id === id)
+    if (!category) return
+    
+    if (isInitialized.value) {
+      try {
+        await db.updateCategory(id, data)
+      } catch (error) {
+        console.error('Failed to update category:', error)
+        dbError.value = String(error)
+        return
+      }
+    }
+    
+    // 更新本地状态
+    if (data.name !== undefined) category.name = data.name
+    if (data.icon !== undefined) category.icon = data.icon
+  }
+
+  /**
+   * 删除分类
+   */
+  async function deleteCategory(id: string) {
+    // 检查是否有交易使用此分类
+    const category = categories.value.find(c => c.id === id)
+    if (!category) return false
+    
+    const hasTransactions = transactions.value.some(t => t.category === category.name)
+    if (hasTransactions) {
+      return false // 有交易使用此分类，不允许删除
+    }
+    
+    if (isInitialized.value) {
+      try {
+        await db.deleteCategory(id)
+      } catch (error) {
+        console.error('Failed to delete category:', error)
+        dbError.value = String(error)
+        return false
+      }
+    }
+    
+    // 从本地状态移除
+    const index = categories.value.findIndex(c => c.id === id)
+    if (index !== -1) {
+      categories.value.splice(index, 1)
+    }
+    return true
+  }
+
   return {
     // 状态
     transactions,
@@ -538,6 +591,8 @@ export const useUserStore = defineStore('user', () => {
     deleteTransaction,
     updateTransaction,
     getPeriodStatistics,
-    addCategory
+    addCategory,
+    updateCategory,
+    deleteCategory
   }
 })
