@@ -8,12 +8,43 @@
 export type TransactionType = 'income' | 'expense'
 
 /**
+ * 支持的币种代码
+ */
+export type CurrencyCode = 
+  | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' 
+  | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
+  | 'KRW' | 'INR' | 'RUB' | 'BRL' | 'MXN'
+  | 'TWD' | 'THB' | 'MYR' | 'PHP' | 'IDR'
+
+/**
+ * 币种信息
+ */
+export interface Currency {
+  code: CurrencyCode
+  name: string
+  symbol: string
+  flag: string // emoji flag
+}
+
+/**
+ * 汇率数据
+ */
+export interface ExchangeRates {
+  base: CurrencyCode
+  date: string
+  rates: Record<string, number>
+}
+
+/**
  * 交易记录
  */
 export interface Transaction {
   id: string
   type: TransactionType
-  amount: number
+  amount: number              // 原始金额
+  currency: CurrencyCode      // 原始币种
+  convertedAmount: number     // 转换后的主币种金额
+  exchangeRate: number        // 记录时的汇率
   category: string
   categoryIcon: string
   description: string

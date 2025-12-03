@@ -4,9 +4,9 @@
  * 支持编辑/删除操作
  * 可跨平台复用（桌面端/移动端）
  */
-import { h } from 'vue'
+import { h, computed } from 'vue'
 import { NListItem, NThing, NDropdown, NButton, useDialog, useMessage } from 'naive-ui'
-import { formatTransactionAmount, getAmountColor } from '@/hooks'
+import { formatWithCurrency, getAmountColor } from '@/hooks'
 import type { Transaction } from '@/types'
 
 interface Props {
@@ -28,6 +28,13 @@ const emit = defineEmits<{
 
 const dialog = useDialog()
 const message = useMessage()
+
+// 格式化原始金额（使用交易记录的原始币种）
+const formattedAmount = computed(() => {
+  const currency = props.transaction.currency || 'USD'
+  const formatted = formatWithCurrency(props.transaction.amount, currency)
+  return props.transaction.type === 'income' ? `+${formatted}` : `-${formatted}`
+})
 
 // 下拉菜单选项
 const dropdownOptions = [
@@ -84,7 +91,7 @@ const handleSelect = (key: string) => {
           class="transaction-amount" 
           :style="{ color: getAmountColor(transaction.type) }"
         >
-          {{ formatTransactionAmount(transaction) }}
+          {{ formattedAmount }}
         </span>
         <n-dropdown 
           v-if="showActions"

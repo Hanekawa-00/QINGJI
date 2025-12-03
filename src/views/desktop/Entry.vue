@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { 
   NCard, 
   NGrid, 
@@ -13,13 +13,20 @@ import {
   NModal,
   NForm,
   NFormItem,
+  NSelect,
   useMessage
 } from 'naive-ui'
-import { useUserStore } from '@/stores/user.store'
-import type { TransactionType } from '@/types'
+import { useUserStore, useCurrencyStore } from '@/stores'
+import type { TransactionType, CurrencyCode } from '@/types'
 
 const userStore = useUserStore()
+const currencyStore = useCurrencyStore()
 const message = useMessage()
+
+// 初始化币种 store
+onMounted(() => {
+  currencyStore.initialize()
+})
 
 // 交易类型
 const transactionType = ref<TransactionType>('expense')
@@ -43,6 +50,29 @@ const description = ref('')
 // 日期 (NDatePicker 使用时间戳)
 const selectedDateTimestamp = ref<number>(Date.now())
 
+// 选中的币种（默认使用主币种）
+const selectedCurrency = ref<CurrencyCode>('USD')
+
+// 初始化时设置默认币种为主币种
+watch(() => currencyStore.primaryCurrency, (newVal) => {
+  if (newVal && selectedCurrency.value === 'USD') {
+    selectedCurrency.value = newVal
+  }
+}, { immediate: true })
+
+// 币种选项
+const currencyOptions = computed(() => 
+  currencyStore.availableCurrencies.map(c => ({
+    label: `${c.flag} ${c.code}`,
+    value: c.code
+  }))
+)
+
+// 当前币种信息
+const currentCurrencyInfo = computed(() => 
+  currencyStore.getCurrencyInfo(selectedCurrency.value)
+)
+
 // 格式化日期用于提交（使用本地时间避免时区问题）
 const selectedDate = computed(() => {
   const date = new Date(selectedDateTimestamp.value)
@@ -52,24 +82,44 @@ const selectedDate = computed(() => {
   return `${year}-${month}-${day}`
 })
 
+// 计算转换后的金额
+const convertedAmountInfo = computed(() => {
+  const amount = parseFloat(amountDisplay.value) || 0
+  if (selectedCurrency.value === currencyStore.primaryCurrency) {
+    return { convertedAmount: amount, rate: 1 }
+  }
+  return currencyStore.convertToBaseCurrency(amount, selectedCurrency.value)
+})
 
 // 格式化金额显示
 const formattedAmount = computed(() => {
   const amount = parseFloat(amountDisplay.value) || 0
-  const formatted = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(amount)
+  const symbol = currentCurrencyInfo.value?.symbol || '$'
+  
+  const formatted = `${symbol}${amount.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`
   
   // 显示待计算状态
   if (pendingOperator.value) {
-    const storedFormatted = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(storedValue.value)
+    const storedFormatted = `${symbol}${storedValue.value.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`
     return `${storedFormatted} ${pendingOperator.value} ${formatted}`
   }
   return formatted
+})
+
+// 显示转换后的金额（如果币种不同）
+const showConversion = computed(() => 
+  selectedCurrency.value !== currencyStore.primaryCurrency && 
+  parseFloat(amountDisplay.value) > 0
+)
+
+const formattedConvertedAmount = computed(() => {
+  return currencyStore.formatAmount(convertedAmountInfo.value.convertedAmount)
 })
 
 // 分类列表（根据交易类型过滤）
@@ -157,6 +207,8 @@ const resetForm = () => {
   description.value = ''
   selectedDateTimestamp.value = Date.now()
   selectedCategory.value = '1'
+  // 重置币种为主币种
+  selectedCurrency.value = currencyStore.primaryCurrency
 }
 
 // 保存交易
@@ -173,9 +225,15 @@ const saveTransaction = async () => {
     return
   }
 
+  // 获取转换后的金额和汇率
+  const { convertedAmount, rate } = convertedAmountInfo.value
+
   await userStore.addTransaction({
     type: transactionType.value,
     amount,
+    currency: selectedCurrency.value,
+    convertedAmount,
+    exchangeRate: rate,
     category: category.name,
     categoryIcon: category.icon,
     description: description.value || `${category.name} transaction`,
@@ -204,13 +262,26 @@ const saveTransaction = async () => {
         <n-card class="form-card" :bordered="true">
           <!-- Transaction Type & Amount -->
           <div class="type-amount-section">
-            <n-radio-group v-model:value="transactionType" name="transaction-type">
-              <n-radio-button value="expense">Expense</n-radio-button>
-              <n-radio-button value="income">Income</n-radio-button>
-            </n-radio-group>
+            <div class="type-currency-row">
+              <n-radio-group v-model:value="transactionType" name="transaction-type">
+                <n-radio-button value="expense">Expense</n-radio-button>
+                <n-radio-button value="income">Income</n-radio-button>
+              </n-radio-group>
+              <n-select
+                v-model:value="selectedCurrency"
+                :options="currencyOptions"
+                style="width: 120px"
+                size="small"
+              />
+            </div>
             <div class="amount-display">
               <p class="amount-label">Amount</p>
               <p class="amount-value">{{ formattedAmount }}</p>
+              <!-- 显示转换后的金额 -->
+              <p v-if="showConversion" class="converted-amount">
+                ≈ {{ formattedConvertedAmount }}
+                <span class="exchange-rate">(1 {{ selectedCurrency }} = {{ convertedAmountInfo.rate.toFixed(4) }} {{ currencyStore.primaryCurrency }})</span>
+              </p>
             </div>
           </div>
 
@@ -373,13 +444,23 @@ const saveTransaction = async () => {
 /* 类型和金额 */
 .type-amount-section {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
+.type-currency-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .amount-display {
-  text-align: right;
+  text-align: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--color-background) 60%, transparent);
+  border-radius: 12px;
 }
 
 .amount-label {
@@ -393,6 +474,18 @@ const saveTransaction = async () => {
   font-weight: 700;
   color: var(--color-text-strong);
   margin: 4px 0 0 0;
+}
+
+.converted-amount {
+  font-size: 0.875rem;
+  color: var(--color-primary);
+  margin: 8px 0 0 0;
+}
+
+.exchange-rate {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-left: 4px;
 }
 
 /* 分类选择 */

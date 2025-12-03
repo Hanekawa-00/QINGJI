@@ -15,11 +15,12 @@ import {
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
-import { formatCurrency } from '@/hooks'
+import { useCurrencyFormat } from '@/hooks'
 import { MonthYearPicker, BarLineChart, PieChart } from '@/components/desktop'
 import type { ReportPeriod } from '@/types'
 
 const userStore = useUserStore()
+const { format: formatCurrency } = useCurrencyFormat()
 
 // 当前选择的期间类型
 const selectedPeriod = ref<ReportPeriod>('month')
@@ -371,7 +372,7 @@ const reportData = computed(() => {
                       <span class="material-symbols-outlined icon-small">
                         {{ report.change >= 0 ? 'arrow_upward' : 'arrow_downward' }}
                       </span>
-                      {{ Math.abs(report.change).toFixed(2) }}
+                      {{ formatCurrency(Math.abs(report.change)) }}
                     </span>
                   </div>
                   

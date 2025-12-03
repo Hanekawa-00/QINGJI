@@ -14,7 +14,7 @@ import {
 } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 import { 
-  formatCurrency, 
+  useCurrencyFormat, 
   useChartData,
   useTransactions
 } from '@/hooks'
@@ -23,6 +23,7 @@ import type { Transaction } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { format: formatCurrency } = useCurrencyFormat()
 
 // 编辑弹窗状态
 const showEditModal = ref(false)

@@ -6,11 +6,13 @@
 // 格式化工具
 export {
   formatCurrency,
+  formatWithCurrency,
   formatDate,
   formatDateISO,
   formatTransactionAmount,
   getAmountColor,
-  useFormatters
+  useFormatters,
+  useCurrencyFormat
 } from './useFormatters'
 
 // 图表数据

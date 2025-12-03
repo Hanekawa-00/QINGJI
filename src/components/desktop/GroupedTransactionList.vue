@@ -6,9 +6,11 @@
  */
 import { NList, NEmpty } from 'naive-ui'
 import TransactionItem from './TransactionItem.vue'
-import { formatCurrency } from '@/hooks'
+import { useCurrencyFormat } from '@/hooks'
 import type { Transaction } from '@/types'
 import type { GroupedTransactions } from '@/hooks'
+
+const { format: formatCurrency } = useCurrencyFormat()
 
 interface Props {
   groups: GroupedTransactions[]

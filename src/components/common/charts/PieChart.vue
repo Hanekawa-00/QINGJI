@@ -15,6 +15,7 @@ import {
 } from 'echarts/components'
 import VChart, { THEME_KEY } from 'vue-echarts'
 import { useThemeStore } from '@/stores/theme.store'
+import { useCurrencyStore } from '@/stores/currency.store'
 
 // 注册必要的 ECharts 组件
 use([
@@ -31,6 +32,10 @@ provide(THEME_KEY, 'dark')
 // 获取主题颜色
 const themeStore = useThemeStore()
 const colors = computed(() => themeStore.currentColors)
+
+// 获取币种符号
+const currencyStore = useCurrencyStore()
+const currencySymbol = computed(() => currencyStore.currencySymbol)
 
 interface ChartDataItem {
   name: string
@@ -68,11 +73,16 @@ const option = computed(() => {
       textStyle: {
         color: c.textStrong
       },
+      position: function (point: number[]) {
+        // 显示在鼠标右侧
+        return [point[0] + 10, point[1] - 20]
+      },
       formatter: (params: any) => {
+        const symbol = currencySymbol.value
         return `<div style="font-weight: 600;">${params.name}</div>
           <div style="display: flex; justify-content: space-between; gap: 16px; margin-top: 4px;">
             <span style="color: ${params.color};">●</span>
-            <span>$${params.value.toLocaleString()}</span>
+            <span>${symbol}${params.value.toLocaleString()}</span>
             <span style="color: ${c.textMuted};">(${params.percent}%)</span>
           </div>`
       }

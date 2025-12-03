@@ -58,10 +58,12 @@ export function useGroupedTransactions(transactions: Ref<Transaction[]>) {
         }
       }
       groups[t.date].transactions.push(t)
+      // 使用转换后的金额计算日汇总（主币种）
+      const amount = t.convertedAmount ?? t.amount
       if (t.type === 'income') {
-        groups[t.date].dayIncome += t.amount
+        groups[t.date].dayIncome += amount
       } else {
-        groups[t.date].dayExpense += t.amount
+        groups[t.date].dayExpense += amount
       }
     })
     

@@ -7,12 +7,13 @@ import {
   NSpace
 } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
-import { formatCurrency } from '@/hooks'
+import { useCurrencyFormat } from '@/hooks'
 import { TransactionList, MonthYearPicker, EditTransactionModal } from '@/components/desktop'
 import type { CalendarDay, MonthCalendar, Transaction } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { format: formatCurrency } = useCurrencyFormat()
 
 // 编辑弹窗状态
 const showEditModal = ref(false)
@@ -80,14 +81,14 @@ const calendarData = computed<MonthCalendar>(() => {
   for (let day = 1; day <= lastDay.getDate(); day++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     
-    // 获取该日的交易
+    // 获取该日的交易（使用 convertedAmount 用于统计）
     const dayTransactions = userStore.transactions.filter(t => t.date === dateStr)
     const income = dayTransactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
     const expense = dayTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
     
     days.push({
       date: dateStr,

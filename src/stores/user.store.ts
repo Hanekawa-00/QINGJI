@@ -23,16 +23,17 @@ export const useUserStore = defineStore('user', () => {
   const categories = ref<Category[]>([...defaultCategories])
 
   /**
-   * 计算总余额
+   * 计算总余额（使用转换后的金额，即主币种）
    */
   const totalBalance = computed(() => {
     return transactions.value.reduce((total, t) => {
-      return t.type === 'income' ? total + t.amount : total - t.amount
+      const amount = t.convertedAmount ?? t.amount
+      return t.type === 'income' ? total + amount : total - amount
     }, 0)
   })
 
   /**
-   * 计算当月收入
+   * 计算当月收入（使用转换后的金额）
    */
   const monthlyIncome = computed(() => {
     const now = new Date()
@@ -46,11 +47,11 @@ export const useUserStore = defineStore('user', () => {
           && date.getMonth() === currentMonth 
           && date.getFullYear() === currentYear
       })
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
   })
 
   /**
-   * 计算当月支出
+   * 计算当月支出（使用转换后的金额）
    */
   const monthlyExpense = computed(() => {
     const now = new Date()
@@ -64,7 +65,7 @@ export const useUserStore = defineStore('user', () => {
           && date.getMonth() === currentMonth 
           && date.getFullYear() === currentYear
       })
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
   })
 
   /**
@@ -84,10 +85,10 @@ export const useUserStore = defineStore('user', () => {
       date.setDate(now.getDate() + dayOffset)
       const dateStr = date.toISOString().split('T')[0]
       
-      // 计算该天的支出
+      // 计算该天的支出（使用转换后的金额）
       const dayExpense = transactions.value
         .filter(t => t.date === dateStr && t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0)
+        .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
       
       dailyExpenses.push(dayExpense)
     }
@@ -246,18 +247,18 @@ export const useUserStore = defineStore('user', () => {
       }
     })
 
-    // 计算总收入和总支出
+    // 计算总收入和总支出（使用 convertedAmount 主币种）
     const totalIncome = currentTransactions
       .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
     
     const totalExpense = currentTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
 
     const previousExpense = previousTransactions
       .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + t.amount, 0)
+      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
 
     // 计算支出变化百分比
     const expenseChange = previousExpense === 0 ? 0 : 
@@ -293,7 +294,7 @@ export const useUserStore = defineStore('user', () => {
           }
 
           const report = categoryMap.get(category.id)!
-          report.totalAmount += t.amount
+          report.totalAmount += t.convertedAmount ?? t.amount
           report.transactionCount += 1
         })
 
@@ -306,7 +307,7 @@ export const useUserStore = defineStore('user', () => {
           if (!category) return
           
           const current = previousCategoryMap.get(category.id) || 0
-          previousCategoryMap.set(category.id, current + t.amount)
+          previousCategoryMap.set(category.id, current + (t.convertedAmount ?? t.amount))
         })
 
       // 计算百分比和变化
@@ -339,10 +340,11 @@ export const useUserStore = defineStore('user', () => {
       }
 
       const report = dailyMap.get(t.date)!
+      const amount = t.convertedAmount ?? t.amount
       if (t.type === 'income') {
-        report.income += t.amount
+        report.income += amount
       } else {
-        report.expense += t.amount
+        report.expense += amount
       }
       report.balance = report.income - report.expense
     })
@@ -371,13 +373,13 @@ export const useUserStore = defineStore('user', () => {
             const date = new Date(t.date)
             return t.type === 'expense' && date.getMonth() === m
           })
-          .reduce((sum, t) => sum + t.amount, 0)
+          .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
         const monthIncome = currentTransactions
           .filter(t => {
             const date = new Date(t.date)
             return t.type === 'income' && date.getMonth() === m
           })
-          .reduce((sum, t) => sum + t.amount, 0)
+          .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
         expenseStats.push(monthExpense)
         incomeStats.push(monthIncome)
       }

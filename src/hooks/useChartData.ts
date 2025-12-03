@@ -63,13 +63,14 @@ export function useChartData(options: UseChartDataOptions = {}) {
       date.setDate(now.getDate() + startOffset + i)
       const dateStr = formatDateISO(date)
       
+      // 使用 convertedAmount（主币种）用于图表统计
       const dayIncome = userStore.transactions
         .filter(t => t.date === dateStr && t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0)
+        .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
       
       const dayExpense = userStore.transactions
         .filter(t => t.date === dateStr && t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0)
+        .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
       
       // 格式化标签
       let label: string

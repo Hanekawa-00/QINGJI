@@ -4,11 +4,13 @@ import { NConfigProvider, NGlobalStyle, NMessageProvider, NDialogProvider, NLoad
 import { useAppStore } from '@/stores/app.store'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
+import { useCurrencyStore } from '@/stores/currency.store'
 import { createDarkThemeOverrides, createLightThemeOverrides } from '@/config/naive-ui-theme'
 
 const appStore = useAppStore()
 const themeStore = useThemeStore()
 const userStore = useUserStore()
+const currencyStore = useCurrencyStore()
 
 // 根据当前主题返回 NaiveUI 主题配置
 const naiveTheme = computed(() => {
@@ -32,6 +34,9 @@ onMounted(async () => {
   
   // 初始化数据库并加载用户数据
   await userStore.initialize()
+  
+  // 初始化币种设置和汇率
+  await currencyStore.initialize()
 })
 </script>
 

@@ -16,6 +16,7 @@ import {
 } from 'echarts/components'
 import VChart, { THEME_KEY } from 'vue-echarts'
 import { useThemeStore } from '@/stores/theme.store'
+import { useCurrencyStore } from '@/stores/currency.store'
 
 // 注册必要的 ECharts 组件
 use([
@@ -34,6 +35,10 @@ provide(THEME_KEY, 'dark')
 // 获取主题颜色
 const themeStore = useThemeStore()
 const colors = computed(() => themeStore.currentColors)
+
+// 获取币种符号
+const currencyStore = useCurrencyStore()
+const currencySymbol = computed(() => currencyStore.currencySymbol)
 
 interface ChartDataItem {
   label: string
@@ -122,12 +127,13 @@ const option = computed(() => {
         type: props.type === 'bar' ? 'shadow' : 'line'
       },
       formatter: (params: any) => {
+        const symbol = currencySymbol.value
         let result = `<div style="font-weight: 600; margin-bottom: 4px;">${params[0].axisValue}</div>`
         params.forEach((item: any) => {
           const color = item.seriesName === 'Income' ? incomeColor : expenseColor
           result += `<div style="display: flex; justify-content: space-between; gap: 16px;">
             <span style="color: ${color};">● ${item.seriesName}</span>
-            <span style="font-weight: 600;">$${item.value.toLocaleString()}</span>
+            <span style="font-weight: 600;">${symbol}${item.value.toLocaleString()}</span>
           </div>`
         })
         return result
@@ -184,10 +190,11 @@ const option = computed(() => {
         color: mutedColor,
         fontSize: 11,
         formatter: (value: number) => {
+          const symbol = currencySymbol.value
           if (value >= 1000) {
-            return `$${(value / 1000).toFixed(0)}k`
+            return `${symbol}${(value / 1000).toFixed(0)}k`
           }
-          return `$${value}`
+          return `${symbol}${value}`
         }
       }
     },

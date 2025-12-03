@@ -4,10 +4,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { NMenu, NCard, NStatistic } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
+import { useCurrencyFormat } from '@/hooks'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const { format: formatCurrency } = useCurrencyFormat()
 
 // Material Icon 渲染函数
 const renderIcon = (iconName: string) => {
@@ -51,12 +53,9 @@ const handleMenuSelect = (key: string) => {
   router.push(key)
 }
 
-// 格式化余额
+// 格式化余额（使用主币种）
 const formattedBalance = computed(() => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(userStore.totalBalance)
+  return formatCurrency(userStore.totalBalance)
 })
 </script>
 

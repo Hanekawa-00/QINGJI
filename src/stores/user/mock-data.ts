@@ -86,6 +86,9 @@ function createTransaction(
     id,
     type,
     amount,
+    currency: 'USD',           // 默认使用 USD
+    convertedAmount: amount,   // 转换金额等于原始金额
+    exchangeRate: 1,           // 默认汇率为 1
     category,
     categoryIcon,
     description,

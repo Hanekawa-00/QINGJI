@@ -3,8 +3,95 @@
  * 设置页面
  * 包含主题设置、应用配置等
  */
-import { NCard } from 'naive-ui'
+import { ref, computed, onMounted, watch } from 'vue'
+import { NCard, NSelect, NSpin, NProgress, useDialog, useMessage } from 'naive-ui'
 import { ThemeSwitcher } from '@/components/common'
+import { useCurrencyStore, useUserStore } from '@/stores'
+import type { CurrencyCode } from '@/types'
+
+const currencyStore = useCurrencyStore()
+const userStore = useUserStore()
+const dialog = useDialog()
+const message = useMessage()
+
+// 币种选项
+const currencyOptions = computed(() => 
+  currencyStore.availableCurrencies.map(c => ({
+    label: `${c.flag} ${c.code} - ${c.name}`,
+    value: c.code
+  }))
+)
+
+// 记录上一次的币种
+const previousCurrency = ref<CurrencyCode>(currencyStore.primaryCurrency)
+
+// 当前选中的币种
+const selectedCurrency = computed({
+  get: () => currencyStore.primaryCurrency,
+  set: (val: CurrencyCode) => handleCurrencyChange(val)
+})
+
+// 处理币种变更
+async function handleCurrencyChange(newCurrency: CurrencyCode) {
+  const oldCurrency = previousCurrency.value
+  
+  if (newCurrency === oldCurrency) return
+  
+  // 先更新币种
+  await currencyStore.setPrimaryCurrency(newCurrency)
+  
+  // 如果有交易记录，询问是否重新计算
+  if (userStore.transactions.length > 0) {
+    dialog.warning({
+      title: 'Recalculate Transactions?',
+      content: `You've changed your primary currency from ${oldCurrency} to ${newCurrency}. 
+        Would you like to recalculate all transaction amounts using historical exchange rates? 
+        This ensures accurate reports based on the exchange rate at the time of each transaction.`,
+      positiveText: 'Recalculate',
+      negativeText: 'Skip',
+      onPositiveClick: async () => {
+        await recalculateTransactions()
+      },
+      onNegativeClick: () => {
+        message.info('You can recalculate later using the button below')
+      }
+    })
+  }
+  
+  previousCurrency.value = newCurrency
+}
+
+// 重新计算所有交易
+async function recalculateTransactions() {
+  const result = await currencyStore.recalculateAllTransactions(
+    userStore.transactions,
+    userStore.updateTransaction
+  )
+  
+  if (result.failed === 0) {
+    message.success(`Successfully recalculated ${result.success} transactions`)
+  } else {
+    message.warning(`Recalculated ${result.success} transactions, ${result.failed} failed`)
+  }
+}
+
+// 汇率更新时间
+const ratesLastUpdated = computed(() => {
+  if (!currencyStore.lastUpdated) return 'Not updated'
+  return currencyStore.lastUpdated.toLocaleString()
+})
+
+onMounted(() => {
+  currencyStore.initialize()
+  previousCurrency.value = currencyStore.primaryCurrency
+})
+
+// 监听初始化完成后同步 previousCurrency
+watch(() => currencyStore.isInitialized, (initialized) => {
+  if (initialized) {
+    previousCurrency.value = currencyStore.primaryCurrency
+  }
+})
 </script>
 
 <template>
@@ -25,18 +112,78 @@ import { ThemeSwitcher } from '@/components/common'
         <ThemeSwitcher />
       </n-card>
 
+      <!-- 币种设置 -->
+      <n-card class="settings-card" title="Currency">
+        <template #header-extra>
+          <span class="material-symbols-outlined">currency_exchange</span>
+        </template>
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Primary Currency</span>
+            <span class="setting-description">All transactions will be converted to this currency for reports</span>
+          </div>
+          <n-select
+            v-model:value="selectedCurrency"
+            :options="currencyOptions"
+            style="width: 220px"
+            :loading="currencyStore.isLoadingRates"
+          />
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Exchange Rates</span>
+            <span class="setting-description">Powered by Frankfurter API (ECB rates)</span>
+          </div>
+          <div class="rates-info">
+            <span class="rates-status" :class="{ loading: currencyStore.isLoadingRates }">
+              <n-spin v-if="currencyStore.isLoadingRates" :size="14" />
+              <span v-else class="material-symbols-outlined">check_circle</span>
+              {{ currencyStore.isLoadingRates ? 'Updating...' : 'Updated' }}
+            </span>
+            <button class="setting-btn" @click="currencyStore.fetchExchangeRates">
+              <span class="material-symbols-outlined">refresh</span>
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Last Updated</span>
+            <span class="setting-description">Exchange rate data timestamp</span>
+          </div>
+          <span class="setting-value">{{ ratesLastUpdated }}</span>
+        </div>
+        <!-- 重新计算交易 -->
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">Recalculate Transactions</span>
+            <span class="setting-description">Update all amounts using historical exchange rates</span>
+          </div>
+          <div class="recalculate-actions">
+            <n-progress 
+              v-if="currencyStore.isRecalculating" 
+              type="line" 
+              :percentage="currencyStore.recalculationProgress"
+              :show-indicator="true"
+              style="width: 120px"
+            />
+            <button 
+              class="setting-btn" 
+              :disabled="currencyStore.isRecalculating || userStore.transactions.length === 0"
+              @click="recalculateTransactions"
+            >
+              <span class="material-symbols-outlined">calculate</span>
+              {{ currencyStore.isRecalculating ? 'Processing...' : 'Recalculate' }}
+            </button>
+          </div>
+        </div>
+      </n-card>
+
       <!-- 通用设置 -->
       <n-card class="settings-card" title="General">
         <template #header-extra>
           <span class="material-symbols-outlined">tune</span>
         </template>
-        <div class="setting-item">
-          <div class="setting-info">
-            <span class="setting-label">Currency</span>
-            <span class="setting-description">Default currency for transactions</span>
-          </div>
-          <span class="setting-value">USD ($)</span>
-        </div>
         <div class="setting-item">
           <div class="setting-info">
             <span class="setting-label">Language</span>
@@ -198,6 +345,51 @@ import { ThemeSwitcher } from '@/components/common'
 .setting-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
+}
+
+.setting-btn .material-symbols-outlined {
+  font-size: 16px;
+  margin-right: 4px;
+}
+
+/* 汇率信息 */
+.rates-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rates-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--color-primary);
+}
+
+.rates-status .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.rates-status.loading {
+  color: var(--color-text-muted);
+}
+
+/* 重新计算操作 */
+.recalculate-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.setting-btn:disabled:hover {
+  border-color: var(--color-border);
+  color: var(--color-text-strong);
 }
 
 /* 关于区域 */

@@ -4,7 +4,7 @@
  */
 
 import Database from '@tauri-apps/plugin-sql'
-import type { Transaction, Category } from '@/types'
+import type { Transaction, Category, CurrencyCode } from '@/types'
 
 // 数据库单例
 let db: Database | null = null
@@ -111,6 +111,9 @@ export async function getAllTransactions(): Promise<Transaction[]> {
     id: string
     type: string
     amount: number
+    currency: string | null
+    converted_amount: number | null
+    exchange_rate: number | null
     category: string
     category_icon: string | null
     description: string | null
@@ -123,6 +126,9 @@ export async function getAllTransactions(): Promise<Transaction[]> {
     id: row.id,
     type: row.type as 'income' | 'expense',
     amount: row.amount,
+    currency: (row.currency || 'USD') as CurrencyCode,
+    convertedAmount: row.converted_amount ?? row.amount,
+    exchangeRate: row.exchange_rate ?? 1,
     category: row.category,
     categoryIcon: row.category_icon || 'receipt_long',
     description: row.description || '',
@@ -144,6 +150,9 @@ export async function getTransactionsByDateRange(
     id: string
     type: string
     amount: number
+    currency: string | null
+    converted_amount: number | null
+    exchange_rate: number | null
     category: string
     category_icon: string | null
     description: string | null
@@ -159,6 +168,9 @@ export async function getTransactionsByDateRange(
     id: row.id,
     type: row.type as 'income' | 'expense',
     amount: row.amount,
+    currency: (row.currency || 'USD') as CurrencyCode,
+    convertedAmount: row.converted_amount ?? row.amount,
+    exchangeRate: row.exchange_rate ?? 1,
     category: row.category,
     categoryIcon: row.category_icon || 'receipt_long',
     description: row.description || '',
@@ -177,6 +189,9 @@ export async function getTransactionsByDate(date: string): Promise<Transaction[]
     id: string
     type: string
     amount: number
+    currency: string | null
+    converted_amount: number | null
+    exchange_rate: number | null
     category: string
     category_icon: string | null
     description: string | null
@@ -192,6 +207,9 @@ export async function getTransactionsByDate(date: string): Promise<Transaction[]
     id: row.id,
     type: row.type as 'income' | 'expense',
     amount: row.amount,
+    currency: (row.currency || 'USD') as CurrencyCode,
+    convertedAmount: row.converted_amount ?? row.amount,
+    exchangeRate: row.exchange_rate ?? 1,
     category: row.category,
     categoryIcon: row.category_icon || 'receipt_long',
     description: row.description || '',
@@ -212,12 +230,15 @@ export async function addTransaction(
   const now = new Date().toISOString()
   
   await database.execute(
-    `INSERT INTO transactions (id, type, amount, category, category_icon, description, date, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    `INSERT INTO transactions (id, type, amount, currency, converted_amount, exchange_rate, category, category_icon, description, date, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [
       id,
       transaction.type,
       transaction.amount,
+      transaction.currency || 'USD',
+      transaction.convertedAmount ?? transaction.amount,
+      transaction.exchangeRate ?? 1,
       transaction.category,
       transaction.categoryIcon || null,
       transaction.description || null,
@@ -251,6 +272,18 @@ export async function updateTransaction(
   if (transaction.amount !== undefined) {
     fields.push(`amount = $${paramIndex++}`)
     values.push(transaction.amount)
+  }
+  if (transaction.currency !== undefined) {
+    fields.push(`currency = $${paramIndex++}`)
+    values.push(transaction.currency)
+  }
+  if (transaction.convertedAmount !== undefined) {
+    fields.push(`converted_amount = $${paramIndex++}`)
+    values.push(transaction.convertedAmount)
+  }
+  if (transaction.exchangeRate !== undefined) {
+    fields.push(`exchange_rate = $${paramIndex++}`)
+    values.push(transaction.exchangeRate)
   }
   if (transaction.category !== undefined) {
     fields.push(`category = $${paramIndex++}`)
@@ -288,7 +321,7 @@ export async function deleteTransaction(id: string): Promise<void> {
 // ==================== 统计查询 ====================
 
 /**
- * 获取月度统计
+ * 获取月度统计（使用转换后的金额，即主币种）
  */
 export async function getMonthlyStats(year: number, month: number): Promise<{
   income: number
@@ -300,13 +333,13 @@ export async function getMonthlyStats(year: number, month: number): Promise<{
   const endDate = `${year}-${String(month).padStart(2, '0')}-31`
   
   const incomeResult = await database.select<[{ total: number | null }]>(
-    `SELECT COALESCE(SUM(amount), 0) as total FROM transactions
+    `SELECT COALESCE(SUM(COALESCE(converted_amount, amount)), 0) as total FROM transactions
      WHERE type = 'income' AND date >= $1 AND date <= $2`,
     [startDate, endDate]
   )
   
   const expenseResult = await database.select<[{ total: number | null }]>(
-    `SELECT COALESCE(SUM(amount), 0) as total FROM transactions
+    `SELECT COALESCE(SUM(COALESCE(converted_amount, amount)), 0) as total FROM transactions
      WHERE type = 'expense' AND date >= $1 AND date <= $2`,
     [startDate, endDate]
   )
@@ -322,7 +355,7 @@ export async function getMonthlyStats(year: number, month: number): Promise<{
 }
 
 /**
- * 获取分类统计
+ * 获取分类统计（使用转换后的金额）
  */
 export async function getCategoryStats(
   type: 'income' | 'expense',
@@ -332,7 +365,7 @@ export async function getCategoryStats(
   const database = await getDatabase()
   
   return await database.select<Array<{ category: string; total: number; count: number }>>(
-    `SELECT category, SUM(amount) as total, COUNT(*) as count
+    `SELECT category, SUM(COALESCE(converted_amount, amount)) as total, COUNT(*) as count
      FROM transactions
      WHERE type = $1 AND date >= $2 AND date <= $3
      GROUP BY category
@@ -342,7 +375,7 @@ export async function getCategoryStats(
 }
 
 /**
- * 获取每日统计
+ * 获取每日统计（使用转换后的金额）
  */
 export async function getDailyStats(
   type: 'income' | 'expense',
@@ -352,7 +385,7 @@ export async function getDailyStats(
   const database = await getDatabase()
   
   return await database.select<Array<{ date: string; total: number }>>(
-    `SELECT date, SUM(amount) as total
+    `SELECT date, SUM(COALESCE(converted_amount, amount)) as total
      FROM transactions
      WHERE type = $1 AND date >= $2 AND date <= $3
      GROUP BY date
@@ -362,17 +395,17 @@ export async function getDailyStats(
 }
 
 /**
- * 获取总余额
+ * 获取总余额（使用转换后的金额）
  */
 export async function getTotalBalance(): Promise<number> {
   const database = await getDatabase()
   
   const incomeResult = await database.select<[{ total: number | null }]>(
-    `SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = 'income'`
+    `SELECT COALESCE(SUM(COALESCE(converted_amount, amount)), 0) as total FROM transactions WHERE type = 'income'`
   )
   
   const expenseResult = await database.select<[{ total: number | null }]>(
-    `SELECT COALESCE(SUM(amount), 0) as total FROM transactions WHERE type = 'expense'`
+    `SELECT COALESCE(SUM(COALESCE(converted_amount, amount)), 0) as total FROM transactions WHERE type = 'expense'`
   )
   
   const income = incomeResult[0]?.total || 0
