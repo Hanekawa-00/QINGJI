@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, computed } from 'vue'
+import { onMounted, onUnmounted, computed } from 'vue'
 import { NConfigProvider, NGlobalStyle, NMessageProvider, NDialogProvider, NLoadingBarProvider, darkTheme } from 'naive-ui'
 import { useAppStore } from '@/stores/app.store'
 import { useThemeStore } from '@/stores/theme.store'
@@ -25,7 +25,15 @@ const naiveThemeOverrides = computed(() => {
     : createLightThemeOverrides(colors)
 })
 
+// 禁用浏览器默认右键菜单
+const preventContextMenu = (e: MouseEvent) => {
+  e.preventDefault()
+}
+
 onMounted(async () => {
+  // 禁用右键菜单
+  document.addEventListener('contextmenu', preventContextMenu)
+  
   // 初始化应用
   await appStore.initialize()
   
@@ -37,6 +45,11 @@ onMounted(async () => {
   
   // 初始化币种设置和汇率
   await currencyStore.initialize()
+})
+
+onUnmounted(() => {
+  // 清理事件监听
+  document.removeEventListener('contextmenu', preventContextMenu)
 })
 </script>
 

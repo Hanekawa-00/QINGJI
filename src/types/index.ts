@@ -9,12 +9,14 @@ export type TransactionType = 'income' | 'expense'
 
 /**
  * 支持的币种代码
+ * 基于 Frankfurter API (ECB 数据源) 实际支持的币种
  */
 export type CurrencyCode = 
   | 'USD' | 'EUR' | 'GBP' | 'JPY' | 'CNY' 
   | 'AUD' | 'CAD' | 'CHF' | 'HKD' | 'SGD'
-  | 'KRW' | 'INR' | 'RUB' | 'BRL' | 'MXN'
-  | 'TWD' | 'THB' | 'MYR' | 'PHP' | 'IDR'
+  | 'KRW' | 'INR' | 'BRL' | 'MXN'
+  | 'THB' | 'MYR' | 'PHP' | 'IDR'
+  | 'NZD' | 'SEK' | 'NOK' | 'PLN' | 'TRY' | 'ZAR'
 
 /**
  * 币种信息

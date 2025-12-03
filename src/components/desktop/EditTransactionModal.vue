@@ -15,10 +15,12 @@ import {
   NButton,
   NSpace,
   NScrollbar,
+  NSelect,
+  NTooltip,
   useMessage
 } from 'naive-ui'
-import { useUserStore } from '@/stores/user.store'
-import type { Transaction, TransactionType } from '@/types'
+import { useUserStore, useCurrencyStore } from '@/stores'
+import type { Transaction, TransactionType, CurrencyCode } from '@/types'
 
 interface Props {
   show: boolean
@@ -33,15 +35,44 @@ const emit = defineEmits<{
 }>()
 
 const userStore = useUserStore()
+const currencyStore = useCurrencyStore()
 const message = useMessage()
 
 // 表单数据
 const formData = ref({
   type: 'expense' as TransactionType,
   amount: 0,
+  currency: 'USD' as CurrencyCode,
+  exchangeRate: 1,
   categoryId: '',
   description: '',
   date: Date.now()
+})
+
+// 是否手动编辑汇率
+const isManualRate = ref(false)
+// 是否正在加载汇率
+const isLoadingRate = ref(false)
+
+// 币种选项
+const currencyOptions = computed(() => 
+  currencyStore.availableCurrencies.map(c => ({
+    label: `${c.flag} ${c.code} - ${c.name}`,
+    value: c.code
+  }))
+)
+
+// 当前币种信息
+const currentCurrencyInfo = computed(() => 
+  currencyStore.getCurrencyInfo(formData.value.currency)
+)
+
+// 计算转换后的金额
+const convertedAmount = computed(() => {
+  if (formData.value.currency === currencyStore.primaryCurrency) {
+    return formData.value.amount
+  }
+  return formData.value.amount * formData.value.exchangeRate
 })
 
 // 监听 transaction 变化，填充表单
@@ -49,14 +80,58 @@ watch(() => props.transaction, (transaction) => {
   if (transaction) {
     formData.value.type = transaction.type
     formData.value.amount = transaction.amount
+    formData.value.currency = transaction.currency || 'USD'
+    formData.value.exchangeRate = transaction.exchangeRate || 1
     formData.value.description = transaction.description
     formData.value.date = new Date(transaction.date).getTime()
+    isManualRate.value = false
     
     // 找到分类ID
     const category = userStore.categories.find(c => c.name === transaction.category)
     formData.value.categoryId = category?.id || ''
   }
 }, { immediate: true })
+
+// 监听币种变化，自动获取汇率
+watch(() => formData.value.currency, async (newCurrency) => {
+  if (newCurrency === currencyStore.primaryCurrency) {
+    formData.value.exchangeRate = 1
+    return
+  }
+  
+  if (!isManualRate.value) {
+    isLoadingRate.value = true
+    try {
+      const rate = currencyStore.getRate(newCurrency, currencyStore.primaryCurrency)
+      formData.value.exchangeRate = rate
+    } finally {
+      isLoadingRate.value = false
+    }
+  }
+})
+
+// 刷新汇率（从 API 获取最新）
+const refreshRate = async () => {
+  if (formData.value.currency === currencyStore.primaryCurrency) return
+  
+  isLoadingRate.value = true
+  isManualRate.value = false
+  try {
+    await currencyStore.fetchExchangeRates()
+    const rate = currencyStore.getRate(formData.value.currency, currencyStore.primaryCurrency)
+    formData.value.exchangeRate = rate
+    message.success('Exchange rate updated')
+  } catch {
+    message.error('Failed to fetch exchange rate')
+  } finally {
+    isLoadingRate.value = false
+  }
+}
+
+// 手动修改汇率时标记
+const onRateChange = () => {
+  isManualRate.value = true
+}
 
 // 可用分类（根据类型过滤）
 const availableCategories = computed(() => {
@@ -99,6 +174,9 @@ const handleSave = async () => {
   const updates = {
     type: formData.value.type,
     amount: formData.value.amount,
+    currency: formData.value.currency,
+    convertedAmount: convertedAmount.value,
+    exchangeRate: formData.value.exchangeRate,
     category: selectedCategory.value.name,
     categoryIcon: selectedCategory.value.icon,
     description: formData.value.description || `${selectedCategory.value.name} transaction`,
@@ -137,17 +215,59 @@ const selectCategory = (categoryId: string) => {
         </n-radio-group>
       </n-form-item>
 
-      <!-- 金额 -->
+      <!-- 金额和币种 -->
       <n-form-item label="Amount">
-        <n-input-number
-          v-model:value="formData.amount"
-          :min="0"
-          :precision="2"
-          placeholder="Enter amount"
-          style="width: 100%"
-        >
-          <template #prefix>$</template>
-        </n-input-number>
+        <div class="amount-currency-row">
+          <n-input-number
+            v-model:value="formData.amount"
+            :min="0"
+            :precision="2"
+            placeholder="Enter amount"
+            style="flex: 1"
+          >
+            <template #prefix>{{ currentCurrencyInfo?.symbol || '$' }}</template>
+          </n-input-number>
+          <n-select
+            v-model:value="formData.currency"
+            :options="currencyOptions"
+            style="width: 180px"
+            size="medium"
+          />
+        </div>
+      </n-form-item>
+
+      <!-- 汇率（币种不同时显示） -->
+      <n-form-item v-if="formData.currency !== currencyStore.primaryCurrency" label="Exchange Rate">
+        <div class="exchange-rate-row">
+          <n-input-number
+            v-model:value="formData.exchangeRate"
+            :min="0.0001"
+            :precision="6"
+            :step="0.01"
+            style="flex: 1"
+            @update:value="onRateChange"
+          >
+            <template #prefix>1 {{ formData.currency }} =</template>
+            <template #suffix>{{ currencyStore.primaryCurrency }}</template>
+          </n-input-number>
+          <n-tooltip trigger="hover">
+            <template #trigger>
+              <n-button 
+                :loading="isLoadingRate" 
+                @click="refreshRate"
+                quaternary
+                circle
+              >
+                <span class="material-symbols-outlined">refresh</span>
+              </n-button>
+            </template>
+            Fetch latest rate
+          </n-tooltip>
+        </div>
+        <div class="converted-preview">
+          ≈ {{ currencyStore.formatAmount(convertedAmount) }}
+          <span v-if="isManualRate" class="manual-badge">Manual</span>
+        </div>
       </n-form-item>
 
       <!-- 分类 -->
@@ -195,6 +315,35 @@ const selectCategory = (categoryId: string) => {
 </template>
 
 <style scoped>
+.amount-currency-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.exchange-rate-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.converted-preview {
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manual-badge {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
+  border-radius: 4px;
+}
+
 .category-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

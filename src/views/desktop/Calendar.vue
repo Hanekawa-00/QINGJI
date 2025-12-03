@@ -198,7 +198,6 @@ const handleDelete = async (transaction: Transaction) => {
     <header class="calendar-header">
       <div class="header-left">
         <h1 class="calendar-title">Calendar</h1>
-        <p class="calendar-subtitle">Same logic as mobile calendar, tuned for desktop.</p>
       </div>
       <n-space align="center">
 <MonthYearPicker v-model:value="monthPickerTimestamp" />

@@ -103,7 +103,6 @@ const handleDelete = async (transaction: Transaction) => {
     <header class="dashboard-header">
       <div class="header-left">
         <h1 class="dashboard-title">Dashboard</h1>
-        <p class="dashboard-subtitle">Mirror of mobile flow, optimized for desktop.</p>
       </div>
       <n-space align="center">
 <MonthYearPicker v-model:value="selectedMonthTimestamp" />

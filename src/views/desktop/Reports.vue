@@ -186,7 +186,6 @@ const reportData = computed(() => {
     <header class="reports-header">
       <div class="header-left">
         <h1 class="reports-title">Statistical Report</h1>
-        <p class="reports-subtitle">Desktop view, same logic as mobile stats.</p>
       </div>
       <n-space align="center" :size="16">
         <!-- 期间选择器 -->

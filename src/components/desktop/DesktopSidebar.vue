@@ -63,10 +63,10 @@ const formattedBalance = computed(() => {
   <aside class="desktop-sidebar">
     <!-- Logo -->
     <div class="sidebar-header">
-      <div class="logo-circle"></div>
+      <img src="@/assets/logo.svg" alt="青账" class="logo-img" />
       <div class="logo-text">
-        <p class="app-name">Green Ledger</p>
-        <p class="app-subtitle">Cross-platform</p>
+        <p class="app-name">青账</p>
+        <p class="app-subtitle">Qingzhang</p>
       </div>
     </div>
 
@@ -83,7 +83,7 @@ const formattedBalance = computed(() => {
     <n-card class="balance-card" :bordered="true" size="small">
       <n-statistic label="Current Balance" :value="formattedBalance" tabular-nums>
         <template #suffix>
-          <span class="balance-change">+5.2% vs last week</span>
+          <span class="balance-change"></span>
         </template>
       </n-statistic>
     </n-card>
@@ -105,12 +105,10 @@ const formattedBalance = computed(() => {
   gap: 12px;
 }
 
-.logo-circle {
+.logo-img {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 50%, transparent);
+  border-radius: 10px;
 }
 
 .logo-text {

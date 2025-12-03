@@ -68,10 +68,12 @@ async function recalculateTransactions() {
     userStore.updateTransaction
   )
   
-  if (result.failed === 0) {
+  if (result.failed === 0 && result.usedFallback === 0) {
     message.success(`Successfully recalculated ${result.success} transactions`)
+  } else if (result.failed === 0 && result.usedFallback > 0) {
+    message.warning(`Recalculated ${result.success} transactions. ${result.usedFallback} used current rates (historical unavailable)`)
   } else {
-    message.warning(`Recalculated ${result.success} transactions, ${result.failed} failed`)
+    message.error(`Recalculated ${result.success} transactions, ${result.failed} failed`)
   }
 }
 
@@ -228,14 +230,14 @@ watch(() => currencyStore.isInitialized, (initialized) => {
         </template>
         <div class="about-info">
           <div class="app-logo">
-            <div class="logo-circle"></div>
+            <img src="@/assets/logo.svg" alt="青账" class="logo-img" />
             <div class="logo-text">
-              <span class="app-name">Green Ledger</span>
+              <span class="app-name">青账 Qingzhang</span>
               <span class="app-version">Version 1.0.0</span>
             </div>
           </div>
           <p class="app-description">
-            A cross-platform personal finance management app built with Vue 3 and Tauri.
+            跨平台个人财务管理应用，基于 Vue 3 + Tauri 构建。
           </p>
         </div>
       </n-card>
@@ -405,12 +407,10 @@ watch(() => currencyStore.isInitialized, (initialized) => {
   gap: 12px;
 }
 
-.logo-circle {
+.logo-img {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 50%, transparent);
+  border-radius: 12px;
 }
 
 .logo-text {

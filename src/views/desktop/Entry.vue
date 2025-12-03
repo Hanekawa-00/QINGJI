@@ -7,6 +7,7 @@ import {
   NButton, 
   NSpace,
   NInput,
+  NInputNumber,
   NRadioGroup,
   NRadioButton,
   NDatePicker,
@@ -14,6 +15,7 @@ import {
   NForm,
   NFormItem,
   NSelect,
+  NTooltip,
   useMessage
 } from 'naive-ui'
 import { useUserStore, useCurrencyStore } from '@/stores'
@@ -53,12 +55,58 @@ const selectedDateTimestamp = ref<number>(Date.now())
 // 选中的币种（默认使用主币种）
 const selectedCurrency = ref<CurrencyCode>('USD')
 
+// 手动汇率相关
+const manualExchangeRate = ref<number>(1)
+const isManualRate = ref(false)
+const isLoadingRate = ref(false)
+
 // 初始化时设置默认币种为主币种
 watch(() => currencyStore.primaryCurrency, (newVal) => {
   if (newVal && selectedCurrency.value === 'USD') {
     selectedCurrency.value = newVal
   }
 }, { immediate: true })
+
+// 监听币种变化，自动获取汇率
+watch(selectedCurrency, async (newCurrency) => {
+  if (newCurrency === currencyStore.primaryCurrency) {
+    manualExchangeRate.value = 1
+    return
+  }
+  
+  if (!isManualRate.value) {
+    isLoadingRate.value = true
+    try {
+      const rate = currencyStore.getRate(newCurrency, currencyStore.primaryCurrency)
+      manualExchangeRate.value = rate
+    } finally {
+      isLoadingRate.value = false
+    }
+  }
+})
+
+// 刷新汇率
+const refreshExchangeRate = async () => {
+  if (selectedCurrency.value === currencyStore.primaryCurrency) return
+  
+  isLoadingRate.value = true
+  isManualRate.value = false
+  try {
+    await currencyStore.fetchExchangeRates()
+    const rate = currencyStore.getRate(selectedCurrency.value, currencyStore.primaryCurrency)
+    manualExchangeRate.value = rate
+  } finally {
+    isLoadingRate.value = false
+  }
+}
+
+// 手动修改汇率时标记
+const onRateChange = (value: number | null) => {
+  if (value !== null) {
+    manualExchangeRate.value = value
+    isManualRate.value = true
+  }
+}
 
 // 币种选项
 const currencyOptions = computed(() => 
@@ -82,13 +130,16 @@ const selectedDate = computed(() => {
   return `${year}-${month}-${day}`
 })
 
-// 计算转换后的金额
+// 计算转换后的金额（使用手动汇率）
 const convertedAmountInfo = computed(() => {
   const amount = parseFloat(amountDisplay.value) || 0
   if (selectedCurrency.value === currencyStore.primaryCurrency) {
     return { convertedAmount: amount, rate: 1 }
   }
-  return currencyStore.convertToBaseCurrency(amount, selectedCurrency.value)
+  return { 
+    convertedAmount: amount * manualExchangeRate.value, 
+    rate: manualExchangeRate.value 
+  }
 })
 
 // 格式化金额显示
@@ -209,6 +260,9 @@ const resetForm = () => {
   selectedCategory.value = '1'
   // 重置币种为主币种
   selectedCurrency.value = currencyStore.primaryCurrency
+  // 重置汇率状态
+  isManualRate.value = false
+  manualExchangeRate.value = 1
 }
 
 // 保存交易
@@ -277,11 +331,40 @@ const saveTransaction = async () => {
             <div class="amount-display">
               <p class="amount-label">Amount</p>
               <p class="amount-value">{{ formattedAmount }}</p>
-              <!-- 显示转换后的金额 -->
-              <p v-if="showConversion" class="converted-amount">
-                ≈ {{ formattedConvertedAmount }}
-                <span class="exchange-rate">(1 {{ selectedCurrency }} = {{ convertedAmountInfo.rate.toFixed(4) }} {{ currencyStore.primaryCurrency }})</span>
-              </p>
+              <!-- 显示转换后的金额和汇率编辑 -->
+              <div v-if="showConversion" class="conversion-section">
+                <p class="converted-amount">
+                  ≈ {{ formattedConvertedAmount }}
+                  <span v-if="isManualRate" class="manual-badge">Manual</span>
+                </p>
+                <div class="exchange-rate-editor">
+                  <span class="rate-label">1 {{ selectedCurrency }} =</span>
+                  <n-input-number
+                    :value="manualExchangeRate"
+                    :min="0.0001"
+                    :precision="6"
+                    :step="0.01"
+                    size="small"
+                    style="width: 120px"
+                    @update:value="onRateChange"
+                  />
+                  <span class="rate-label">{{ currencyStore.primaryCurrency }}</span>
+                  <n-tooltip trigger="hover">
+                    <template #trigger>
+                      <n-button 
+                        :loading="isLoadingRate" 
+                        @click="refreshExchangeRate"
+                        quaternary
+                        circle
+                        size="small"
+                      >
+                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
+                      </n-button>
+                    </template>
+                    Fetch latest rate
+                  </n-tooltip>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -476,16 +559,41 @@ const saveTransaction = async () => {
   margin: 4px 0 0 0;
 }
 
+.conversion-section {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .converted-amount {
   font-size: 0.875rem;
   color: var(--color-primary);
-  margin: 8px 0 0 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.exchange-rate {
+.manual-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  color: var(--color-primary);
+  border-radius: 4px;
+}
+
+.exchange-rate-editor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rate-label {
   font-size: 0.75rem;
   color: var(--color-text-muted);
-  margin-left: 4px;
 }
 
 /* 分类选择 */

@@ -11,6 +11,8 @@ const API_BASE = 'https://api.frankfurter.dev/v1'
 
 /**
  * 支持的币种列表
+ * 基于 Frankfurter API (ECB 数据源) 实际支持的币种
+ * https://api.frankfurter.dev/v1/currencies
  */
 export const CURRENCIES: Currency[] = [
   { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
@@ -25,14 +27,19 @@ export const CURRENCIES: Currency[] = [
   { code: 'SGD', name: 'Singapore Dollar', symbol: 'S$', flag: '🇸🇬' },
   { code: 'KRW', name: 'South Korean Won', symbol: '₩', flag: '🇰🇷' },
   { code: 'INR', name: 'Indian Rupee', symbol: '₹', flag: '🇮🇳' },
-  { code: 'RUB', name: 'Russian Ruble', symbol: '₽', flag: '🇷🇺' },
   { code: 'BRL', name: 'Brazilian Real', symbol: 'R$', flag: '🇧🇷' },
-  { code: 'MXN', name: 'Mexican Peso', symbol: 'Mex$', flag: '🇲🇽' },
-  { code: 'TWD', name: 'Taiwan Dollar', symbol: 'NT$', flag: '🇹🇼' },
+  { code: 'MXN', name: 'Mexican Peso', symbol: 'Mex$', flag: '��' },
   { code: 'THB', name: 'Thai Baht', symbol: '฿', flag: '🇹🇭' },
-  { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', flag: '🇲🇾' },
-  { code: 'PHP', name: 'Philippine Peso', symbol: '₱', flag: '🇵🇭' },
+  { code: 'MYR', name: 'Malaysian Ringgit', symbol: 'RM', flag: '��' },
+  { code: 'PHP', name: 'Philippine Peso', symbol: '₱', flag: '��' },
   { code: 'IDR', name: 'Indonesian Rupiah', symbol: 'Rp', flag: '🇮🇩' },
+  { code: 'NZD', name: 'New Zealand Dollar', symbol: 'NZ$', flag: '��' },
+  { code: 'SEK', name: 'Swedish Krona', symbol: 'kr', flag: '��' },
+  { code: 'NOK', name: 'Norwegian Krone', symbol: 'kr', flag: '��' },
+  { code: 'PLN', name: 'Polish Złoty', symbol: 'zł', flag: '🇵�' },
+  { code: 'TRY', name: 'Turkish Lira', symbol: '₺', flag: '🇹🇷' },
+  { code: 'ZAR', name: 'South African Rand', symbol: 'R', flag: '��' },
+  // 注意: TWD (台币) 和 RUB (卢布) 不在 ECB 数据源中，故移除
 ]
 
 /**
@@ -190,6 +197,7 @@ export function getExchangeRate(
 /**
  * 默认汇率（离线使用）
  * 基于大致的市场汇率，仅作为后备
+ * 数据更新于 2024年
  */
 function getDefaultRates(base: CurrencyCode): ExchangeRates {
   const usdRates: Record<string, number> = {
@@ -205,14 +213,18 @@ function getDefaultRates(base: CurrencyCode): ExchangeRates {
     SGD: 1.34,
     KRW: 1320,
     INR: 83.5,
-    RUB: 92,
     BRL: 4.97,
     MXN: 17.2,
-    TWD: 31.5,
     THB: 35.5,
     MYR: 4.72,
     PHP: 56.5,
     IDR: 15800,
+    NZD: 1.64,
+    SEK: 10.5,
+    NOK: 10.8,
+    PLN: 4.0,
+    TRY: 32.5,
+    ZAR: 18.5,
   }
   
   // 如果 base 不是 USD，需要转换

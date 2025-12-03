@@ -163,12 +163,13 @@ export const useCurrencyStore = defineStore('currency', () => {
   async function recalculateAllTransactions(
     transactions: Transaction[],
     onUpdate: (id: string, updates: Partial<Transaction>) => Promise<void>
-  ): Promise<{ success: number; failed: number }> {
+  ): Promise<{ success: number; failed: number; usedFallback: number }> {
     isRecalculating.value = true
     recalculationProgress.value = 0
     
     let success = 0
     let failed = 0
+    let usedFallback = 0
     const total = transactions.length
     
     // 按日期分组，减少 API 调用次数
@@ -228,7 +229,7 @@ export const useCurrencyStore = defineStore('currency', () => {
         }
       } catch (error) {
         console.error(`Failed to fetch historical rates for ${date}:`, error)
-        // 如果获取历史汇率失败，使用当前汇率
+        // 如果获取历史汇率失败，使用当前汇率（并标记）
         for (const txn of txns) {
           try {
             const result = convertToBaseCurrency(txn.amount, (txn.currency || 'USD') as CurrencyCode)
@@ -237,6 +238,7 @@ export const useCurrencyStore = defineStore('currency', () => {
               exchangeRate: result.rate
             })
             success++
+            usedFallback++ // 标记使用了回退汇率
           } catch {
             failed++
           }
@@ -249,7 +251,7 @@ export const useCurrencyStore = defineStore('currency', () => {
     isRecalculating.value = false
     recalculationProgress.value = 100
     
-    return { success, failed }
+    return { success, failed, usedFallback }
   }
 
   return {

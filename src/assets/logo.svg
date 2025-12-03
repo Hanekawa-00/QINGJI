@@ -1,0 +1,16 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="64" cy="64" r="60" fill="#2bd776"/>
+  
+  <!-- 账本/钱包形状 -->
+  <rect x="36" y="32" width="56" height="64" rx="6" fill="white"/>
+  
+  <!-- 账本线条 -->
+  <line x1="46" y1="50" x2="82" y2="50" stroke="#2bd776" stroke-width="4" stroke-linecap="round"/>
+  <line x1="46" y1="64" x2="72" y2="64" stroke="#2bd776" stroke-width="4" stroke-linecap="round"/>
+  <line x1="46" y1="78" x2="66" y2="78" stroke="#2bd776" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- 装饰叶子（代表"青"） -->
+  <path d="M78 38 Q88 28 82 18 Q72 28 78 38" fill="#1a9d5a"/>
+  <path d="M82 38 Q92 32 90 22 Q80 30 82 38" fill="#2bd776"/>
+</svg>
