@@ -4,8 +4,8 @@
  * 包含主题设置、应用配置等
  */
 import { ref, computed, onMounted, watch } from 'vue'
-import { NCard, NSelect, NSpin, NProgress, NInput, useDialog, useMessage } from 'naive-ui'
-import { ThemeSwitcher } from '@/components/common'
+import { NCard, NSpin, NProgress, NInput, NModal, NSelect, NRadioGroup, NRadio, NButton, useDialog, useMessage } from 'naive-ui'
+import { ThemeSwitcher, BackupSelect } from '@/components/common'
 import { useCurrencyStore, useUserStore } from '@/stores'
 import type { CurrencyCode } from '@/types'
 import {
@@ -24,11 +24,14 @@ import {
   clearWebDAVConfig,
   testConnection,
   uploadToWebDAV,
-  downloadFromWebDAV,
+  listBackupFiles,
+  downloadBackupFile,
+  deleteBackupFile,
   loadSyncStatus,
   WEBDAV_PRESETS,
   type WebDAVConfig,
-  type SyncStatus
+  type SyncStatus,
+  type BackupFileInfo
 } from '@/services/webdav'
 
 const currencyStore = useCurrencyStore()
@@ -341,12 +344,13 @@ async function doCSVImport(result: CSVImportResult) {
 }
 
 // 执行导入
-async function doImport(data: ExportData) {
+async function doImport(data: ExportData, overwrite: boolean = false) {
   try {
+    // 覆盖模式下传空数组，这样所有记录都会被当作新记录添加
     const result = await performImport(
       data,
-      userStore.categories,
-      userStore.transactions,
+      overwrite ? [] : userStore.categories,
+      overwrite ? [] : userStore.transactions,
       userStore.addCategory,
       userStore.addTransaction
     )
@@ -388,6 +392,13 @@ const isConfigured = ref(false)
 const isTesting = ref(false)
 const isSyncing = ref(false)
 
+// 备份列表弹窗
+const showBackupModal = ref(false)
+const backupList = ref<BackupFileInfo[]>([])
+const selectedBackup = ref<string | null>(null)
+const isLoadingBackups = ref(false)
+const restoreMode = ref<'merge' | 'overwrite'>('merge')
+
 // 预设选项
 const presetOptions = [
   { label: '坚果云', value: 'jianguoyun' },
@@ -396,6 +407,14 @@ const presetOptions = [
   { label: '自定义', value: 'custom' }
 ]
 const selectedPreset = ref('custom')
+
+// 备份选项
+const backupOptions = computed(() => 
+  backupList.value.map(b => ({
+    label: b.displayName,
+    value: b.filename
+  }))
+)
 
 // 加载 WebDAV 配置
 async function loadConfig() {
@@ -517,36 +536,101 @@ async function handleUpload() {
   }
 }
 
-// 从云端下载
+// 打开备份选择弹窗
 async function handleDownload() {
   if (!isConfigured.value) {
     message.warning('Please configure WebDAV first')
     return
   }
   
+  isLoadingBackups.value = true
+  showBackupModal.value = true
+  
+  try {
+    backupList.value = await listBackupFiles(webdavConfig.value)
+    if (backupList.value.length > 0) {
+      selectedBackup.value = backupList.value[0].filename
+    } else {
+      message.info('No backup files found on server')
+    }
+  } catch (error) {
+    message.error('Failed to load backup list')
+  } finally {
+    isLoadingBackups.value = false
+  }
+}
+
+// 执行恢复操作
+async function handleRestore() {
+  if (!selectedBackup.value) {
+    message.warning('Please select a backup')
+    return
+  }
+  
   isSyncing.value = true
   try {
-    const result = await downloadFromWebDAV(webdavConfig.value)
+    const result = await downloadBackupFile(webdavConfig.value, selectedBackup.value)
     
     if (result.success && result.data) {
-      dialog.warning({
-        title: 'Restore from Cloud',
-        content: `Found ${result.data.transactions.length} transactions and ${result.data.categories.length} categories. This will merge with your current data. Continue?`,
-        positiveText: 'Restore',
-        negativeText: 'Cancel',
-        onPositiveClick: async () => {
-          await doImport(result.data!)
-          syncStatus.value = await loadSyncStatus()
-        }
-      })
+      showBackupModal.value = false
+      
+      if (restoreMode.value === 'overwrite') {
+        // 覆盖模式：先清空现有数据
+        dialog.warning({
+          title: 'Overwrite Data',
+          content: `This will replace all your current data with ${result.data.transactions.length} transactions and ${result.data.categories.length} categories. Continue?`,
+          positiveText: 'Overwrite',
+          negativeText: 'Cancel',
+          onPositiveClick: async () => {
+            await doImport(result.data!, true)
+            syncStatus.value = await loadSyncStatus()
+            message.success('Data restored successfully')
+          }
+        })
+      } else {
+        // 合并模式
+        dialog.info({
+          title: 'Merge Data',
+          content: `Found ${result.data.transactions.length} transactions and ${result.data.categories.length} categories. New records will be added to your existing data.`,
+          positiveText: 'Merge',
+          negativeText: 'Cancel',
+          onPositiveClick: async () => {
+            await doImport(result.data!, false)
+            syncStatus.value = await loadSyncStatus()
+            message.success('Data merged successfully')
+          }
+        })
+      }
     } else {
       message.error(result.error || 'Download failed')
     }
   } catch (error) {
-    message.error('Download failed')
+    message.error('Restore failed')
   } finally {
     isSyncing.value = false
   }
+}
+
+// 删除备份
+async function handleDeleteBackup(filename: string) {
+  dialog.warning({
+    title: 'Delete Backup',
+    content: 'Are you sure you want to delete this backup?',
+    positiveText: 'Delete',
+    negativeText: 'Cancel',
+    onPositiveClick: async () => {
+      const success = await deleteBackupFile(webdavConfig.value, filename)
+      if (success) {
+        backupList.value = backupList.value.filter(b => b.filename !== filename)
+        if (selectedBackup.value === filename) {
+          selectedBackup.value = backupList.value[0]?.filename || null
+        }
+        message.success('Backup deleted')
+      } else {
+        message.error('Failed to delete backup')
+      }
+    }
+  })
 }
 
 // 初始化加载配置
@@ -837,6 +921,74 @@ onMounted(() => {
         </div>
       </n-card>
     </div>
+
+    <!-- 备份选择弹窗 -->
+    <n-modal
+      v-model:show="showBackupModal"
+      preset="card"
+      title="Select Backup to Restore"
+      style="width: 500px; max-width: 90vw;"
+      :mask-closable="!isSyncing"
+    >
+      <div class="backup-modal-content">
+        <!-- 加载状态 -->
+        <div v-if="isLoadingBackups" class="backup-loading">
+          <n-spin size="medium" />
+          <span>Loading backup list...</span>
+        </div>
+        
+        <!-- 无备份 -->
+        <div v-else-if="backupList.length === 0" class="backup-empty">
+          <span class="material-symbols-outlined">cloud_off</span>
+          <p>No backups found on server</p>
+        </div>
+        
+        <!-- 备份列表 -->
+        <template v-else>
+          <div class="backup-select-wrapper">
+            <label class="backup-label">Select backup:</label>
+            <BackupSelect
+              v-model="selectedBackup"
+              :options="backupOptions"
+              placeholder="Select a backup"
+              @delete="handleDeleteBackup"
+            />
+          </div>
+          
+          <!-- 恢复模式 -->
+          <div class="restore-mode-wrapper">
+            <label class="backup-label">Restore mode:</label>
+            <n-radio-group v-model:value="restoreMode">
+              <n-radio value="merge">
+                <div class="mode-option">
+                  <span class="mode-title">Merge</span>
+                  <span class="mode-desc">Add new records to existing data</span>
+                </div>
+              </n-radio>
+              <n-radio value="overwrite">
+                <div class="mode-option">
+                  <span class="mode-title">Overwrite</span>
+                  <span class="mode-desc">Replace all current data</span>
+                </div>
+              </n-radio>
+            </n-radio-group>
+          </div>
+          
+          <!-- 操作按钮 -->
+          <div class="backup-actions">
+            <n-button @click="showBackupModal = false">Cancel</n-button>
+            <n-button 
+              type="primary" 
+              :loading="isSyncing" 
+              :disabled="!selectedBackup"
+              @click="handleRestore"
+            >
+              Restore
+            </n-button>
+          </div>
+        </template>
+      </div>
+    </n-modal>
   </div>
 </template>
 
@@ -1059,5 +1211,78 @@ onMounted(() => {
   color: var(--color-text-muted);
   line-height: 1.6;
   margin: 0;
+}
+
+/* 备份弹窗样式 */
+.backup-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.backup-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: var(--color-text-muted);
+}
+
+.backup-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: var(--color-text-muted);
+}
+
+.backup-empty .material-symbols-outlined {
+  font-size: 48px;
+  opacity: 0.5;
+}
+
+.backup-select-wrapper,
+.restore-mode-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.backup-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.restore-mode-wrapper :deep(.n-radio-group) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mode-title {
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.mode-desc {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.backup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
 }
 </style>

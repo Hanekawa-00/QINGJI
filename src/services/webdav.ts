@@ -31,9 +31,18 @@ export interface SyncStatus {
   isSyncing: boolean
 }
 
+export interface BackupFileInfo {
+  filename: string
+  displayName: string
+  timestamp: string
+  lastModified?: string
+  size?: number
+}
+
 // ==================== 常量 ====================
 
-const BACKUP_FILENAME = 'qingzhang-sync.json'
+const BACKUP_PREFIX = 'qingzhang-backup-'
+const BACKUP_EXT = '.json'
 const CONFIG_KEY = 'webdav_config'
 const SYNC_STATUS_KEY = 'webdav_sync_status'
 
@@ -153,13 +162,50 @@ function buildAuthHeader(username: string, password: string): string {
 }
 
 /**
- * 规范化 WebDAV URL
+ * 规范化 WebDAV 目录 URL
  */
-function normalizeUrl(serverUrl: string, remotePath: string): string {
+function normalizeDirUrl(serverUrl: string, remotePath: string): string {
   let base = serverUrl.replace(/\/+$/, '')
   let path = remotePath.replace(/^\/+/, '').replace(/\/+$/, '')
-  
-  return `${base}/${path}/${BACKUP_FILENAME}`
+  return `${base}/${path}`
+}
+
+/**
+ * 生成带时间戳的备份文件名（使用本地时间）
+ */
+function generateBackupFilename(): string {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  const seconds = String(now.getSeconds()).padStart(2, '0')
+  const timestamp = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`
+  return `${BACKUP_PREFIX}${timestamp}${BACKUP_EXT}`
+}
+
+/**
+ * 从文件名解析时间戳
+ */
+function parseBackupFilename(filename: string): { timestamp: string; displayName: string } | null {
+  const match = filename.match(/qingzhang-backup-(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.json/)
+  if (match) {
+    const dateStr = match[1]
+    const timeStr = match[2].replace(/-/g, ':')
+    const timestamp = `${dateStr}T${timeStr}`
+    const date = new Date(timestamp)
+    const displayName = date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+    return { timestamp, displayName }
+  }
+  return null
 }
 
 /**
@@ -196,7 +242,32 @@ export async function testConnection(config: WebDAVConfig): Promise<{ success: b
 }
 
 /**
- * 上传数据到 WebDAV
+ * 确保远程目录存在
+ */
+async function ensureRemoteDir(config: WebDAVConfig): Promise<boolean> {
+  try {
+    const { fetch } = await import('@tauri-apps/plugin-http')
+    const dirUrl = normalizeDirUrl(config.serverUrl, config.remotePath)
+    
+    // 尝试创建目录（如果已存在会返回 405 或成功）
+    const response = await fetch(dirUrl + '/', {
+      method: 'MKCOL',
+      headers: {
+        'Authorization': buildAuthHeader(config.username, config.password)
+      }
+    })
+    
+    // 201 Created, 405 Already exists, 301/302 Redirect
+    return response.status === 201 || response.status === 405 || 
+           response.status === 301 || response.status === 302 ||
+           response.status === 200
+  } catch {
+    return false
+  }
+}
+
+/**
+ * 上传数据到 WebDAV（带时间戳版本）
  */
 export async function uploadToWebDAV(
   config: WebDAVConfig,
@@ -207,10 +278,17 @@ export async function uploadToWebDAV(
   try {
     const { fetch } = await import('@tauri-apps/plugin-http')
     
+    // 确保目录存在
+    await ensureRemoteDir(config)
+    
     // 生成备份数据
     const data = generateExportData(transactions, categories, primaryCurrency)
     const json = exportToJSON(data)
-    const url = normalizeUrl(config.serverUrl, config.remotePath)
+    
+    // 使用时间戳文件名
+    const filename = generateBackupFilename()
+    const dirUrl = normalizeDirUrl(config.serverUrl, config.remotePath)
+    const url = `${dirUrl}/${filename}`
     
     // 上传文件
     const response = await fetch(url, {
@@ -251,15 +329,78 @@ export async function uploadToWebDAV(
 }
 
 /**
- * 从 WebDAV 下载数据
+ * 列出所有备份文件
  */
-export async function downloadFromWebDAV(
-  config: WebDAVConfig
+export async function listBackupFiles(config: WebDAVConfig): Promise<BackupFileInfo[]> {
+  try {
+    const { fetch } = await import('@tauri-apps/plugin-http')
+    const dirUrl = normalizeDirUrl(config.serverUrl, config.remotePath)
+    
+    const response = await fetch(dirUrl + '/', {
+      method: 'PROPFIND',
+      headers: {
+        'Authorization': buildAuthHeader(config.username, config.password),
+        'Depth': '1',
+        'Content-Type': 'application/xml'
+      },
+      body: `<?xml version="1.0" encoding="utf-8" ?>
+<D:propfind xmlns:D="DAV:">
+  <D:prop>
+    <D:displayname/>
+    <D:getlastmodified/>
+    <D:getcontentlength/>
+  </D:prop>
+</D:propfind>`
+    })
+    
+    if (response.status !== 207 && response.status !== 200) {
+      return []
+    }
+    
+    const text = await response.text()
+    const backups: BackupFileInfo[] = []
+    
+    // 解析 XML 响应，提取备份文件
+    const hrefMatches = text.matchAll(/<D:href[^>]*>([^<]+)<\/D:href>/gi)
+    
+    for (const match of hrefMatches) {
+      const href = decodeURIComponent(match[1])
+      const filename = href.split('/').filter(Boolean).pop() || ''
+      
+      if (filename.startsWith(BACKUP_PREFIX) && filename.endsWith(BACKUP_EXT)) {
+        const parsed = parseBackupFilename(filename)
+        if (parsed) {
+          backups.push({
+            filename,
+            displayName: parsed.displayName,
+            timestamp: parsed.timestamp
+          })
+        }
+      }
+    }
+    
+    // 按时间倒序排列
+    backups.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+    
+    return backups
+  } catch (error) {
+    console.error('Failed to list backup files:', error)
+    return []
+  }
+}
+
+/**
+ * 下载指定的备份文件
+ */
+export async function downloadBackupFile(
+  config: WebDAVConfig,
+  filename: string
 ): Promise<{ success: boolean; data?: ExportData; error?: string }> {
   try {
     const { fetch } = await import('@tauri-apps/plugin-http')
     
-    const url = normalizeUrl(config.serverUrl, config.remotePath)
+    const dirUrl = normalizeDirUrl(config.serverUrl, config.remotePath)
+    const url = `${dirUrl}/${filename}`
     
     const response = await fetch(url, {
       method: 'GET',
@@ -279,7 +420,7 @@ export async function downloadFromWebDAV(
         return { success: false, error: validation.error || 'Invalid data format' }
       }
     } else if (response.status === 404) {
-      return { success: false, error: 'No backup found on server' }
+      return { success: false, error: 'Backup file not found' }
     } else {
       return { success: false, error: `Download failed with status ${response.status}` }
     }
@@ -289,45 +430,17 @@ export async function downloadFromWebDAV(
 }
 
 /**
- * 获取远程备份信息
+ * 删除指定的备份文件
  */
-export async function getRemoteBackupInfo(
-  config: WebDAVConfig
-): Promise<{ exists: boolean; lastModified?: string; size?: number }> {
+export async function deleteBackupFile(
+  config: WebDAVConfig,
+  filename: string
+): Promise<boolean> {
   try {
     const { fetch } = await import('@tauri-apps/plugin-http')
     
-    const url = normalizeUrl(config.serverUrl, config.remotePath)
-    
-    const response = await fetch(url, {
-      method: 'HEAD',
-      headers: {
-        'Authorization': buildAuthHeader(config.username, config.password)
-      }
-    })
-    
-    if (response.status === 200) {
-      return {
-        exists: true,
-        lastModified: response.headers.get('Last-Modified') || undefined,
-        size: parseInt(response.headers.get('Content-Length') || '0')
-      }
-    }
-    
-    return { exists: false }
-  } catch {
-    return { exists: false }
-  }
-}
-
-/**
- * 删除远程备份
- */
-export async function deleteRemoteBackup(config: WebDAVConfig): Promise<boolean> {
-  try {
-    const { fetch } = await import('@tauri-apps/plugin-http')
-    
-    const url = normalizeUrl(config.serverUrl, config.remotePath)
+    const dirUrl = normalizeDirUrl(config.serverUrl, config.remotePath)
+    const url = `${dirUrl}/${filename}`
     
     const response = await fetch(url, {
       method: 'DELETE',

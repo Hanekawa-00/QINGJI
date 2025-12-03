@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    BackupSelect: typeof import('./src/components/common/BackupSelect.vue')['default']
     BarLineChart: typeof import('./src/components/common/charts/BarLineChart.vue')['default']
     DesktopSidebar: typeof import('./src/components/desktop/DesktopSidebar.vue')['default']
     EditTransactionModal: typeof import('./src/components/desktop/EditTransactionModal.vue')['default']
