@@ -34,22 +34,16 @@ const statsCards = computed(() => [
   {
     label: 'Current Balance',
     value: formatCurrency(userStore.statistics.totalBalance),
-    subtitle: 'Cash + Accounts',
-    color: 'primary',
     valueColor: 'var(--color-text-strong)'
   },
   {
     label: 'Monthly Income',
     value: formatCurrency(userStore.statistics.monthlyIncome),
-    subtitle: 'Salary + Bonus',
-    color: 'success',
     valueColor: 'var(--color-income)'
   },
   {
     label: 'Monthly Spending',
     value: formatCurrency(userStore.statistics.monthlyExpense),
-    subtitle: 'Cards + Cash',
-    color: 'error',
     valueColor: 'var(--color-expense)'
   }
 ])
@@ -118,11 +112,7 @@ const handleDelete = async (transaction: Transaction) => {
     <n-grid cols="1 s:2 m:3" :x-gap="24" :y-gap="16" responsive="screen" class="stats-grid">
       <n-gi v-for="(card, index) in statsCards" :key="index">
         <n-card class="stats-card" :bordered="true">
-          <n-statistic :label="card.label" :value="card.value" tabular-nums>
-            <template #suffix>
-              <span class="stats-subtitle">{{ card.subtitle }}</span>
-            </template>
-          </n-statistic>
+          <n-statistic :label="card.label" :value="card.value" tabular-nums />
         </n-card>
       </n-gi>
     </n-grid>
@@ -229,13 +219,6 @@ const handleDelete = async (transaction: Transaction) => {
 .stats-card :deep(.n-statistic-value) {
   font-size: 1.875rem !important;
   font-weight: 700;
-}
-
-.stats-subtitle {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin-top: 8px;
 }
 
 /* 活动图表 */
