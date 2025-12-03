@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/manrope':
+        specifier: ^5.2.8
+        version: 5.2.8
       '@tauri-apps/api':
         specifier: ^2
         version: 2.9.0
@@ -44,6 +47,9 @@ importers:
       echarts:
         specifier: ^6.0.0
         version: 6.0.0
+      material-symbols:
+        specifier: ^0.40.0
+        version: 0.40.0
       pinia:
         specifier: ^3.0.4
         version: 3.0.4(typescript@5.6.3)(vue@3.5.25(typescript@5.6.3))
@@ -272,6 +278,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource/manrope@5.2.8':
+    resolution: {integrity: sha512-gJHJmcuUk7qWcNCfcAri/DJQtXtBYqi9yKratr4jXhSo0I3xUtNNKI+igQIcw5c+m95g0vounk8ZnX/kb8o0TA==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -723,6 +732,9 @@ packages:
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
+  material-symbols@0.40.0:
+    resolution: {integrity: sha512-sz2x2x2Ealg33LB//d6dnkgsUQsdTz7a2D2Af7rH0vxFtZWDceE50iCT9L6gClTEl7YJXkAt6LFA6SN6//hFzQ==}
+
   minimatch@9.0.5:
     resolution: {integrity: sha512-G6T0ZX48xgozx7587koeX9Ys2NYy6Gmv//P89sEte9V9whIapMNF4idKxnW2QtCcLiTWlb/wfCabAtAFWhhBow==}
     engines: {node: '>=16 || 14 >=14.17'}
@@ -1052,6 +1064,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.25.12':
     optional: true
+
+  '@fontsource/manrope@5.2.8': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
@@ -1473,6 +1487,8 @@ snapshots:
   magic-string@0.30.21:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  material-symbols@0.40.0: {}
 
   minimatch@9.0.5:
     dependencies:

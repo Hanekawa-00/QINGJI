@@ -17,6 +17,7 @@ import {
   useMessage
 } from 'naive-ui'
 import { Calculator } from '@/components/common'
+import { ALL_CATEGORY_ICONS } from '@/config/icons'
 import { useUserStore, useCurrencyStore } from '@/stores'
 import type { TransactionType, CurrencyCode } from '@/types'
 
@@ -39,7 +40,8 @@ const amount = ref(0)
 const showCategoryManager = ref(false)
 const editingCategory = ref<{ id: string; name: string; icon: string } | null>(null)
 const newCategory = ref({ name: '', icon: 'category' })
-const categoryIcons = ['restaurant', 'local_cafe', 'shopping_bag', 'directions_car', 'home', 'sports_esports', 'movie', 'flight', 'fitness_center', 'pets', 'school', 'medical_services', 'attach_money', 'work', 'card_giftcard', 'savings', 'payments', 'credit_card', 'account_balance', 'wallet']
+// 使用共享的图标配置
+const categoryIcons = ALL_CATEGORY_ICONS
 
 // 选中的分类
 const selectedCategory = ref<string>('1') // 默认选择Food & Drink
