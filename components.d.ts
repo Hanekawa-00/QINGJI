@@ -26,6 +26,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ThemeSwitcher: typeof import('./src/components/common/ThemeSwitcher.vue')['default']
+    TitleBar: typeof import('./src/components/desktop/TitleBar.vue')['default']
     TransactionItem: typeof import('./src/components/desktop/TransactionItem.vue')['default']
     TransactionList: typeof import('./src/components/desktop/TransactionList.vue')['default']
   }

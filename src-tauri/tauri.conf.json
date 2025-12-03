@@ -12,9 +12,14 @@
   "app": {
     "windows": [
       {
-        "title": "account-app",
-        "width": 800,
-        "height": 600
+        "title": "Green Ledger",
+        "width": 1024,
+        "height": 700,
+        "minWidth": 800,
+        "minHeight": 600,
+        "decorations": true,
+        "center": true,
+        "theme": "Dark"
       }
     ],
     "security": {
