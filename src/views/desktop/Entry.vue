@@ -16,6 +16,7 @@ import {
   NTooltip,
   useMessage
 } from 'naive-ui'
+import { Calculator } from '@/components/common'
 import { useUserStore, useCurrencyStore } from '@/stores'
 import type { TransactionType, CurrencyCode } from '@/types'
 
@@ -32,9 +33,7 @@ onMounted(() => {
 const transactionType = ref<TransactionType>('expense')
 
 // 金额输入
-const amountDisplay = ref('0')
-const pendingOperator = ref<'+' | '-' | null>(null)
-const storedValue = ref<number>(0)
+const amount = ref(0)
 
 // 分类管理
 const showCategoryManager = ref(false)
@@ -115,11 +114,6 @@ const currencyOptions = computed(() =>
   }))
 )
 
-// 当前币种信息
-const currentCurrencyInfo = computed(() => 
-  currencyStore.getCurrencyInfo(selectedCurrency.value)
-)
-
 // 格式化日期用于提交（使用本地时间避免时区问题）
 const selectedDate = computed(() => {
   const date = new Date(selectedDateTimestamp.value)
@@ -131,41 +125,19 @@ const selectedDate = computed(() => {
 
 // 计算转换后的金额（使用手动汇率）
 const convertedAmountInfo = computed(() => {
-  const amount = parseFloat(amountDisplay.value) || 0
   if (selectedCurrency.value === currencyStore.primaryCurrency) {
-    return { convertedAmount: amount, rate: 1 }
+    return { convertedAmount: amount.value, rate: 1 }
   }
   return { 
-    convertedAmount: amount * manualExchangeRate.value, 
+    convertedAmount: amount.value * manualExchangeRate.value, 
     rate: manualExchangeRate.value 
   }
-})
-
-// 格式化金额显示
-const formattedAmount = computed(() => {
-  const amount = parseFloat(amountDisplay.value) || 0
-  const symbol = currentCurrencyInfo.value?.symbol || '$'
-  
-  const formatted = `${symbol}${amount.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`
-  
-  // 显示待计算状态
-  if (pendingOperator.value) {
-    const storedFormatted = `${symbol}${storedValue.value.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`
-    return `${storedFormatted} ${pendingOperator.value} ${formatted}`
-  }
-  return formatted
 })
 
 // 显示转换后的金额（如果币种不同）
 const showConversion = computed(() => 
   selectedCurrency.value !== currencyStore.primaryCurrency && 
-  parseFloat(amountDisplay.value) > 0
+  amount.value > 0
 )
 
 const formattedConvertedAmount = computed(() => {
@@ -177,53 +149,11 @@ const availableCategories = computed(() => {
   return userStore.categories.filter(c => c.type === transactionType.value)
 })
 
-// 数字键盘输入
-const handleKeypad = (key: string) => {
-  if (key === 'backspace') {
-    if (amountDisplay.value.length > 1) {
-      amountDisplay.value = amountDisplay.value.slice(0, -1)
-    } else {
-      amountDisplay.value = '0'
-    }
-  } else if (key === '.') {
-    if (!amountDisplay.value.includes('.')) {
-      amountDisplay.value += '.'
-    }
-  } else if (key === '+' || key === '-') {
-    // 计算器功能
-    if (pendingOperator.value && storedValue.value !== 0) {
-      // 先计算之前的运算
-      const current = parseFloat(amountDisplay.value) || 0
-      if (pendingOperator.value === '+') {
-        amountDisplay.value = String(storedValue.value + current)
-      } else {
-        amountDisplay.value = String(storedValue.value - current)
-      }
-    }
-    storedValue.value = parseFloat(amountDisplay.value) || 0
-    pendingOperator.value = key as '+' | '-'
-    amountDisplay.value = '0'
-  } else if (key === '=') {
-    // 执行计算
-    if (pendingOperator.value && storedValue.value !== 0) {
-      const current = parseFloat(amountDisplay.value) || 0
-      if (pendingOperator.value === '+') {
-        amountDisplay.value = String(storedValue.value + current)
-      } else {
-        amountDisplay.value = String(Math.max(0, storedValue.value - current))
-      }
-      pendingOperator.value = null
-      storedValue.value = 0
-    }
-  } else {
-    // 数字输入
-    if (amountDisplay.value === '0') {
-      amountDisplay.value = key
-    } else {
-      amountDisplay.value += key
-    }
-  }
-}
+// 当前币种符号
+const currencySymbol = computed(() => {
+  const info = currencyStore.getCurrencyInfo(selectedCurrency.value)
+  return info?.symbol || '¥'
+})
 
 // ==================== 分类管理 ====================
 
@@ -296,9 +226,7 @@ const selectCategory = (categoryId: string) => {
 // 重置表单
 const resetForm = () => {
   transactionType.value = 'expense'
-  amountDisplay.value = '0'
-  pendingOperator.value = null
-  storedValue.value = 0
+  amount.value = 0
   description.value = ''
   selectedDateTimestamp.value = Date.now()
   selectedCategory.value = '1'
@@ -309,13 +237,14 @@ const resetForm = () => {
   manualExchangeRate.value = 1
 }
 
-// 保存交易
-const saveTransaction = async () => {
-  const amount = parseFloat(amountDisplay.value)
-  if (amount <= 0) {
+// 保存交易（由计算器触发）
+const handleSaveTransaction = async (value: number) => {
+  if (value <= 0) {
     message.warning('Please enter a valid amount')
     return
   }
+  
+  amount.value = value
 
   const category = userStore.categories.find(c => c.id === selectedCategory.value)
   if (!category) {
@@ -328,7 +257,7 @@ const saveTransaction = async () => {
 
   await userStore.addTransaction({
     type: transactionType.value,
-    amount,
+    amount: value,
     currency: selectedCurrency.value,
     convertedAmount,
     exchangeRate: rate,
@@ -358,57 +287,52 @@ const saveTransaction = async () => {
       <!-- Left Panel: Form -->
       <n-gi span="1 m:2">
         <n-card class="form-card" :bordered="true">
-          <!-- Transaction Type & Amount -->
-          <div class="type-amount-section">
-            <div class="type-currency-row">
-              <n-radio-group v-model:value="transactionType" name="transaction-type">
-                <n-radio-button value="expense">Expense</n-radio-button>
-                <n-radio-button value="income">Income</n-radio-button>
-              </n-radio-group>
-              <n-select
-                v-model:value="selectedCurrency"
-                :options="currencyOptions"
-                style="width: 120px"
+          <!-- Transaction Type & Currency -->
+          <div class="type-currency-section">
+            <n-radio-group v-model:value="transactionType" name="transaction-type">
+              <n-radio-button value="expense">Expense</n-radio-button>
+              <n-radio-button value="income">Income</n-radio-button>
+            </n-radio-group>
+            <n-select
+              v-model:value="selectedCurrency"
+              :options="currencyOptions"
+              style="width: 120px"
+              size="small"
+            />
+          </div>
+
+          <!-- 汇率编辑（如果币种不同） -->
+          <div v-if="showConversion" class="conversion-section">
+            <p class="converted-amount">
+              ≈ {{ formattedConvertedAmount }}
+              <span v-if="isManualRate" class="manual-badge">Manual</span>
+            </p>
+            <div class="exchange-rate-editor">
+              <span class="rate-label">1 {{ selectedCurrency }} =</span>
+              <n-input-number
+                :value="manualExchangeRate"
+                :min="0.0001"
+                :precision="6"
+                :step="0.01"
                 size="small"
+                style="width: 120px"
+                @update:value="onRateChange"
               />
-            </div>
-            <div class="amount-display">
-              <p class="amount-label">Amount</p>
-              <p class="amount-value">{{ formattedAmount }}</p>
-              <!-- 显示转换后的金额和汇率编辑 -->
-              <div v-if="showConversion" class="conversion-section">
-                <p class="converted-amount">
-                  ≈ {{ formattedConvertedAmount }}
-                  <span v-if="isManualRate" class="manual-badge">Manual</span>
-                </p>
-                <div class="exchange-rate-editor">
-                  <span class="rate-label">1 {{ selectedCurrency }} =</span>
-                  <n-input-number
-                    :value="manualExchangeRate"
-                    :min="0.0001"
-                    :precision="6"
-                    :step="0.01"
+              <span class="rate-label">{{ currencyStore.primaryCurrency }}</span>
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <n-button 
+                    :loading="isLoadingRate" 
+                    @click="refreshExchangeRate"
+                    quaternary
+                    circle
                     size="small"
-                    style="width: 120px"
-                    @update:value="onRateChange"
-                  />
-                  <span class="rate-label">{{ currencyStore.primaryCurrency }}</span>
-                  <n-tooltip trigger="hover">
-                    <template #trigger>
-                      <n-button 
-                        :loading="isLoadingRate" 
-                        @click="refreshExchangeRate"
-                        quaternary
-                        circle
-                        size="small"
-                      >
-                        <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
-                      </n-button>
-                    </template>
-                    Fetch latest rate
-                  </n-tooltip>
-                </div>
-              </div>
+                  >
+                    <span class="material-symbols-outlined" style="font-size: 16px;">refresh</span>
+                  </n-button>
+                </template>
+                Fetch latest rate
+              </n-tooltip>
             </div>
           </div>
 
@@ -461,36 +385,14 @@ const saveTransaction = async () => {
         </n-card>
       </n-gi>
 
-      <!-- Right Panel: Keypad -->
+      <!-- Right Panel: Calculator -->
       <n-gi>
-        <n-card class="keypad-card" :bordered="true">
-          <template #header>
-            <span class="keypad-label">Quick Keypad</span>
-          </template>
-          <div class="keypad-grid">
-            <n-button class="keypad-btn" @click="handleKeypad('1')">1</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('2')">2</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('3')">3</n-button>
-            <n-button class="keypad-btn operator" @click="handleKeypad('+')">+</n-button>
-            
-            <n-button class="keypad-btn" @click="handleKeypad('4')">4</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('5')">5</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('6')">6</n-button>
-            <n-button class="keypad-btn operator" @click="handleKeypad('-')">-</n-button>
-            
-            <n-button class="keypad-btn" @click="handleKeypad('7')">7</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('8')">8</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('9')">9</n-button>
-            <n-button class="keypad-btn operator" @click="handleKeypad('backspace')">
-              <span class="material-symbols-outlined">backspace</span>
-            </n-button>
-            
-            <n-button class="keypad-btn operator" @click="handleKeypad('=')">=</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('0')">0</n-button>
-            <n-button class="keypad-btn" @click="handleKeypad('.')">.</n-button>
-            <n-button type="primary" class="keypad-btn save-btn" @click="saveTransaction">Save</n-button>
-          </div>
-        </n-card>
+        <Calculator 
+          v-model="amount"
+          :currency-symbol="currencySymbol"
+          save-button-text="Save"
+          @save="handleSaveTransaction"
+        />
       </n-gi>
     </n-grid>
 
@@ -626,49 +528,26 @@ const saveTransaction = async () => {
 }
 
 /* 表单卡片 */
-.form-card,
-.keypad-card {
+.form-card {
   background: var(--color-surface) !important;
   border-color: rgba(43, 215, 118, 0.2) !important;
 }
 
-/* 类型和金额 */
-.type-amount-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.type-currency-row {
+/* 类型和币种选择 */
+.type-currency-section {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin-bottom: 20px;
 }
 
-.amount-display {
-  text-align: center;
-  padding: 16px;
-  background: color-mix(in srgb, var(--color-background) 60%, transparent);
-  border-radius: 12px;
-}
-
-.amount-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
-.amount-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text-strong);
-  margin: 4px 0 0 0;
-}
-
+/* 汇率转换 */
 .conversion-section {
-  margin-top: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, var(--color-background) 60%, transparent);
+  border-radius: 8px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -771,64 +650,6 @@ const saveTransaction = async () => {
 
 .tag-buttons {
   margin-top: 8px;
-}
-
-/* 键盘区域 */
-.keypad-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.keypad-card {
-  min-width: 280px;
-}
-
-.keypad-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.keypad-btn {
-  width: 100% !important;
-  aspect-ratio: 1 !important;
-  height: unset !important;
-  min-width: unset !important;
-  max-width: unset !important;
-  padding: 0 !important;
-  font-size: clamp(16px, 4vw, 22px) !important;
-  font-weight: 600 !important;
-  border-radius: 50% !important;
-  background: var(--color-surface) !important;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
-  color: var(--color-text-strong) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.keypad-btn:hover {
-  background: var(--color-surface-hover) !important;
-}
-
-.keypad-btn:active {
-  background: var(--color-surface-active) !important;
-}
-
-.keypad-btn.operator {
-  color: var(--color-primary) !important;
-}
-
-.keypad-btn.save-btn {
-  grid-column: span 2;
-  aspect-ratio: unset !important;
-  height: 100% !important;
-  border-radius: 9999px !important;
-  background: var(--color-primary) !important;
-  color: var(--color-background) !important;
-  border-color: color-mix(in srgb, var(--color-primary) 70%, transparent) !important;
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  font-size: clamp(14px, 3vw, 18px) !important;
 }
 
 /* Icon Picker */

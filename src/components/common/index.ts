@@ -11,3 +11,6 @@ export { default as ThemeSwitcher } from './ThemeSwitcher.vue'
 
 // 备份选择组件
 export { default as BackupSelect } from './BackupSelect.vue'
+
+// 计算器组件
+export { default as Calculator } from './Calculator.vue'
