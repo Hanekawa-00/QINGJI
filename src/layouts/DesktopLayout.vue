@@ -71,6 +71,7 @@ function toggleFabMenu() {
       class="desktop-content"
       position="absolute"
       :style="{ left: collapsed ? '0' : `${siderWidth}px` }"
+      content-style="display: flex; flex-direction: column; height: 100%;"
     >
       <!-- 顶部拖拽区域 -->
       <div class="drag-bar" data-tauri-drag-region></div>
@@ -158,8 +159,6 @@ function toggleFabMenu() {
   padding: 0 16px 16px 16px;
   min-width: 0;
   overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
   overscroll-behavior: none;
   transition: left 0.3s var(--n-bezier);
 }
@@ -170,6 +169,26 @@ function toggleFabMenu() {
   margin: 0 auto;
   width: 100%;
   overflow-y: auto;
+  /* 自定义滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-text-muted) 30%, transparent) transparent;
+}
+
+.content-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.content-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content-container::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-muted) 30%, transparent);
+  border-radius: 3px;
+}
+
+.content-container::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 50%, transparent);
 }
 
 @media (min-width: 768px) {
