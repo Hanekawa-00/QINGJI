@@ -174,7 +174,7 @@ export type ThemeMode = 'light' | 'dark' | 'system'
 /**
  * 主题名称（预设主题）
  */
-export type ThemeName = 'default' | 'ocean' | 'sunset' | 'forest' | 'lavender'
+export type ThemeName = 'default' | 'ocean' | 'sunset' | 'rose' | 'lavender'
 
 /**
  * 主题颜色配置

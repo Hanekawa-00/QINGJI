@@ -21,17 +21,17 @@ export function createDarkThemeOverrides(colors: ThemeColors): GlobalThemeOverri
       successColorHover: colors.primaryHover,
       successColorPressed: colors.primaryPressed,
       
-      warningColor: '#f0b429',
-      warningColorHover: '#f5c142',
-      warningColorPressed: '#d9a224',
+      warningColor: '#f59e0b',
+      warningColorHover: '#fbbf24',
+      warningColorPressed: '#d97706',
       
-      errorColor: '#ef4444',
-      errorColorHover: '#f16464',
-      errorColorPressed: '#d93d3d',
+      errorColor: '#f43f5e',
+      errorColorHover: '#fb7185',
+      errorColorPressed: '#e11d48',
       
-      infoColor: '#3b82f6',
-      infoColorHover: '#5b9af7',
-      infoColorPressed: '#2563eb',
+      infoColor: '#06b6d4',
+      infoColorHover: '#22d3ee',
+      infoColorPressed: '#0891b2',
       
       bodyColor: colors.backgroundDark,
       cardColor: colors.surface,
@@ -235,17 +235,17 @@ export function createLightThemeOverrides(colors: ThemeColors): GlobalThemeOverr
       successColorHover: colors.primaryHover,
       successColorPressed: colors.primaryPressed,
       
-      warningColor: '#f0b429',
-      warningColorHover: '#f5c142',
-      warningColorPressed: '#d9a224',
+      warningColor: '#f59e0b',
+      warningColorHover: '#d97706',
+      warningColorPressed: '#b45309',
       
-      errorColor: '#ef4444',
-      errorColorHover: '#f16464',
-      errorColorPressed: '#d93d3d',
+      errorColor: '#f43f5e',
+      errorColorHover: '#e11d48',
+      errorColorPressed: '#be123c',
       
-      infoColor: '#3b82f6',
-      infoColorHover: '#5b9af7',
-      infoColorPressed: '#2563eb',
+      infoColor: '#06b6d4',
+      infoColorHover: '#0891b2',
+      infoColorPressed: '#0e7490',
       
       bodyColor: colors.background,
       cardColor: colors.surface,

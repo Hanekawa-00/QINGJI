@@ -6,50 +6,50 @@
 
 :root {
   /* ===== 品牌色彩 ===== */
-  --color-primary: #2bd776;
-  --color-primary-hover: #25c269;
-  --color-primary-pressed: #1fad5c;
-  --color-primary-light: rgba(43, 215, 118, 0.1);
-  --color-primary-border: rgba(43, 215, 118, 0.5);
+  --color-primary: #13987f;
+  --color-primary-hover: #16b396;
+  --color-primary-pressed: #0f7a65;
+  --color-primary-light: rgba(19, 152, 127, 0.1);
+  --color-primary-border: rgba(19, 152, 127, 0.5);
   
   /* Primary Alpha 透明度变体 */
-  --color-primary-alpha-10: rgba(43, 215, 118, 0.1);
-  --color-primary-alpha-15: rgba(43, 215, 118, 0.15);
-  --color-primary-alpha-20: rgba(43, 215, 118, 0.2);
-  --color-primary-alpha-30: rgba(43, 215, 118, 0.3);
-  --color-primary-alpha-40: rgba(43, 215, 118, 0.4);
-  --color-primary-alpha-60: rgba(43, 215, 118, 0.6);
-  --color-primary-alpha-70: rgba(43, 215, 118, 0.7);
+  --color-primary-alpha-10: rgba(19, 152, 127, 0.1);
+  --color-primary-alpha-15: rgba(19, 152, 127, 0.15);
+  --color-primary-alpha-20: rgba(19, 152, 127, 0.2);
+  --color-primary-alpha-30: rgba(19, 152, 127, 0.3);
+  --color-primary-alpha-40: rgba(19, 152, 127, 0.4);
+  --color-primary-alpha-60: rgba(19, 152, 127, 0.6);
+  --color-primary-alpha-70: rgba(19, 152, 127, 0.7);
   
-  /* ===== 中性色阶 ===== */
-  --color-background: #0b1210;  /* 默认深色，由主题系统动态更新 */
-  --color-background-base: #ffffff;
-  --color-background-dark: #0b1210;
-  --color-surface: #111a16;
-  --color-surface-hover: #1a2b24;
-  --color-surface-active: #1c2620;
-  --color-border: #1a2b24;
-  --color-border-light: rgba(26, 43, 36, 0.6);
+  /* ===== 中性色阶 (干净简洁) ===== */
+  --color-background: #141414;  /* 默认深色，由主题系统动态更新 */
+  --color-background-base: #fafafa;
+  --color-background-dark: #141414;
+  --color-surface: #1b1b1b;
+  --color-surface-hover: #262626;
+  --color-surface-active: #333333;
+  --color-border: #2a2a2a;
+  --color-border-light: rgba(42, 42, 42, 0.6);
   
   /* Background Alpha 透明度变体 */
-  --color-background-alpha-40: rgba(11, 18, 16, 0.4);
-  --color-background-alpha-60: rgba(11, 18, 16, 0.6);
+  --color-background-alpha-40: rgba(20, 20, 20, 0.4);
+  --color-background-alpha-60: rgba(20, 20, 20, 0.6);
   
   /* ===== 文本色彩 ===== */
-  --color-text-base: #0f0f0f;
-  --color-text-strong: #e8f1ec;
-  --color-text-muted: #7b8c82;
-  --color-text-disabled: #4a5a52;
+  --color-text-base: #18181c;
+  --color-text-strong: #ffffff;
+  --color-text-muted: #a1a1a1;
+  --color-text-disabled: #525252;
   
   /* ===== 语义色彩 ===== */
-  --color-success: #2bd776;
-  --color-warning: #f0b429;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
+  --color-success: #13987f;
+  --color-warning: #f59e0b;
+  --color-error: #f43f5e;
+  --color-info: #0ea5e9;
   
   /* 收入和支出 */
-  --color-income: #4de6a5;
-  --color-expense: #ef5f9a;
+  --color-income: #16b396;
+  --color-expense: #f472b6;
   
   /* ===== 字体系统 ===== */
   --font-family-base: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
