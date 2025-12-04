@@ -25,14 +25,27 @@ dist-ssr
 *.sln
 *.sw?
 
-# ClaudeCode # doc # Codex # Qoder
+# Tauri
+src-tauri/target/
+src-tauri/gen/schemas/
 
-CLAUDE.md 
-.claude 
+# Android
+src-tauri/gen/android/.gradle/
+src-tauri/gen/android/build/
+src-tauri/gen/android/app/build/
+src-tauri/gen/android/local.properties
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# ClaudeCode / Codex / Qoder
+CLAUDE.md
+.claude/
 .mcp.json
-
-docs/
-
 AGENTS.md
+
+# Docs (generated)
+docs/
 
 

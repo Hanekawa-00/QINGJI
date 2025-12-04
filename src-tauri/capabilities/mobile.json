@@ -1,0 +1,31 @@
+{
+  "$schema": "../gen/schemas/mobile-schema.json",
+  "identifier": "mobile-capability",
+  "description": "移动端应用权限配置",
+  "windows": ["mobile-main"],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "opener:default",
+    "sql:allow-load",
+    "sql:allow-execute",
+    "sql:allow-select",
+    "sql:allow-close",
+    "os:allow-platform",
+    "os:allow-version",
+    "os:allow-os-type",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-save",
+    "store:allow-load",
+    "store:allow-delete",
+    "log:allow-log",
+    {
+      "identifier": "http:default",
+      "allow": [
+        { "url": "https://**" },
+        { "url": "http://**" }
+      ]
+    }
+  ]
+}
