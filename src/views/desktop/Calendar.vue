@@ -12,7 +12,7 @@ import { useCurrencyFormat } from '@/hooks'
 import { TransactionList, MonthYearPicker, EditTransactionModal } from '@/components/desktop'
 import type { CalendarDay, MonthCalendar, Transaction } from '@/types'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const { format: formatCurrency } = useCurrencyFormat()
@@ -143,13 +143,16 @@ const selectedDayData = computed(() => {
   return calendarData.value.days.find(d => d.date === selectedDate.value)
 })
 
-// 选中日期的显示文本
+// 选中日期的显示文本（使用浏览器内置国际化 API）
 const selectedDateDisplay = computed(() => {
   if (!selectedDayData.value) return ''
   const date = new Date(selectedDate.value)
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  return `${monthNames[date.getMonth()]} ${date.getDate()}, ${dayNames[date.getDay()]}`
+  const dateLocale = locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'
+  return date.toLocaleDateString(dateLocale, {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  })
 })
 
 // 点击日期
