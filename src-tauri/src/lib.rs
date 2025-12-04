@@ -75,22 +75,6 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_http::init())
-        // Stronghold for secure credential storage
-        .plugin(tauri_plugin_stronghold::Builder::new(|password| {
-            // 使用 argon2 派生密钥
-            use argon2::{Argon2, password_hash::{PasswordHasher, SaltString}};
-            
-            // 使用固定盐值（对于设备密钥派生是安全的）
-            let salt = SaltString::encode_b64(b"qingzhang-salt1").expect("Invalid salt");
-            let argon2 = Argon2::default();
-            
-            // 使用密码哈希派生密钥
-            let hash = argon2.hash_password(password.as_ref(), &salt)
-                .expect("Failed to hash password");
-            
-            // 获取哈希输出作为密钥
-            hash.hash.expect("No hash output").as_bytes().to_vec()
-        }).build())
         // Logging for debugging
         .plugin(tauri_plugin_log::Builder::new().targets([
             Target::new(TargetKind::Stdout),
