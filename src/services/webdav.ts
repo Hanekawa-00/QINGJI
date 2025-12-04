@@ -4,6 +4,7 @@
  */
 
 import { generateExportData, exportToJSON, validateImportData, type ExportData } from './data-transfer'
+import { saveSecret, getSecret, deleteSecret } from './crypto'
 import type { Transaction, Category, CurrencyCode } from '@/types'
 
 // ==================== 类型定义 ====================
@@ -44,6 +45,7 @@ export interface BackupFileInfo {
 const BACKUP_PREFIX = 'qingzhang-backup-'
 const BACKUP_EXT = '.json'
 const CONFIG_KEY = 'webdav_config'
+const PASSWORD_KEY = 'webdav_password'  // 密码存储在 Stronghold 中
 const SYNC_STATUS_KEY = 'webdav_sync_status'
 
 // ==================== 配置管理 ====================
@@ -61,18 +63,28 @@ async function getStore() {
 
 /**
  * 保存 WebDAV 配置
+ * 密码使用 Stronghold 安全存储，其他配置使用普通 store
  */
 export async function saveWebDAVConfig(config: WebDAVConfig): Promise<void> {
   try {
     const store = await getStore()
     
-    // 加密敏感信息（简单 base64，生产环境应使用更安全的加密）
-    const secureConfig = {
-      ...config,
-      password: btoa(config.password)
+    // 密码存储到 Stronghold 安全存储
+    if (config.password) {
+      await saveSecret(PASSWORD_KEY, config.password)
     }
     
-    await store.set(CONFIG_KEY, secureConfig)
+    // 其他配置存储到普通 store（不包含密码）
+    const safeConfig = {
+      serverUrl: config.serverUrl,
+      username: config.username,
+      remotePath: config.remotePath,
+      autoSync: config.autoSync,
+      syncInterval: config.syncInterval,
+      hasPassword: !!config.password  // 标记是否有密码
+    }
+    
+    await store.set(CONFIG_KEY, safeConfig)
   } catch (error) {
     console.error('Failed to save WebDAV config:', error)
     throw error
@@ -81,17 +93,34 @@ export async function saveWebDAVConfig(config: WebDAVConfig): Promise<void> {
 
 /**
  * 加载 WebDAV 配置
+ * 从 Stronghold 获取密码，从普通 store 获取其他配置
  */
 export async function loadWebDAVConfig(): Promise<WebDAVConfig | null> {
   try {
     const store = await getStore()
-    const config = await store.get<WebDAVConfig>(CONFIG_KEY)
+    const config = await store.get<{
+      serverUrl: string
+      username: string
+      remotePath: string
+      autoSync: boolean
+      syncInterval: number
+      hasPassword?: boolean
+    }>(CONFIG_KEY)
     
     if (config) {
-      // 解密密码
+      // 从 Stronghold 安全获取密码
+      let password = ''
+      if (config.hasPassword) {
+        password = await getSecret(PASSWORD_KEY) || ''
+      }
+      
       return {
-        ...config,
-        password: config.password ? atob(config.password) : ''
+        serverUrl: config.serverUrl,
+        username: config.username,
+        password,
+        remotePath: config.remotePath,
+        autoSync: config.autoSync,
+        syncInterval: config.syncInterval
       }
     }
     
@@ -104,12 +133,16 @@ export async function loadWebDAVConfig(): Promise<WebDAVConfig | null> {
 
 /**
  * 清除 WebDAV 配置
+ * 同时清除 Stronghold 中的密码
  */
 export async function clearWebDAVConfig(): Promise<void> {
   try {
     const store = await getStore()
     await store.delete(CONFIG_KEY)
     await store.delete(SYNC_STATUS_KEY)
+    
+    // 清除 Stronghold 中的密码
+    await deleteSecret(PASSWORD_KEY)
   } catch (error) {
     console.error('Failed to clear WebDAV config:', error)
   }
