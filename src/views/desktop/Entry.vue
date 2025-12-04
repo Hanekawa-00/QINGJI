@@ -172,7 +172,7 @@ const currencySymbol = computed(() => {
 // 添加新分类
 const handleAddCategory = async () => {
   if (!newCategory.value.name.trim()) {
-    message.warning('Please enter a category name')
+    message.warning(t('messages.enterCategoryName'))
     return
   }
   
@@ -182,7 +182,7 @@ const handleAddCategory = async () => {
     type: transactionType.value
   })
   
-  message.success('Category added!')
+  message.success(t('messages.categoryAdded'))
   newCategory.value = { name: '', icon: 'category' }
 }
 
@@ -196,7 +196,7 @@ const handleUpdateCategory = async () => {
   if (!editingCategory.value) return
   
   if (!editingCategory.value.name.trim()) {
-    message.warning('Category name cannot be empty')
+    message.warning(t('messages.categoryNameEmpty'))
     return
   }
   
@@ -205,7 +205,7 @@ const handleUpdateCategory = async () => {
     icon: editingCategory.value.icon
   })
   
-  message.success('Category updated!')
+  message.success(t('messages.categoryUpdated'))
   editingCategory.value = null
 }
 
@@ -219,14 +219,14 @@ const handleDeleteCategory = async (categoryId: string) => {
   const success = await userStore.deleteCategory(categoryId)
   
   if (success) {
-    message.success('Category deleted!')
+    message.success(t('messages.categoryDeleted'))
     // 如果删除的是当前选中的分类，重置选择
     if (selectedCategory.value === categoryId) {
       const firstCategory = availableCategories.value[0]
       selectedCategory.value = firstCategory?.id || ''
     }
   } else {
-    message.error('Cannot delete category that has transactions')
+    message.error(t('messages.cannotDeleteCategory'))
   }
 }
 

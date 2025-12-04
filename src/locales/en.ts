@@ -284,6 +284,12 @@ export default {
     updated: 'Updated successfully',
     updateFailed: 'Update failed',
     enterValidAmount: 'Please enter a valid amount',
-    selectCategory: 'Please select a category'
+    selectCategory: 'Please select a category',
+    enterCategoryName: 'Please enter a category name',
+    categoryAdded: 'Category added!',
+    categoryNameEmpty: 'Category name cannot be empty',
+    categoryUpdated: 'Category updated!',
+    categoryDeleted: 'Category deleted!',
+    cannotDeleteCategory: 'Cannot delete category that has transactions'
   }
 }

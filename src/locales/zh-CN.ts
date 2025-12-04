@@ -284,6 +284,12 @@ export default {
     updated: '更新成功',
     updateFailed: '更新失败',
     enterValidAmount: '请输入有效金额',
-    selectCategory: '请选择分类'
+    selectCategory: '请选择分类',
+    enterCategoryName: '请输入分类名称',
+    categoryAdded: '分类已添加！',
+    categoryNameEmpty: '分类名称不能为空',
+    categoryUpdated: '分类已更新！',
+    categoryDeleted: '分类已删除！',
+    cannotDeleteCategory: '无法删除有交易记录的分类'
   }
 }

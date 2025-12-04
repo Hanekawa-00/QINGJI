@@ -140,6 +140,16 @@ const availableCategories = computed(() => {
   return userStore.categories.filter(c => c.type === formData.value.type)
 })
 
+// 当交易类型变化时，检查当前分类是否仍然有效
+watch(() => formData.value.type, () => {
+  const currentCategory = userStore.categories.find(c => c.id === formData.value.categoryId)
+  // 如果当前分类类型与新类型不匹配，选择第一个可用分类
+  if (!currentCategory || currentCategory.type !== formData.value.type) {
+    const firstCategory = availableCategories.value[0]
+    formData.value.categoryId = firstCategory?.id || ''
+  }
+})
+
 // 选中的分类
 const selectedCategory = computed(() => {
   return userStore.categories.find(c => c.id === formData.value.categoryId)
