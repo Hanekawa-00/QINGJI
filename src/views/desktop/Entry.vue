@@ -253,7 +253,7 @@ const resetForm = () => {
 // 保存交易（由计算器触发）
 const handleSaveTransaction = async (value: number) => {
   if (value <= 0) {
-    message.warning('Please enter a valid amount')
+    message.warning(t('messages.enterValidAmount'))
     return
   }
   
@@ -261,7 +261,7 @@ const handleSaveTransaction = async (value: number) => {
 
   const category = userStore.categories.find(c => c.id === selectedCategory.value)
   if (!category) {
-    message.warning('Please select a category')
+    message.warning(t('messages.selectCategory'))
     return
   }
 
@@ -280,7 +280,7 @@ const handleSaveTransaction = async (value: number) => {
     date: selectedDate.value
   })
   
-  message.success('Transaction saved successfully!')
+  message.success(t('messages.saveSuccess'))
   resetForm()
 }
 </script>

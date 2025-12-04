@@ -151,6 +151,8 @@ export default {
     importData: '导入数据',
     importDesc: '从 JSON 或 CSV 文件导入',
     import: '导入',
+    importJSONTitle: '导入 JSON 数据',
+    importCSVTitle: '导入 CSV 数据',
     
     // 云同步
     cloudSync: '云同步 (WebDAV)',
@@ -279,8 +281,11 @@ export default {
     downloadSuccess: '下载成功',
     downloadFailed: '下载失败',
     configSaved: 'WebDAV 配置已保存',
+    configCleared: '配置已清除',
     fillRequired: '请填写必填项',
+    fillServerAndUsername: '请填写服务器地址和用户名',
     unsupportedFormat: '不支持的文件格式，请使用 .json 或 .csv 文件。',
+    parseError: '无法解析导入文件，请检查文件格式。',
     updated: '更新成功',
     updateFailed: '更新失败',
     enterValidAmount: '请输入有效金额',
@@ -290,6 +295,41 @@ export default {
     categoryNameEmpty: '分类名称不能为空',
     categoryUpdated: '分类已更新！',
     categoryDeleted: '分类已删除！',
-    cannotDeleteCategory: '无法删除有交易记录的分类'
+    cannotDeleteCategory: '无法删除有交易记录的分类',
+    // 导出/导入
+    exportedTo: '已导出至：{path}',
+    exportedTransactions: '已导出 {transactions} 条交易和 {categories} 个分类',
+    exportedToCSV: '已导出 {count} 条交易到 CSV',
+    // 重新计算
+    recalculateSuccess: '已成功重新计算 {count} 条交易',
+    recalculatePartial: '已重新计算 {success} 条交易，{fallback} 条使用了当前汇率（历史汇率不可用）',
+    recalculateFailed: '已重新计算 {success} 条交易，{failed} 条失败',
+    // 导入对话框
+    importPreview: '发现 {transactions} 条交易和 {categories} 个分类。',
+    importDateRange: '日期范围：{start} 至 {end}',
+    importSkipExisting: '相同 ID 的数据将被跳过，是否继续？',
+    importedResult: '已导入 {transactions} 条交易和 {categories} 个分类',
+    importedWithSkip: '（跳过 {skipped} 条）',
+    // CSV 导入
+    csvPreview: '从 CSV 发现 {count} 条交易。',
+    csvSkipped: '跳过了 {count} 行无效数据。',
+    csvErrors: '遇到 {count} 个错误。',
+    csvContinue: '是否继续导入？',
+    csvImportResult: '已导入 {success} 条交易',
+    csvDuplicatesSkipped: '，跳过 {count} 条重复',
+    csvImportPartial: '，{failed} 条失败',
+    csvImportFailed: 'CSV 导入失败：{error}',
+    noValidTransactions: '未找到有效的交易记录',
+    // WebDAV
+    configureWebDAVFirst: '请先配置 WebDAV',
+    noBackupsFound: '服务器上未找到备份文件',
+    loadBackupsFailed: '加载备份列表失败',
+    selectBackupFirst: '请选择一个备份',
+    dataRestored: '数据已成功恢复',
+    dataMerged: '数据已成功合并',
+    restoreFailed: '恢复失败',
+    backupDeleted: '备份已删除',
+    backupDeleteFailed: '删除备份失败',
+    testFailed: '连接测试失败'
   }
 }

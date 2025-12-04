@@ -107,17 +107,17 @@ async function recalculateTransactions() {
   )
   
   if (result.failed === 0 && result.usedFallback === 0) {
-    message.success(`Successfully recalculated ${result.success} transactions`)
+    message.success(t('messages.recalculateSuccess', { count: result.success }))
   } else if (result.failed === 0 && result.usedFallback > 0) {
-    message.warning(`Recalculated ${result.success} transactions. ${result.usedFallback} used current rates (historical unavailable)`)
+    message.warning(t('messages.recalculatePartial', { success: result.success, fallback: result.usedFallback }))
   } else {
-    message.error(`Recalculated ${result.success} transactions, ${result.failed} failed`)
+    message.error(t('messages.recalculateFailed', { success: result.success, failed: result.failed }))
   }
 }
 
 // 汇率更新时间
 const ratesLastUpdated = computed(() => {
-  if (!currencyStore.lastUpdated) return 'Not updated'
+  if (!currencyStore.lastUpdated) return t('settings.notUpdated')
   return currencyStore.lastUpdated.toLocaleString()
 })
 
@@ -151,16 +151,16 @@ async function exportData() {
     
     if (result.success) {
       if (result.path) {
-        message.success(`Exported to: ${result.path}`)
+        message.success(t('messages.exportedTo', { path: result.path }))
       } else {
-        message.success(`Exported ${userStore.transactions.length} transactions and ${userStore.categories.length} categories`)
+        message.success(t('messages.exportedTransactions', { transactions: userStore.transactions.length, categories: userStore.categories.length }))
       }
     } else if (result.error !== 'User cancelled') {
-      message.error(`Export failed: ${result.error}`)
+      message.error(t('messages.exportFailed') + ': ' + result.error)
     }
   } catch (error) {
     console.error('Export failed:', error)
-    message.error('Failed to export data')
+    message.error(t('messages.exportFailed'))
   } finally {
     isExporting.value = false
   }
@@ -175,16 +175,16 @@ async function exportAsCSV() {
     
     if (result.success) {
       if (result.path) {
-        message.success(`Exported to: ${result.path}`)
+        message.success(t('messages.exportedTo', { path: result.path }))
       } else {
-        message.success(`Exported ${userStore.transactions.length} transactions to CSV`)
+        message.success(t('messages.exportedToCSV', { count: userStore.transactions.length }))
       }
     } else if (result.error !== 'User cancelled') {
-      message.error(`Export failed: ${result.error}`)
+      message.error(t('messages.exportFailed') + ': ' + result.error)
     }
   } catch (error) {
     console.error('Export failed:', error)
-    message.error('Failed to export data')
+    message.error(t('messages.exportFailed'))
   } finally {
     isExporting.value = false
   }
@@ -213,11 +213,11 @@ async function handleFileImport(event: Event) {
     } else if (fileName.endsWith('.json')) {
       await handleJSONImport(file)
     } else {
-      message.error('Unsupported file format. Please use .json or .csv files.')
+      message.error(t('messages.unsupportedFormat'))
     }
   } catch (error) {
     console.error('Import failed:', error)
-    message.error('Failed to parse import file. Please check the file format.')
+    message.error(t('messages.parseError'))
   } finally {
     isImporting.value = false
     // 重置 input 以允许重新选择同一文件
@@ -236,13 +236,17 @@ async function handleJSONImport(file: File) {
   const data = result.data
   const stats = getImportStats(data)
   
+  const dateRangeText = stats.dateRange 
+    ? t('messages.importDateRange', { start: stats.dateRange.start, end: stats.dateRange.end })
+    : ''
+  
   dialog.warning({
-    title: 'Import JSON Data',
-    content: `Found ${stats.transactionsCount} transactions and ${stats.categoriesCount} categories.
-      ${stats.dateRange ? `Date range: ${stats.dateRange.start} to ${stats.dateRange.end}` : ''}
-      Existing data with the same ID will be skipped. Continue?`,
-    positiveText: 'Import',
-    negativeText: 'Cancel',
+    title: t('settings.importJSONTitle'),
+    content: t('messages.importPreview', { transactions: stats.transactionsCount, categories: stats.categoriesCount }) +
+      (dateRangeText ? ' ' + dateRangeText : '') + ' ' +
+      t('messages.importSkipExisting'),
+    positiveText: t('settings.import'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       await doImport(data)
     }
@@ -256,26 +260,28 @@ async function handleCSVImport(file: File) {
   if (!result.success || result.transactions.length === 0) {
     const errorMsg = result.errors.length > 0 
       ? result.errors.slice(0, 3).join('; ') 
-      : 'No valid transactions found'
-    message.error(`CSV import failed: ${errorMsg}`)
+      : t('messages.noValidTransactions')
+    message.error(t('messages.csvImportFailed', { error: errorMsg }))
     return
   }
   
   // 计算日期范围
   const dates = result.transactions.map(t => t.date).sort()
-  const dateRange = dates.length > 0 
-    ? `${dates[0]} to ${dates[dates.length - 1]}`
+  const dateRangeText = dates.length > 0 
+    ? t('messages.importDateRange', { start: dates[0], end: dates[dates.length - 1] })
     : ''
   
+  let contentParts = [t('messages.csvPreview', { count: result.transactions.length })]
+  if (dateRangeText) contentParts.push(dateRangeText)
+  if (result.skipped > 0) contentParts.push(t('messages.csvSkipped', { count: result.skipped }))
+  if (result.errors.length > 0) contentParts.push(t('messages.csvErrors', { count: result.errors.length }))
+  contentParts.push(t('messages.csvContinue'))
+  
   dialog.warning({
-    title: 'Import CSV Data',
-    content: `Found ${result.transactions.length} transactions.
-      ${dateRange ? `Date range: ${dateRange}` : ''}
-      ${result.skipped > 0 ? `Skipped ${result.skipped} invalid rows.` : ''}
-      ${result.errors.length > 0 ? `${result.errors.length} errors encountered.` : ''}
-      Continue with import?`,
-    positiveText: 'Import',
-    negativeText: 'Cancel',
+    title: t('settings.importCSVTitle'),
+    content: contentParts.join(' '),
+    positiveText: t('settings.import'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       await doCSVImport(result)
     }
@@ -341,9 +347,9 @@ async function doCSVImport(result: CSVImportResult) {
       }
     }
     
-    let msg = `Imported ${imported} transactions`
-    if (skipped > 0) msg += `, ${skipped} duplicates skipped`
-    if (failed > 0) msg += `, ${failed} failed`
+    let msg = t('messages.csvImportResult', { success: imported })
+    if (skipped > 0) msg += t('messages.csvDuplicatesSkipped', { count: skipped })
+    if (failed > 0) msg += t('messages.csvImportPartial', { failed })
     
     if (failed === 0) {
       message.success(msg)
@@ -352,7 +358,7 @@ async function doCSVImport(result: CSVImportResult) {
     }
   } catch (error) {
     console.error('CSV import failed:', error)
-    message.error('Failed to import CSV data')
+    message.error(t('messages.importFailed'))
   }
 }
 
@@ -374,16 +380,20 @@ async function doImport(data: ExportData, overwrite: boolean = false) {
         await currencyStore.setPrimaryCurrency(data.settings.primaryCurrency)
       }
       
-      message.success(
-        `Imported ${result.transactionsImported} transactions and ${result.categoriesImported} categories` +
-        (result.transactionsSkipped > 0 ? ` (${result.transactionsSkipped} skipped)` : '')
-      )
+      let msg = t('messages.importedResult', { 
+        transactions: result.transactionsImported, 
+        categories: result.categoriesImported 
+      })
+      if (result.transactionsSkipped > 0) {
+        msg += t('messages.importedWithSkip', { skipped: result.transactionsSkipped })
+      }
+      message.success(msg)
     } else {
-      message.error(`Import failed: ${result.error}`)
+      message.error(t('messages.importFailed') + ': ' + result.error)
     }
   } catch (error) {
     console.error('Import failed:', error)
-    message.error('Failed to import data')
+    message.error(t('messages.importFailed'))
   }
 }
 
@@ -462,7 +472,7 @@ watch(selectedPreset, (preset) => {
 // 测试连接
 async function handleTestConnection() {
   if (!webdavConfig.value.serverUrl || !webdavConfig.value.username) {
-    message.warning('Please fill in server URL and username')
+    message.warning(t('messages.fillServerAndUsername'))
     return
   }
   
@@ -475,7 +485,7 @@ async function handleTestConnection() {
       message.error(result.message)
     }
   } catch (error) {
-    message.error('Connection test failed')
+    message.error(t('messages.testFailed'))
   } finally {
     isTesting.value = false
   }
@@ -484,26 +494,26 @@ async function handleTestConnection() {
 // 保存配置
 async function handleSaveConfig() {
   if (!webdavConfig.value.serverUrl || !webdavConfig.value.username) {
-    message.warning('Please fill in required fields')
+    message.warning(t('messages.fillRequired'))
     return
   }
   
   try {
     await saveWebDAVConfig(webdavConfig.value)
     isConfigured.value = true
-    message.success('WebDAV configuration saved')
+    message.success(t('messages.configSaved'))
   } catch (error) {
-    message.error('Failed to save configuration')
+    message.error(t('messages.saveFailed'))
   }
 }
 
 // 清除配置
 async function handleClearConfig() {
   dialog.warning({
-    title: 'Clear WebDAV Configuration',
-    content: 'This will remove all WebDAV settings. Continue?',
-    positiveText: 'Clear',
-    negativeText: 'Cancel',
+    title: t('settings.clearConfig'),
+    content: t('settings.clearConfigContent'),
+    positiveText: t('common.clear'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       await clearWebDAVConfig()
       webdavConfig.value = {
@@ -515,7 +525,7 @@ async function handleClearConfig() {
         syncInterval: 30
       }
       isConfigured.value = false
-      message.success('Configuration cleared')
+      message.success(t('messages.configCleared'))
     }
   })
 }
@@ -523,7 +533,7 @@ async function handleClearConfig() {
 // 上传到云端
 async function handleUpload() {
   if (!isConfigured.value) {
-    message.warning('Please configure WebDAV first')
+    message.warning(t('messages.configureWebDAVFirst'))
     return
   }
   
@@ -537,13 +547,13 @@ async function handleUpload() {
     )
     
     if (result.success) {
-      message.success(result.message)
+      message.success(t('messages.uploadSuccess'))
       syncStatus.value = await loadSyncStatus()
     } else {
-      message.error(result.error || 'Upload failed')
+      message.error(result.error || t('messages.uploadFailed'))
     }
   } catch (error) {
-    message.error('Upload failed')
+    message.error(t('messages.uploadFailed'))
   } finally {
     isSyncing.value = false
   }
@@ -552,7 +562,7 @@ async function handleUpload() {
 // 打开备份选择弹窗
 async function handleDownload() {
   if (!isConfigured.value) {
-    message.warning('Please configure WebDAV first')
+    message.warning(t('messages.configureWebDAVFirst'))
     return
   }
   
@@ -564,10 +574,10 @@ async function handleDownload() {
     if (backupList.value.length > 0) {
       selectedBackup.value = backupList.value[0].filename
     } else {
-      message.info('No backup files found on server')
+      message.info(t('messages.noBackupsFound'))
     }
   } catch (error) {
-    message.error('Failed to load backup list')
+    message.error(t('messages.loadBackupsFailed'))
   } finally {
     isLoadingBackups.value = false
   }
@@ -576,7 +586,7 @@ async function handleDownload() {
 // 执行恢复操作
 async function handleRestore() {
   if (!selectedBackup.value) {
-    message.warning('Please select a backup')
+    message.warning(t('messages.selectBackupFirst'))
     return
   }
   
@@ -590,35 +600,41 @@ async function handleRestore() {
       if (restoreMode.value === 'overwrite') {
         // 覆盖模式：先清空现有数据
         dialog.warning({
-          title: 'Overwrite Data',
-          content: `This will replace all your current data with ${result.data.transactions.length} transactions and ${result.data.categories.length} categories. Continue?`,
-          positiveText: 'Overwrite',
-          negativeText: 'Cancel',
+          title: t('settings.overwriteDialog.title'),
+          content: t('settings.overwriteDialog.content', { 
+            transactions: result.data.transactions.length, 
+            categories: result.data.categories.length 
+          }),
+          positiveText: t('settings.overwriteDialog.confirm'),
+          negativeText: t('common.cancel'),
           onPositiveClick: async () => {
             await doImport(result.data!, true)
             syncStatus.value = await loadSyncStatus()
-            message.success('Data restored successfully')
+            message.success(t('messages.dataRestored'))
           }
         })
       } else {
         // 合并模式
         dialog.info({
-          title: 'Merge Data',
-          content: `Found ${result.data.transactions.length} transactions and ${result.data.categories.length} categories. New records will be added to your existing data.`,
-          positiveText: 'Merge',
-          negativeText: 'Cancel',
+          title: t('settings.mergeDialog.title'),
+          content: t('settings.mergeDialog.content', { 
+            transactions: result.data.transactions.length, 
+            categories: result.data.categories.length 
+          }),
+          positiveText: t('settings.mergeDialog.confirm'),
+          negativeText: t('common.cancel'),
           onPositiveClick: async () => {
             await doImport(result.data!, false)
             syncStatus.value = await loadSyncStatus()
-            message.success('Data merged successfully')
+            message.success(t('messages.dataMerged'))
           }
         })
       }
     } else {
-      message.error(result.error || 'Download failed')
+      message.error(result.error || t('messages.downloadFailed'))
     }
   } catch (error) {
-    message.error('Restore failed')
+    message.error(t('messages.restoreFailed'))
   } finally {
     isSyncing.value = false
   }
@@ -627,10 +643,10 @@ async function handleRestore() {
 // 删除备份
 async function handleDeleteBackup(filename: string) {
   dialog.warning({
-    title: 'Delete Backup',
-    content: 'Are you sure you want to delete this backup?',
-    positiveText: 'Delete',
-    negativeText: 'Cancel',
+    title: t('settings.deleteBackup'),
+    content: t('settings.deleteBackupContent'),
+    positiveText: t('common.delete'),
+    negativeText: t('common.cancel'),
     onPositiveClick: async () => {
       const success = await deleteBackupFile(webdavConfig.value, filename)
       if (success) {
@@ -638,9 +654,9 @@ async function handleDeleteBackup(filename: string) {
         if (selectedBackup.value === filename) {
           selectedBackup.value = backupList.value[0]?.filename || null
         }
-        message.success('Backup deleted')
+        message.success(t('messages.backupDeleted'))
       } else {
-        message.error('Failed to delete backup')
+        message.error(t('messages.backupDeleteFailed'))
       }
     }
   })

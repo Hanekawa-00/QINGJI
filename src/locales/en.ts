@@ -151,6 +151,8 @@ export default {
     importData: 'Import Data',
     importDesc: 'Import from JSON or CSV file',
     import: 'Import',
+    importJSONTitle: 'Import JSON Data',
+    importCSVTitle: 'Import CSV Data',
     
     // Cloud sync
     cloudSync: 'Cloud Sync (WebDAV)',
@@ -279,8 +281,11 @@ export default {
     downloadSuccess: 'Download successful',
     downloadFailed: 'Download failed',
     configSaved: 'WebDAV configuration saved',
+    configCleared: 'Configuration cleared',
     fillRequired: 'Please fill in required fields',
+    fillServerAndUsername: 'Please fill in server URL and username',
     unsupportedFormat: 'Unsupported file format. Please use .json or .csv files.',
+    parseError: 'Failed to parse import file. Please check the file format.',
     updated: 'Updated successfully',
     updateFailed: 'Update failed',
     enterValidAmount: 'Please enter a valid amount',
@@ -290,6 +295,41 @@ export default {
     categoryNameEmpty: 'Category name cannot be empty',
     categoryUpdated: 'Category updated!',
     categoryDeleted: 'Category deleted!',
-    cannotDeleteCategory: 'Cannot delete category that has transactions'
+    cannotDeleteCategory: 'Cannot delete category that has transactions',
+    // Export/Import
+    exportedTo: 'Exported to: {path}',
+    exportedTransactions: 'Exported {transactions} transactions and {categories} categories',
+    exportedToCSV: 'Exported {count} transactions to CSV',
+    // Recalculate
+    recalculateSuccess: 'Successfully recalculated {count} transactions',
+    recalculatePartial: 'Recalculated {success} transactions. {fallback} used current rates (historical unavailable)',
+    recalculateFailed: 'Recalculated {success} transactions, {failed} failed',
+    // Import dialogs
+    importPreview: 'Found {transactions} transactions and {categories} categories.',
+    importDateRange: 'Date range: {start} to {end}',
+    importSkipExisting: 'Existing data with the same ID will be skipped. Continue?',
+    importedResult: 'Imported {transactions} transactions and {categories} categories',
+    importedWithSkip: ' ({skipped} skipped)',
+    // CSV Import
+    csvPreview: 'Found {count} transactions from CSV.',
+    csvSkipped: 'Skipped {count} invalid rows.',
+    csvErrors: '{count} errors encountered.',
+    csvContinue: 'Continue with import?',
+    csvImportResult: 'Imported {success} transactions',
+    csvDuplicatesSkipped: ', {count} duplicates skipped',
+    csvImportPartial: ', {failed} failed',
+    csvImportFailed: 'CSV import failed: {error}',
+    noValidTransactions: 'No valid transactions found',
+    // WebDAV
+    configureWebDAVFirst: 'Please configure WebDAV first',
+    noBackupsFound: 'No backup files found on server',
+    loadBackupsFailed: 'Failed to load backup list',
+    selectBackupFirst: 'Please select a backup',
+    dataRestored: 'Data restored successfully',
+    dataMerged: 'Data merged successfully',
+    restoreFailed: 'Restore failed',
+    backupDeleted: 'Backup deleted',
+    backupDeleteFailed: 'Failed to delete backup',
+    testFailed: 'Connection test failed'
   }
 }
