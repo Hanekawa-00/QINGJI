@@ -3,7 +3,7 @@
  * 可复用计算器组件
  * 支持基本四则运算
  */
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
 interface Props {
   modelValue?: number
@@ -173,6 +173,79 @@ function handleSave() {
   }
   emit('save', currentValue.value)
 }
+
+// 键盘事件处理
+function handleKeyDown(e: KeyboardEvent) {
+  // 如果焦点在输入框中，不处理
+  const target = e.target as HTMLElement
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+    return
+  }
+
+  // 数字键 0-9
+  if (/^[0-9]$/.test(e.key)) {
+    e.preventDefault()
+    handleKey({ label: e.key, type: 'number', value: e.key })
+    return
+  }
+
+  // 小数点
+  if (e.key === '.' || e.key === ',') {
+    e.preventDefault()
+    handleKey({ label: '.', type: 'decimal', value: '.' })
+    return
+  }
+
+  // 运算符
+  const operatorMap: Record<string, string> = {
+    '+': '+',
+    '-': '-',
+    '*': '×',
+    '/': '÷',
+    'x': '×',
+    'X': '×'
+  }
+  if (operatorMap[e.key]) {
+    e.preventDefault()
+    handleKey({ label: operatorMap[e.key], type: 'operator', value: operatorMap[e.key] })
+    return
+  }
+
+  // 等号/回车 - 保存
+  if (e.key === 'Enter' || e.key === '=') {
+    e.preventDefault()
+    // 如果有未完成的计算先完成，否则直接保存
+    if (firstOperand.value !== null && operator.value) {
+      handleKey({ label: '=', type: 'equals', value: '=' })
+    } else {
+      handleSave()
+    }
+    return
+  }
+
+  // 退格键
+  if (e.key === 'Backspace') {
+    e.preventDefault()
+    handleKey({ label: 'backspace', type: 'backspace', value: 'backspace', icon: true })
+    return
+  }
+
+  // 清除键
+  if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
+    e.preventDefault()
+    handleKey({ label: 'C', type: 'clear', value: 'C' })
+    return
+  }
+}
+
+// 挂载/卸载时添加/移除键盘监听
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
 </script>
 
 <template>
