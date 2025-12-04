@@ -63,10 +63,10 @@ const formattedBalance = computed(() => {
   <aside class="desktop-sidebar">
     <!-- Logo -->
     <div class="sidebar-header">
-      <img src="@/assets/logo.svg" alt="青账" class="logo-img" />
+      <img src="@/assets/logo.svg" alt="Qingzhang" class="logo-img" />
       <div class="logo-text">
-        <p class="app-name">青账</p>
-        <p class="app-subtitle">Qingzhang</p>
+        <p class="app-name">Qingzhang</p>
+        <p class="app-subtitle">Finance Tracker</p>
       </div>
     </div>
 

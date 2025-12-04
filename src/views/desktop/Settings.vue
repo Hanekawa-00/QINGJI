@@ -399,12 +399,12 @@ const selectedBackup = ref<string | null>(null)
 const isLoadingBackups = ref(false)
 const restoreMode = ref<'merge' | 'overwrite'>('merge')
 
-// 预设选项
+// Preset options
 const presetOptions = [
-  { label: '坚果云', value: 'jianguoyun' },
+  { label: 'Jianguoyun', value: 'jianguoyun' },
   { label: 'Nextcloud', value: 'nextcloud' },
   { label: 'ownCloud', value: 'owncloud' },
-  { label: '自定义', value: 'custom' }
+  { label: 'Custom', value: 'custom' }
 ]
 const selectedPreset = ref('custom')
 
@@ -909,14 +909,14 @@ onMounted(() => {
         </template>
         <div class="about-info">
           <div class="app-logo">
-            <img src="@/assets/logo.svg" alt="青账" class="logo-img" />
+            <img src="@/assets/logo.svg" alt="Qingzhang" class="logo-img" />
             <div class="logo-text">
-              <span class="app-name">青账 Qingzhang</span>
+              <span class="app-name">Qingzhang</span>
               <span class="app-version">Version 1.0.0</span>
             </div>
           </div>
           <p class="app-description">
-            跨平台个人财务管理应用，基于 Vue 3 + Tauri 构建。
+            A cross-platform personal finance management app built with Vue 3 + Tauri.
           </p>
         </div>
       </n-card>

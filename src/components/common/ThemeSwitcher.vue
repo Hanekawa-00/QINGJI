@@ -8,11 +8,11 @@ import type { ThemeMode, ThemeName } from '@/types'
 
 const themeStore = useThemeStore()
 
-// 明暗模式选项
+// Mode options
 const modeOptions: { value: ThemeMode; label: string; icon: string }[] = [
-  { value: 'light', label: '浅色', icon: 'light_mode' },
-  { value: 'dark', label: '深色', icon: 'dark_mode' },
-  { value: 'system', label: '跟随系统', icon: 'contrast' }
+  { value: 'light', label: 'Light', icon: 'light_mode' },
+  { value: 'dark', label: 'Dark', icon: 'dark_mode' },
+  { value: 'system', label: 'System', icon: 'contrast' }
 ]
 
 // 切换明暗模式
@@ -30,7 +30,7 @@ const handleThemeChange = (name: ThemeName) => {
   <div class="theme-switcher">
     <!-- 明暗模式切换 -->
     <div class="section">
-      <div class="section-title">外观</div>
+      <div class="section-title">Appearance</div>
       <div class="mode-options">
         <button
           v-for="option in modeOptions"
@@ -46,7 +46,7 @@ const handleThemeChange = (name: ThemeName) => {
 
     <!-- 颜色主题选择 -->
     <div class="section">
-      <div class="section-title">主题色</div>
+      <div class="section-title">Theme Color</div>
       <div class="theme-options">
         <button
           v-for="theme in themeStore.availableThemes"

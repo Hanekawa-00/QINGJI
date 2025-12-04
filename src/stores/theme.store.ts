@@ -11,7 +11,7 @@ import type { ThemeMode, ThemeName, ThemeColors, ThemeConfig } from '@/types'
 const themePresets: Record<ThemeName, ThemeConfig> = {
   default: {
     name: 'default',
-    label: '默认绿',
+    label: 'Default Green',
     colors: {
       dark: {
         primary: '#2bd776',
@@ -45,7 +45,7 @@ const themePresets: Record<ThemeName, ThemeConfig> = {
   },
   ocean: {
     name: 'ocean',
-    label: '海洋蓝',
+    label: 'Ocean Blue',
     colors: {
       dark: {
         primary: '#38bdf8',
@@ -79,7 +79,7 @@ const themePresets: Record<ThemeName, ThemeConfig> = {
   },
   sunset: {
     name: 'sunset',
-    label: '日落橙',
+    label: 'Sunset Orange',
     colors: {
       dark: {
         primary: '#fb923c',
@@ -113,7 +113,7 @@ const themePresets: Record<ThemeName, ThemeConfig> = {
   },
   forest: {
     name: 'forest',
-    label: '森林绿',
+    label: 'Forest Green',
     colors: {
       dark: {
         primary: '#86efac',
@@ -147,7 +147,7 @@ const themePresets: Record<ThemeName, ThemeConfig> = {
   },
   lavender: {
     name: 'lavender',
-    label: '薰衣草紫',
+    label: 'Lavender Purple',
     colors: {
       dark: {
         primary: '#a78bfa',
