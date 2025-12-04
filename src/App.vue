@@ -7,6 +7,7 @@ import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyStore } from '@/stores/currency.store'
 import { createDarkThemeOverrides, createLightThemeOverrides } from '@/config/naive-ui-theme'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
 const { locale } = useI18n()
 const appStore = useAppStore()
@@ -39,6 +40,14 @@ const preventContextMenu = (e: MouseEvent) => {
 onMounted(async () => {
   // 禁用右键菜单
   document.addEventListener('contextmenu', preventContextMenu)
+  
+  // 强制移除窗口装饰（确保自定义标题栏生效）
+  try {
+    const appWindow = getCurrentWindow()
+    await appWindow.setDecorations(false)
+  } catch (e) {
+    console.warn('Failed to set decorations:', e)
+  }
   
   // 初始化应用
   await appStore.initialize()

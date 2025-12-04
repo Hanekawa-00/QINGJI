@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { NLayout, NLayoutSider } from 'naive-ui'
 import DesktopSidebar from '@/components/desktop/DesktopSidebar.vue'
+import { ActionBar } from '@/components/common'
 
 const router = useRouter()
 const route = useRoute()
@@ -39,8 +40,16 @@ function toggleFabMenu() {
 </script>
 
 <template>
-  <n-layout has-sider position="absolute" class="desktop-layout">
-    <n-layout-sider
+  <div class="desktop-wrapper">
+    <!-- 窗口控制按钮（右上角） -->
+    <ActionBar 
+      class="window-controls-overlay"
+      :show-pin="true"
+      :draggable="false"
+    />
+    
+    <n-layout has-sider position="absolute" class="desktop-layout">
+      <n-layout-sider
       bordered
       collapse-mode="width"
       :collapsed="collapsed"
@@ -63,6 +72,9 @@ function toggleFabMenu() {
       position="absolute"
       :style="{ left: collapsed ? '0' : `${siderWidth}px` }"
     >
+      <!-- 顶部拖拽区域 -->
+      <div class="drag-bar" data-tauri-drag-region></div>
+      
       <div class="content-container">
         <router-view />
       </div>
@@ -99,16 +111,41 @@ function toggleFabMenu() {
         </button>
       </div>
     </Transition>
-  </n-layout>
+    </n-layout>
+  </div>
 </template>
 
 <style scoped>
-.desktop-layout {
-  min-height: 100vh;
+.desktop-wrapper {
+  position: relative;
+  height: 100vh;
   min-width: 800px;
   background: radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--color-primary) 15%, var(--color-background)) 0, transparent 28%),
               radial-gradient(circle at 80% 10%, color-mix(in srgb, var(--color-primary) 10%, var(--color-background)) 0, transparent 30%),
               var(--color-background);
+}
+
+/* 窗口控制按钮覆盖层 */
+.window-controls-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 9999;
+  background: transparent;
+}
+
+.desktop-layout {
+  height: 100%;
+  position: relative !important;
+}
+
+/* 顶部拖拽条 */
+.drag-bar {
+  height: 28px;
+  width: 100%;
+  -webkit-app-region: drag;
+  cursor: grab;
+  flex-shrink: 0;
 }
 
 .desktop-sider {
@@ -118,29 +155,33 @@ function toggleFabMenu() {
 
 .desktop-content {
   background: transparent !important;
-  padding: 16px;
+  padding: 0 16px 16px 16px;
   min-width: 0;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
   overscroll-behavior: none;
   transition: left 0.3s var(--n-bezier);
 }
 
 .content-container {
+  flex: 1;
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  overflow-y: auto;
 }
 
 @media (min-width: 768px) {
   .desktop-content {
-    padding: 32px;
+    padding: 0 32px 32px 32px;
   }
 }
 
 /* 超宽屏幕时增加左右边距 */
 @media (min-width: 1800px) {
   .desktop-content {
-    padding: 32px 48px;
+    padding: 0 48px 32px 48px;
   }
 }
 

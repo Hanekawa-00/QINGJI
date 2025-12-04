@@ -63,8 +63,8 @@ const formattedBalance = computed(() => {
 
 <template>
   <aside class="desktop-sidebar">
-    <!-- Logo -->
-    <div class="sidebar-header">
+    <!-- Logo + 可拖拽区域 -->
+    <div class="sidebar-header" data-tauri-drag-region>
       <img src="@/assets/logo.svg" :alt="t('app.name')" class="logo-img" />
       <div class="logo-text">
         <p class="app-name">{{ t('app.name') }}</p>
@@ -101,6 +101,16 @@ const formattedBalance = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  cursor: grab;
+  -webkit-app-region: drag;
+  padding: 8px;
+  margin: -8px;
+  border-radius: 12px;
+  transition: background 0.2s;
+}
+
+.sidebar-header:hover {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
 }
 
 .logo-img {

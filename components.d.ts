@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    ActionBar: typeof import('./src/components/common/ActionBar.vue')['default']
     BackupSelect: typeof import('./src/components/common/BackupSelect.vue')['default']
     BarLineChart: typeof import('./src/components/common/charts/BarLineChart.vue')['default']
     Calculator: typeof import('./src/components/common/Calculator.vue')['default']
@@ -28,7 +29,7 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ThemeSwitcher: typeof import('./src/components/common/ThemeSwitcher.vue')['default']
-    TitleBar: typeof import('./src/components/desktop/TitleBar.vue')['default']
+    TitleBar: typeof import('./src/components/common/TitleBar.vue')['default']
     TransactionItem: typeof import('./src/components/desktop/TransactionItem.vue')['default']
     TransactionList: typeof import('./src/components/desktop/TransactionList.vue')['default']
   }

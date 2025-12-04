@@ -12,14 +12,16 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "青账 Qingzhang",
         "width": 1024,
         "height": 700,
         "minWidth": 800,
         "minHeight": 600,
-        "decorations": true,
+        "decorations": false,
+        "transparent": false,
         "center": true,
-        "theme": "Dark"
+        "dragDropEnabled": true
       }
     ],
     "security": {
