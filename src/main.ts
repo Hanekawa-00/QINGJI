@@ -7,6 +7,9 @@ import App from "./App.vue";
 // 导入全局样式
 import "@/styles/tokens.css";
 import "@/styles/base.css";
+import "@/styles/layouts/index.css";
+import "@/styles/components/index.css";
+import "@/styles/views/index.css";
 
 // 导入 Material Symbols 图标字体（本地）
 import "material-symbols";

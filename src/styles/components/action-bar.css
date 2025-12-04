@@ -1,0 +1,141 @@
+/**
+ * ActionBar 窗口控制栏样式
+ */
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  background: transparent;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+/* 覆盖层模式 - 只显示按钮，无拖拽区域 */
+.action-bar.overlay-mode {
+  -webkit-app-region: no-drag;
+  height: auto;
+  padding: 8px;
+}
+
+.action-bar .drag-region {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+
+.action-bar .window-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-bar .window-controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.action-bar .window-controls.left {
+  order: -1;
+  padding-left: 8px;
+}
+
+.action-bar .window-controls.right {
+  padding-right: 0;
+}
+
+.action-bar .control-btn {
+  width: 46px;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  -webkit-app-region: no-drag;
+}
+
+.action-bar .control-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.action-bar .control-btn:hover {
+  background: color-mix(in srgb, var(--color-text-muted) 10%, transparent);
+  color: var(--color-text-strong);
+}
+
+.action-bar .control-btn.pin {
+  width: 36px;
+}
+
+.action-bar .control-btn.pin .material-symbols-outlined {
+  font-size: 16px;
+  transform: rotate(45deg);
+}
+
+.action-bar .control-btn.pin.active {
+  color: var(--color-primary);
+}
+
+.action-bar .control-btn.pin.active .material-symbols-outlined {
+  transform: rotate(0deg);
+}
+
+.action-bar .control-btn.close:hover {
+  background: #e81123;
+  color: white;
+}
+
+/* ==================== macOS 风格的交通灯按钮 ==================== */
+.action-bar.mac .window-controls {
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.action-bar.mac .control-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  min-width: 12px;
+}
+
+.action-bar.mac .control-btn .material-symbols-outlined {
+  font-size: 8px;
+  opacity: 0;
+}
+
+.action-bar.mac .window-controls:hover .control-btn .material-symbols-outlined {
+  opacity: 1;
+}
+
+.action-bar.mac .control-btn.close {
+  background: #ff5f57;
+}
+
+.action-bar.mac .control-btn.minimize {
+  background: #febc2e;
+}
+
+.action-bar.mac .control-btn.maximize {
+  background: #28c840;
+}
+
+.action-bar.mac .control-btn.pin {
+  width: 12px;
+  height: 12px;
+  background: #8e8e93;
+}
+
+.action-bar.mac .control-btn.pin.active {
+  background: var(--color-primary);
+}
