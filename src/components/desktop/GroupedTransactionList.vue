@@ -2,7 +2,7 @@
 /**
  * 按日期分组的交易记录列表组件
  * 支持编辑/删除操作
- * 可跨平台复用（桌面端/移动端）
+ * 桌面端专用 (NaiveUI)
  */
 import { NList, NEmpty } from 'naive-ui'
 import TransactionItem from './TransactionItem.vue'

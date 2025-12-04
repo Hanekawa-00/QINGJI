@@ -45,8 +45,8 @@ const newCategory = ref({ name: '', icon: 'category' })
 // 使用共享的图标配置
 const categoryIcons = ALL_CATEGORY_ICONS
 
-// 选中的分类
-const selectedCategory = ref<string>('1') // 默认选择Food & Drink
+// 选中的分类（默认选择第一个可用分类）
+const selectedCategory = ref<string>('')
 
 // 描述
 const description = ref('')
@@ -153,6 +153,14 @@ const availableCategories = computed(() => {
   return userStore.categories.filter(c => c.type === transactionType.value)
 })
 
+// 当交易类型变化或初始化时，自动选择第一个可用分类
+watch([() => transactionType.value, () => availableCategories.value], () => {
+  const firstCategory = availableCategories.value[0]
+  if (firstCategory && !availableCategories.value.some(c => c.id === selectedCategory.value)) {
+    selectedCategory.value = firstCategory.id
+  }
+}, { immediate: true })
+
 // 当前币种符号
 const currencySymbol = computed(() => {
   const info = currencyStore.getCurrencyInfo(selectedCurrency.value)
@@ -233,7 +241,8 @@ const resetForm = () => {
   amount.value = 0
   description.value = ''
   selectedDateTimestamp.value = Date.now()
-  selectedCategory.value = '1'
+  // 分类会由 watch 自动设置为第一个可用分类
+  selectedCategory.value = ''
   // 重置币种为主币种
   selectedCurrency.value = currencyStore.primaryCurrency
   // 重置汇率状态

@@ -2,7 +2,7 @@
 /**
  * 单条交易记录组件
  * 支持编辑/删除操作
- * 可跨平台复用（桌面端/移动端）
+ * 桌面端专用 (NaiveUI)
  */
 import { h, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
