@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, h } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   NCard, 
   NGrid, 
@@ -21,6 +22,7 @@ import { ALL_CATEGORY_ICONS } from '@/config/icons'
 import { useUserStore, useCurrencyStore } from '@/stores'
 import type { TransactionType, CurrencyCode } from '@/types'
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const currencyStore = useCurrencyStore()
 const message = useMessage()
@@ -279,8 +281,8 @@ const handleSaveTransaction = async (value: number) => {
     <!-- Header -->
     <header class="entry-header">
       <div class="header-left">
-        <h1 class="entry-title">New Entry</h1>
-        <p class="entry-subtitle">Desktop form mirrors mobile flow.</p>
+        <h1 class="entry-title">{{ t('entry.title') }}</h1>
+        <p class="entry-subtitle">{{ t('entry.subtitle') }}</p>
       </div>
     </header>
 
@@ -292,8 +294,8 @@ const handleSaveTransaction = async (value: number) => {
           <!-- Transaction Type & Currency -->
           <div class="type-currency-section">
             <n-radio-group v-model:value="transactionType" name="transaction-type">
-              <n-radio-button value="expense">Expense</n-radio-button>
-              <n-radio-button value="income">Income</n-radio-button>
+              <n-radio-button value="expense">{{ t('entry.expense') }}</n-radio-button>
+              <n-radio-button value="income">{{ t('entry.income') }}</n-radio-button>
             </n-radio-group>
             <n-select
               v-model:value="selectedCurrency"
@@ -340,7 +342,7 @@ const handleSaveTransaction = async (value: number) => {
 
           <!-- Category Selection -->
           <div class="category-section">
-            <p class="section-label">Category</p>
+            <p class="section-label">{{ t('entry.category') }}</p>
             <div class="category-grid">
               <div
                 v-for="category in availableCategories"
@@ -353,7 +355,7 @@ const handleSaveTransaction = async (value: number) => {
               </div>
               <div class="category-item add-category" @click="showCategoryManager = true">
                 <span class="material-symbols-outlined">settings</span>
-                <span class="category-name">Manage</span>
+                <span class="category-name">{{ t('entry.manageCategories') }}</span>
               </div>
             </div>
           </div>
@@ -362,7 +364,7 @@ const handleSaveTransaction = async (value: number) => {
           <div class="description-section">
             <n-input 
               v-model:value="description"
-              placeholder="Add a brief description..." 
+              :placeholder="t('entry.descriptionPlaceholder')" 
               size="large"
             />
             <n-space :size="8" class="tag-buttons">
@@ -392,17 +394,17 @@ const handleSaveTransaction = async (value: number) => {
         <Calculator 
           v-model="amount"
           :currency-symbol="currencySymbol"
-          save-button-text="Save"
+          :save-button-text="t('entry.save')"
           @save="handleSaveTransaction"
         />
       </n-gi>
     </n-grid>
 
     <!-- Category Manager Modal -->
-    <n-modal v-model:show="showCategoryManager" preset="card" title="Manage Categories" style="width: 500px;">
+    <n-modal v-model:show="showCategoryManager" preset="card" :title="t('entry.manageCategories')" style="width: 500px;">
       <!-- 现有分类列表 -->
       <div class="category-manager">
-        <p class="manager-subtitle">{{ transactionType === 'expense' ? 'Expense' : 'Income' }} Categories</p>
+        <p class="manager-subtitle">{{ transactionType === 'expense' ? t('entry.expense') : t('entry.income') }} {{ t('entry.category') }}</p>
         
         <div class="category-list">
           <div 
@@ -415,7 +417,7 @@ const handleSaveTransaction = async (value: number) => {
               <div class="edit-form">
                 <n-input 
                   v-model:value="editingCategory.name" 
-                  placeholder="Category name"
+                  :placeholder="t('entry.categoryName')"
                   size="small"
                   style="flex: 1"
                 />
@@ -454,17 +456,17 @@ const handleSaveTransaction = async (value: number) => {
           
           <!-- 空状态 -->
           <div v-if="availableCategories.length === 0" class="empty-categories">
-            No categories yet
+            {{ t('common.noData') }}
           </div>
         </div>
         
         <!-- 添加新分类 -->
         <div class="add-category-section">
-          <p class="manager-subtitle">Add New Category</p>
+          <p class="manager-subtitle">{{ t('entry.addCategory') }}</p>
           <div class="add-category-form">
             <n-input 
               v-model:value="newCategory.name" 
-              placeholder="Category name" 
+              :placeholder="t('entry.categoryName')" 
               size="small"
               style="flex: 1"
             />
@@ -484,7 +486,7 @@ const handleSaveTransaction = async (value: number) => {
       
       <template #footer>
         <n-space justify="end">
-          <n-button @click="showCategoryManager = false">Done</n-button>
+          <n-button @click="showCategoryManager = false">{{ t('common.done') }}</n-button>
         </n-space>
       </template>
     </n-modal>

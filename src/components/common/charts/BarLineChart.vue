@@ -5,6 +5,7 @@
  * 跨平台通用（桌面端/移动端）
  */
 import { computed, provide } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, LineChart } from 'echarts/charts'
@@ -17,6 +18,8 @@ import {
 import VChart, { THEME_KEY } from 'vue-echarts'
 import { useThemeStore } from '@/stores/theme.store'
 import { useCurrencyStore } from '@/stores/currency.store'
+
+const { t } = useI18n()
 
 // 注册必要的 ECharts 组件
 use([
@@ -72,9 +75,12 @@ const option = computed(() => {
   const expenseColor = colors.value.expense
   const primaryColor = colors.value.primary
 
+  const incomeLabel = t('reports.income')
+  const expenseLabel = t('reports.expense')
+
   if (props.showIncome) {
     series.push({
-      name: 'Income',
+      name: incomeLabel,
       type: props.type,
       data: incomeData,
       itemStyle: {
@@ -93,7 +99,7 @@ const option = computed(() => {
 
   if (props.showExpense) {
     series.push({
-      name: 'Expense',
+      name: expenseLabel,
       type: props.type,
       data: expenseData,
       itemStyle: {
@@ -130,7 +136,7 @@ const option = computed(() => {
         const symbol = currencySymbol.value
         let result = `<div style="font-weight: 600; margin-bottom: 4px;">${params[0].axisValue}</div>`
         params.forEach((item: any) => {
-          const color = item.seriesName === 'Income' ? incomeColor : expenseColor
+          const color = item.seriesName === incomeLabel ? incomeColor : expenseColor
           result += `<div style="display: flex; justify-content: space-between; gap: 16px;">
             <span style="color: ${color};">● ${item.seriesName}</span>
             <span style="font-weight: 600;">${symbol}${item.value.toLocaleString()}</span>

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { h, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { NMenu, NCard, NStatistic } from 'naive-ui'
 import type { MenuOption } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyFormat } from '@/hooks'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
@@ -17,33 +19,33 @@ const renderIcon = (iconName: string) => {
 }
 
 // NaiveUI 菜单选项
-const menuOptions: MenuOption[] = [
+const menuOptions = computed<MenuOption[]>(() => [
   {
-    label: 'Overview',
+    label: t('nav.overview'),
     key: '/desktop',
     icon: renderIcon('dashboard')
   },
   {
-    label: 'Calendar',
+    label: t('nav.calendar'),
     key: '/desktop/calendar',
     icon: renderIcon('calendar_month')
   },
   {
-    label: 'Reports',
+    label: t('nav.reports'),
     key: '/desktop/reports',
     icon: renderIcon('list_alt')
   },
   {
-    label: 'New Entry',
+    label: t('nav.newEntry'),
     key: '/desktop/entry',
     icon: renderIcon('edit_square')
   },
   {
-    label: 'Settings',
+    label: t('nav.settings'),
     key: '/desktop/settings',
     icon: renderIcon('settings')
   }
-]
+])
 
 // 当前激活的菜单项
 const activeKey = computed(() => route.path)
@@ -63,10 +65,10 @@ const formattedBalance = computed(() => {
   <aside class="desktop-sidebar">
     <!-- Logo -->
     <div class="sidebar-header">
-      <img src="@/assets/logo.svg" alt="Qingzhang" class="logo-img" />
+      <img src="@/assets/logo.svg" :alt="t('app.name')" class="logo-img" />
       <div class="logo-text">
-        <p class="app-name">Qingzhang</p>
-        <p class="app-subtitle">Finance Tracker</p>
+        <p class="app-name">{{ t('app.name') }}</p>
+        <p class="app-subtitle">{{ t('app.subtitle') }}</p>
       </div>
     </div>
 
@@ -81,11 +83,7 @@ const formattedBalance = computed(() => {
 
     <!-- 余额卡片 -->
     <n-card class="balance-card" :bordered="true" size="small">
-      <n-statistic label="Current Balance" :value="formattedBalance" tabular-nums>
-        <template #suffix>
-          <span class="balance-change"></span>
-        </template>
-      </n-statistic>
+      <n-statistic :label="t('dashboard.currentBalance')" :value="formattedBalance" tabular-nums />
     </n-card>
   </aside>
 </template>
@@ -160,12 +158,5 @@ const formattedBalance = computed(() => {
 .balance-card :deep(.n-statistic-value) {
   font-size: 1.5rem !important;
   font-weight: 700;
-}
-
-.balance-change {
-  display: block;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin-top: 8px;
 }
 </style>

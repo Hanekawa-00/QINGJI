@@ -4,9 +4,11 @@
  * 包含主题设置、应用配置等
  */
 import { ref, computed, onMounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NCard, NSpin, NProgress, NInput, NModal, NSelect, NRadioGroup, NRadio, NButton, useDialog, useMessage } from 'naive-ui'
 import { ThemeSwitcher, BackupSelect } from '@/components/common'
 import { useCurrencyStore, useUserStore } from '@/stores'
+import { localeOptions, setLocale, getLocale, type Locale } from '@/locales'
 import type { CurrencyCode } from '@/types'
 import {
   exportAndDownload,
@@ -34,10 +36,23 @@ import {
   type BackupFileInfo
 } from '@/services/webdav'
 
+const { t } = useI18n()
 const currencyStore = useCurrencyStore()
 const userStore = useUserStore()
 const dialog = useDialog()
 const message = useMessage()
+
+// 语言切换
+const currentLocale = ref<Locale>(getLocale())
+const languageOptions = localeOptions.map(opt => ({
+  label: opt.label,
+  value: opt.value
+}))
+
+function handleLocaleChange(locale: Locale) {
+  setLocale(locale)
+  currentLocale.value = locale
+}
 
 // 币种选项
 const currencyOptions = computed(() => 
@@ -68,17 +83,15 @@ async function handleCurrencyChange(newCurrency: CurrencyCode) {
   // 如果有交易记录，询问是否重新计算
   if (userStore.transactions.length > 0) {
     dialog.warning({
-      title: 'Recalculate Transactions?',
-      content: `You've changed your primary currency from ${oldCurrency} to ${newCurrency}. 
-        Would you like to recalculate all transaction amounts using historical exchange rates? 
-        This ensures accurate reports based on the exchange rate at the time of each transaction.`,
-      positiveText: 'Recalculate',
-      negativeText: 'Skip',
+      title: t('settings.recalculateDialog.title'),
+      content: t('settings.recalculateDialog.content', { old: oldCurrency, new: newCurrency }),
+      positiveText: t('settings.recalculateDialog.confirm'),
+      negativeText: t('settings.recalculateDialog.skip'),
       onPositiveClick: async () => {
         await recalculateTransactions()
       },
       onNegativeClick: () => {
-        message.info('You can recalculate later using the button below')
+        message.info(t('settings.recalculateDialog.skipMessage'))
       }
     })
   }
@@ -643,14 +656,14 @@ onMounted(() => {
   <div class="settings">
     <header class="page-header">
       <div class="header-left">
-        <h1 class="page-title">Settings</h1>
-        <p class="page-subtitle">Customize your app experience</p>
+        <h1 class="page-title">{{ t('settings.title') }}</h1>
+        <p class="page-subtitle">{{ t('settings.subtitle') }}</p>
       </div>
     </header>
 
     <div class="settings-content">
       <!-- 外观设置 -->
-      <n-card class="settings-card" title="Appearance">
+      <n-card class="settings-card" :title="t('settings.appearance')">
         <template #header-extra>
           <span class="material-symbols-outlined">palette</span>
         </template>
@@ -658,14 +671,14 @@ onMounted(() => {
       </n-card>
 
       <!-- 币种设置 -->
-      <n-card class="settings-card" title="Currency">
+      <n-card class="settings-card" :title="t('settings.currency')">
         <template #header-extra>
           <span class="material-symbols-outlined">currency_exchange</span>
         </template>
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Primary Currency</span>
-            <span class="setting-description">All transactions will be converted to this currency for reports</span>
+            <span class="setting-label">{{ t('settings.primaryCurrency') }}</span>
+            <span class="setting-description">{{ t('settings.primaryCurrencyDesc') }}</span>
           </div>
           <n-select
             v-model:value="selectedCurrency"
@@ -676,33 +689,33 @@ onMounted(() => {
         </div>
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Exchange Rates</span>
-            <span class="setting-description">Powered by Frankfurter API (ECB rates)</span>
+            <span class="setting-label">{{ t('settings.exchangeRates') }}</span>
+            <span class="setting-description">{{ t('settings.exchangeRatesDesc') }}</span>
           </div>
           <div class="rates-info">
             <span class="rates-status" :class="{ loading: currencyStore.isLoadingRates }">
               <n-spin v-if="currencyStore.isLoadingRates" :size="14" />
               <span v-else class="material-symbols-outlined">check_circle</span>
-              {{ currencyStore.isLoadingRates ? 'Updating...' : 'Updated' }}
+              {{ currencyStore.isLoadingRates ? t('settings.updating') : t('settings.updated') }}
             </span>
             <button class="setting-btn" @click="currencyStore.fetchExchangeRates">
               <span class="material-symbols-outlined">refresh</span>
-              Refresh
+              {{ t('common.refresh') }}
             </button>
           </div>
         </div>
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Last Updated</span>
-            <span class="setting-description">Exchange rate data timestamp</span>
+            <span class="setting-label">{{ t('settings.lastUpdated') }}</span>
+            <span class="setting-description">{{ t('settings.lastUpdatedDesc') }}</span>
           </div>
           <span class="setting-value">{{ ratesLastUpdated }}</span>
         </div>
         <!-- 重新计算交易 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Recalculate Transactions</span>
-            <span class="setting-description">Update all amounts using historical exchange rates</span>
+            <span class="setting-label">{{ t('settings.recalculateTransactions') }}</span>
+            <span class="setting-description">{{ t('settings.recalculateDesc') }}</span>
           </div>
           <div class="recalculate-actions">
             <n-progress 
@@ -718,42 +731,40 @@ onMounted(() => {
               @click="recalculateTransactions"
             >
               <span class="material-symbols-outlined">calculate</span>
-              {{ currencyStore.isRecalculating ? 'Processing...' : 'Recalculate' }}
+              {{ currencyStore.isRecalculating ? t('settings.processing') : t('settings.recalculate') }}
             </button>
           </div>
         </div>
       </n-card>
 
       <!-- 通用设置 -->
-      <n-card class="settings-card" title="General">
+      <n-card class="settings-card" :title="t('settings.general')">
         <template #header-extra>
           <span class="material-symbols-outlined">tune</span>
         </template>
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Language</span>
-            <span class="setting-description">App display language</span>
+            <span class="setting-label">{{ t('settings.language') }}</span>
+            <span class="setting-description">{{ t('settings.languageDesc') }}</span>
           </div>
-          <span class="setting-value">English</span>
+          <n-select
+            :value="currentLocale"
+            :options="languageOptions"
+            style="width: 140px"
+            @update:value="handleLocaleChange"
+          />
         </div>
-        <!-- <div class="setting-item">
-          <div class="setting-info">
-            <span class="setting-label">Date Format</span>
-            <span class="setting-description">How dates are displayed</span>
-          </div>
-          <span class="setting-value">YYYY-MM-DD</span>
-        </div> -->
       </n-card>
 
       <!-- 数据管理 -->
-      <n-card class="settings-card" title="Data">
+      <n-card class="settings-card" :title="t('settings.data')">
         <template #header-extra>
           <span class="material-symbols-outlined">database</span>
         </template>
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Export Data</span>
-            <span class="setting-description">Download your transaction history</span>
+            <span class="setting-label">{{ t('settings.exportData') }}</span>
+            <span class="setting-description">{{ t('settings.exportDesc') }}</span>
           </div>
           <div class="export-buttons">
             <button class="setting-btn" :disabled="isExporting" @click="exportData">
@@ -768,12 +779,12 @@ onMounted(() => {
         </div>
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Import Data</span>
-            <span class="setting-description">Import from JSON or CSV file</span>
+            <span class="setting-label">{{ t('settings.importData') }}</span>
+            <span class="setting-description">{{ t('settings.importDesc') }}</span>
           </div>
           <button class="setting-btn" :disabled="isImporting" @click="triggerImport">
             <n-spin v-if="isImporting" :size="14" />
-            <span v-else>Import</span>
+            <span v-else>{{ t('settings.import') }}</span>
           </button>
           <!-- 隐藏的文件输入 -->
           <input
@@ -787,7 +798,7 @@ onMounted(() => {
       </n-card>
 
       <!-- WebDAV 云同步 -->
-      <n-card class="settings-card" title="Cloud Sync (WebDAV)">
+      <n-card class="settings-card" :title="t('settings.cloudSync')">
         <template #header-extra>
           <span class="material-symbols-outlined">cloud_sync</span>
         </template>
@@ -795,8 +806,8 @@ onMounted(() => {
         <!-- 服务商预设 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Service Provider</span>
-            <span class="setting-description">Select your WebDAV provider or use custom</span>
+            <span class="setting-label">{{ t('settings.serviceProvider') }}</span>
+            <span class="setting-description">{{ t('settings.serviceProviderDesc') }}</span>
           </div>
           <n-select
             v-model:value="selectedPreset"
@@ -808,8 +819,8 @@ onMounted(() => {
         <!-- 服务器地址 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Server URL</span>
-            <span class="setting-description">WebDAV server address</span>
+            <span class="setting-label">{{ t('settings.serverUrl') }}</span>
+            <span class="setting-description">{{ t('settings.serverUrlDesc') }}</span>
           </div>
           <n-input
             v-model:value="webdavConfig.serverUrl"
@@ -821,8 +832,8 @@ onMounted(() => {
         <!-- 用户名 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Username</span>
-            <span class="setting-description">Your account username</span>
+            <span class="setting-label">{{ t('settings.username') }}</span>
+            <span class="setting-description">{{ t('settings.usernameDesc') }}</span>
           </div>
           <n-input
             v-model:value="webdavConfig.username"
@@ -834,8 +845,8 @@ onMounted(() => {
         <!-- 密码 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Password</span>
-            <span class="setting-description">App-specific password recommended</span>
+            <span class="setting-label">{{ t('settings.password') }}</span>
+            <span class="setting-description">{{ t('settings.passwordDesc') }}</span>
           </div>
           <n-input
             v-model:value="webdavConfig.password"
@@ -849,8 +860,8 @@ onMounted(() => {
         <!-- 远程路径 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Remote Path</span>
-            <span class="setting-description">Folder path on server</span>
+            <span class="setting-label">{{ t('settings.remotePath') }}</span>
+            <span class="setting-description">{{ t('settings.remotePathDesc') }}</span>
           </div>
           <n-input
             v-model:value="webdavConfig.remotePath"
@@ -862,25 +873,25 @@ onMounted(() => {
         <!-- 配置操作按钮 -->
         <div class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Configuration</span>
-            <span class="setting-description">Test connection and save settings</span>
+            <span class="setting-label">{{ t('settings.configuration') }}</span>
+            <span class="setting-description">{{ t('settings.configurationDesc') }}</span>
           </div>
           <div class="export-buttons">
             <button class="setting-btn" :disabled="isTesting" @click="handleTestConnection">
               <n-spin v-if="isTesting" :size="14" />
-              <span v-else>Test</span>
+              <span v-else>{{ t('settings.test') }}</span>
             </button>
-            <button class="setting-btn" @click="handleSaveConfig">Save</button>
-            <button v-if="isConfigured" class="setting-btn danger" @click="handleClearConfig">Clear</button>
+            <button class="setting-btn" @click="handleSaveConfig">{{ t('common.save') }}</button>
+            <button v-if="isConfigured" class="setting-btn danger" @click="handleClearConfig">{{ t('common.clear') }}</button>
           </div>
         </div>
         
         <!-- 同步操作 -->
         <div v-if="isConfigured" class="setting-item">
           <div class="setting-info">
-            <span class="setting-label">Sync Actions</span>
+            <span class="setting-label">{{ t('settings.syncActions') }}</span>
             <span class="setting-description">
-              {{ syncStatus.lastSyncTime ? `Last sync: ${new Date(syncStatus.lastSyncTime).toLocaleString()}` : 'Never synced' }}
+              {{ syncStatus.lastSyncTime ? `${t('settings.lastSync')}: ${new Date(syncStatus.lastSyncTime).toLocaleString()}` : t('settings.neverSynced') }}
             </span>
           </div>
           <div class="export-buttons">
@@ -888,14 +899,14 @@ onMounted(() => {
               <n-spin v-if="isSyncing" :size="14" />
               <template v-else>
                 <span class="material-symbols-outlined" style="font-size: 16px;">cloud_upload</span>
-                Upload
+                {{ t('settings.upload') }}
               </template>
             </button>
             <button class="setting-btn" :disabled="isSyncing" @click="handleDownload">
               <n-spin v-if="isSyncing" :size="14" />
               <template v-else>
                 <span class="material-symbols-outlined" style="font-size: 16px;">cloud_download</span>
-                Download
+                {{ t('settings.download') }}
               </template>
             </button>
           </div>
@@ -903,7 +914,7 @@ onMounted(() => {
       </n-card>
 
       <!-- 关于 -->
-      <n-card class="settings-card" title="About">
+      <n-card class="settings-card" :title="t('settings.about')">
         <template #header-extra>
           <span class="material-symbols-outlined">info</span>
         </template>
@@ -911,12 +922,12 @@ onMounted(() => {
           <div class="app-logo">
             <img src="@/assets/logo.svg" alt="Qingzhang" class="logo-img" />
             <div class="logo-text">
-              <span class="app-name">Qingzhang</span>
-              <span class="app-version">Version 1.0.0</span>
+              <span class="app-name">{{ t('app.name') }}</span>
+              <span class="app-version">{{ t('app.version') }} 1.0.0</span>
             </div>
           </div>
           <p class="app-description">
-            A cross-platform personal finance management app built with Vue 3 + Tauri.
+            {{ t('app.description') }}
           </p>
         </div>
       </n-card>
@@ -926,7 +937,7 @@ onMounted(() => {
     <n-modal
       v-model:show="showBackupModal"
       preset="card"
-      title="Select Backup to Restore"
+      :title="t('settings.selectBackup')"
       style="width: 500px; max-width: 90vw;"
       :mask-closable="!isSyncing"
     >
@@ -934,19 +945,19 @@ onMounted(() => {
         <!-- 加载状态 -->
         <div v-if="isLoadingBackups" class="backup-loading">
           <n-spin size="medium" />
-          <span>Loading backup list...</span>
+          <span>{{ t('settings.loadingBackups') }}</span>
         </div>
         
         <!-- 无备份 -->
         <div v-else-if="backupList.length === 0" class="backup-empty">
           <span class="material-symbols-outlined">cloud_off</span>
-          <p>No backups found on server</p>
+          <p>{{ t('settings.noBackups') }}</p>
         </div>
         
         <!-- 备份列表 -->
         <template v-else>
           <div class="backup-select-wrapper">
-            <label class="backup-label">Select backup:</label>
+            <label class="backup-label">{{ t('settings.selectBackupLabel') }}:</label>
             <BackupSelect
               v-model="selectedBackup"
               :options="backupOptions"
@@ -957,18 +968,18 @@ onMounted(() => {
           
           <!-- 恢复模式 -->
           <div class="restore-mode-wrapper">
-            <label class="backup-label">Restore mode:</label>
+            <label class="backup-label">{{ t('settings.restoreMode') }}:</label>
             <n-radio-group v-model:value="restoreMode">
               <n-radio value="merge">
                 <div class="mode-option">
-                  <span class="mode-title">Merge</span>
-                  <span class="mode-desc">Add new records to existing data</span>
+                  <span class="mode-title">{{ t('settings.mergeMode') }}</span>
+                  <span class="mode-desc">{{ t('settings.mergeModeDesc') }}</span>
                 </div>
               </n-radio>
               <n-radio value="overwrite">
                 <div class="mode-option">
-                  <span class="mode-title">Overwrite</span>
-                  <span class="mode-desc">Replace all current data</span>
+                  <span class="mode-title">{{ t('settings.overwriteMode') }}</span>
+                  <span class="mode-desc">{{ t('settings.overwriteModeDesc') }}</span>
                 </div>
               </n-radio>
             </n-radio-group>
@@ -976,14 +987,14 @@ onMounted(() => {
           
           <!-- 操作按钮 -->
           <div class="backup-actions">
-            <n-button @click="showBackupModal = false">Cancel</n-button>
+            <n-button @click="showBackupModal = false">{{ t('common.cancel') }}</n-button>
             <n-button 
               type="primary" 
               :loading="isSyncing" 
               :disabled="!selectedBackup"
               @click="handleRestore"
             >
-              Restore
+              {{ t('settings.restore') }}
             </n-button>
           </div>
         </template>

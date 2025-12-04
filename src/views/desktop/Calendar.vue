@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { 
   NCard, 
   NButton, 
@@ -11,6 +12,7 @@ import { useCurrencyFormat } from '@/hooks'
 import { TransactionList, MonthYearPicker, EditTransactionModal } from '@/components/desktop'
 import type { CalendarDay, MonthCalendar, Transaction } from '@/types'
 
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const { format: formatCurrency } = useCurrencyFormat()
@@ -36,7 +38,10 @@ const monthPickerTimestamp = computed({
 })
 
 // 星期标签
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const weekDays = computed(() => [
+  t('chart.sun'), t('chart.mon'), t('chart.tue'), t('chart.wed'), 
+  t('chart.thu'), t('chart.fri'), t('chart.sat')
+])
 
 // 格式化日期显示
 const monthYearDisplay = computed(() => {
@@ -197,7 +202,7 @@ const handleDelete = async (transaction: Transaction) => {
     <!-- Header -->
     <header class="calendar-header">
       <div class="header-left">
-        <h1 class="calendar-title">Calendar</h1>
+        <h1 class="calendar-title">{{ t('calendar.title') }}</h1>
       </div>
       <n-space align="center">
 <MonthYearPicker v-model:value="monthPickerTimestamp" />
@@ -261,15 +266,15 @@ const handleDelete = async (transaction: Transaction) => {
           <n-card class="month-stats-card" :bordered="true">
             <div class="stats-row">
               <div class="stat-item">
-                <p class="stat-label">Income</p>
+                <p class="stat-label">{{ t('calendar.income') }}</p>
                 <p class="stat-value income">{{ formatCurrency(calendarData.totalIncome) }}</p>
               </div>
               <div class="stat-item">
-                <p class="stat-label">Expense</p>
+                <p class="stat-label">{{ t('calendar.expense') }}</p>
                 <p class="stat-value expense">{{ formatCurrency(calendarData.totalExpense) }}</p>
               </div>
               <div class="stat-item">
-                <p class="stat-label">Balance</p>
+                <p class="stat-label">{{ t('reports.balance') }}</p>
                 <p class="stat-value">{{ formatCurrency(calendarData.balance) }}</p>
               </div>
             </div>
@@ -281,8 +286,8 @@ const handleDelete = async (transaction: Transaction) => {
               <div class="card-header">
                 <h2 class="day-title">{{ selectedDateDisplay }}</h2>
                 <div class="day-summary">
-                  <span>In: {{ formatCurrency(selectedDayData?.income || 0) }}</span>
-                  <span>Out: {{ formatCurrency(selectedDayData?.expense || 0) }}</span>
+                  <span>{{ t('calendar.income') }}: {{ formatCurrency(selectedDayData?.income || 0) }}</span>
+                  <span>{{ t('calendar.expense') }}: {{ formatCurrency(selectedDayData?.expense || 0) }}</span>
                 </div>
               </div>
             </template>
@@ -290,7 +295,7 @@ const handleDelete = async (transaction: Transaction) => {
             <TransactionList 
               :transactions="selectedDayData?.transactions || []"
               hoverable
-              empty-text="No transactions on this day"
+              :empty-text="t('calendar.noTransactions')"
               empty-icon="event_busy"
               @edit="handleEdit"
               @delete="handleDelete"

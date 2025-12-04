@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed } from 'vue'
-import { NConfigProvider, NGlobalStyle, NMessageProvider, NDialogProvider, NLoadingBarProvider, darkTheme } from 'naive-ui'
+import { useI18n } from 'vue-i18n'
+import { NConfigProvider, NGlobalStyle, NMessageProvider, NDialogProvider, NLoadingBarProvider, darkTheme, zhCN, dateZhCN, enUS, dateEnUS } from 'naive-ui'
 import { useAppStore } from '@/stores/app.store'
 import { useThemeStore } from '@/stores/theme.store'
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyStore } from '@/stores/currency.store'
 import { createDarkThemeOverrides, createLightThemeOverrides } from '@/config/naive-ui-theme'
 
+const { locale } = useI18n()
 const appStore = useAppStore()
 const themeStore = useThemeStore()
 const userStore = useUserStore()
@@ -24,6 +26,10 @@ const naiveThemeOverrides = computed(() => {
     ? createDarkThemeOverrides(colors) 
     : createLightThemeOverrides(colors)
 })
+
+// NaiveUI 语言配置
+const naiveLocale = computed(() => locale.value === 'zh-CN' ? zhCN : enUS)
+const naiveDateLocale = computed(() => locale.value === 'zh-CN' ? dateZhCN : dateEnUS)
 
 // 禁用浏览器默认右键菜单
 const preventContextMenu = (e: MouseEvent) => {
@@ -57,6 +63,8 @@ onUnmounted(() => {
   <n-config-provider 
     :theme="naiveTheme" 
     :theme-overrides="naiveThemeOverrides"
+    :locale="naiveLocale"
+    :date-locale="naiveDateLocale"
   >
     <n-global-style />
     <n-loading-bar-provider>

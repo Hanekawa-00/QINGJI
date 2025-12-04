@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { 
   NCard, 
   NStatistic, 
@@ -21,6 +22,7 @@ import {
 import { GroupedTransactionList, MonthYearPicker, BarLineChart, EditTransactionModal } from '@/components/desktop'
 import type { Transaction } from '@/types'
 
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
 const { format: formatCurrency } = useCurrencyFormat()
@@ -32,17 +34,17 @@ const editingTransaction = ref<Transaction | null>(null)
 // 统计卡片数据
 const statsCards = computed(() => [
   {
-    label: 'Current Balance',
+    label: t('dashboard.currentBalance'),
     value: formatCurrency(userStore.statistics.totalBalance),
     valueColor: 'var(--color-text-strong)'
   },
   {
-    label: 'Monthly Income',
+    label: t('dashboard.monthlyIncome'),
     value: formatCurrency(userStore.statistics.monthlyIncome),
     valueColor: 'var(--color-income)'
   },
   {
-    label: 'Monthly Spending',
+    label: t('dashboard.monthlySpending'),
     value: formatCurrency(userStore.statistics.monthlyExpense),
     valueColor: 'var(--color-expense)'
   }
@@ -96,7 +98,7 @@ const handleDelete = async (transaction: Transaction) => {
     <!-- Header -->
     <header class="dashboard-header">
       <div class="header-left">
-        <h1 class="dashboard-title">Dashboard</h1>
+        <h1 class="dashboard-title">{{ t('dashboard.title') }}</h1>
       </div>
       <n-space align="center">
 <MonthYearPicker v-model:value="selectedMonthTimestamp" />
@@ -128,8 +130,8 @@ const handleDelete = async (transaction: Transaction) => {
           style="width: 140px"
         />
         <n-radio-group v-model:value="chartType" size="small">
-          <n-radio-button value="expense">Expense</n-radio-button>
-          <n-radio-button value="both">All</n-radio-button>
+          <n-radio-button value="expense">{{ t('reports.expense') }}</n-radio-button>
+          <n-radio-button value="both">{{ t('common.all') }}</n-radio-button>
         </n-radio-group>
       </div>
       
@@ -146,12 +148,12 @@ const handleDelete = async (transaction: Transaction) => {
     <!-- 本月交易记录 -->
     <n-card class="transactions-card" :bordered="true">
       <template #header>
-        <h2 class="transactions-title">Monthly Transactions</h2>
+        <h2 class="transactions-title">{{ t('dashboard.monthlyTransactions') }}</h2>
       </template>
       <GroupedTransactionList 
         :groups="groupedTransactions"
         hoverable
-        empty-text="No transactions this month"
+        :empty-text="t('dashboard.noTransactions')"
         empty-icon="event_busy"
         @edit="handleEdit"
         @delete="handleDelete"

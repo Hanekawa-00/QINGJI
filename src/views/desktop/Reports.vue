@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, h } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { 
   NCard, 
   NGrid, 
@@ -19,6 +20,7 @@ import { useCurrencyFormat } from '@/hooks'
 import { MonthYearPicker, BarLineChart, PieChart } from '@/components/desktop'
 import type { ReportPeriod } from '@/types'
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const { format: formatCurrency } = useCurrencyFormat()
 
@@ -145,22 +147,22 @@ const pieChartData = computed(() => {
 // 报告表格列配置（根据期间类型动态）
 const reportColumns = computed((): DataTableColumns<any> => [
   {
-    title: selectedPeriod.value === 'month' ? 'Date' : 'Month',
+    title: selectedPeriod.value === 'month' ? t('chart.date') : t('chart.month'),
     key: 'date',
     width: 100
   },
   {
-    title: 'Income',
+    title: t('reports.income'),
     key: 'income',
     render: (row) => h('span', { style: { color: 'var(--color-income)' } }, formatCurrency(row.income))
   },
   {
-    title: 'Expense',
+    title: t('reports.expense'),
     key: 'expense',
     render: (row) => h('span', { style: { color: 'var(--color-expense)' } }, formatCurrency(row.expense))
   },
   {
-    title: 'Balance',
+    title: t('reports.balance'),
     key: 'balance',
     render: (row) => h(
       'span',
@@ -185,7 +187,7 @@ const reportData = computed(() => {
     <!-- Header -->
     <header class="reports-header">
       <div class="header-left">
-        <h1 class="reports-title">Statistical Report</h1>
+        <h1 class="reports-title">{{ t('reports.title') }}</h1>
       </div>
       <n-space align="center" :size="16">
         <!-- 期间选择器 -->
@@ -213,8 +215,8 @@ const reportData = computed(() => {
 
         <!-- 期间类型切换 -->
         <n-radio-group v-model:value="selectedPeriod" name="period">
-          <n-radio-button value="month">Month</n-radio-button>
-          <n-radio-button value="year">Year</n-radio-button>
+          <n-radio-button value="month">{{ t('reports.month') }}</n-radio-button>
+          <n-radio-button value="year">{{ t('reports.year') }}</n-radio-button>
         </n-radio-group>
       </n-space>
     </header>
@@ -223,10 +225,10 @@ const reportData = computed(() => {
     <n-grid cols="1 s:2 l:4" :x-gap="24" :y-gap="16" responsive="screen" class="stats-grid">
       <n-gi>
         <n-card class="stats-card" :bordered="true">
-          <n-statistic label="Expense" :value="formatCurrency(periodStats.totalExpense)" tabular-nums>
+          <n-statistic :label="t('reports.expense')" :value="formatCurrency(periodStats.totalExpense)" tabular-nums>
             <template #suffix>
               <span :class="['stats-change', periodStats.expenseChange >= 0 ? 'text-pink' : 'text-primary']">
-                {{ formatChangePercentage(periodStats.expenseChange) }} vs last {{ selectedPeriod }}
+                {{ formatChangePercentage(periodStats.expenseChange) }} {{ t('reports.vsLast') }} {{ selectedPeriod === 'month' ? t('reports.month') : t('reports.year') }}
               </span>
             </template>
           </n-statistic>
@@ -234,10 +236,10 @@ const reportData = computed(() => {
       </n-gi>
       <n-gi>
         <n-card class="stats-card" :bordered="true">
-          <n-statistic label="Income" :value="formatCurrency(periodStats.totalIncome)" tabular-nums>
+          <n-statistic :label="t('reports.income')" :value="formatCurrency(periodStats.totalIncome)" tabular-nums>
             <template #suffix>
               <span class="stats-change text-muted">
-                {{ periodStats.totalIncome > 0 ? 'Income logged' : 'No income logged' }}
+                {{ periodStats.totalIncome > 0 ? t('reports.incomeLogged') : t('reports.noIncomeLogged') }}
               </span>
             </template>
           </n-statistic>
@@ -245,7 +247,7 @@ const reportData = computed(() => {
       </n-gi>
       <n-gi>
         <n-card class="stats-card" :bordered="true">
-          <n-statistic label="Balance" tabular-nums>
+          <n-statistic :label="t('reports.balance')" tabular-nums>
             <template #default>
               <span :style="{ color: periodStats.balance >= 0 ? 'var(--color-income)' : 'var(--color-expense)' }">
                 {{ formatCurrency(periodStats.balance) }}
@@ -253,7 +255,7 @@ const reportData = computed(() => {
             </template>
             <template #suffix>
               <span class="stats-change text-muted">
-                {{ periodStats.balance >= 0 ? 'Surplus' : 'Needs attention' }}
+                {{ periodStats.balance >= 0 ? t('reports.surplus') : t('reports.needsAttention') }}
               </span>
             </template>
           </n-statistic>
@@ -261,9 +263,9 @@ const reportData = computed(() => {
       </n-gi>
       <n-gi>
         <n-card class="stats-card" :bordered="true">
-          <n-statistic label="Avg. Daily Expense" :value="formatCurrency(periodStats.avgDailyExpense)" tabular-nums>
+          <n-statistic :label="t('reports.avgDailyExpense')" :value="formatCurrency(periodStats.avgDailyExpense)" tabular-nums>
             <template #suffix>
-              <span class="stats-change text-muted">Steady spending</span>
+              <span class="stats-change text-muted">{{ t('reports.steadySpending') }}</span>
             </template>
           </n-statistic>
         </n-card>
@@ -277,7 +279,7 @@ const reportData = computed(() => {
         <n-card class="daily-chart-card" :bordered="true">
           <template #header>
             <div class="chart-header">
-              <h3 class="chart-title">{{ selectedPeriod === 'month' ? 'Daily' : 'Monthly' }} Statistics</h3>
+              <h3 class="chart-title">{{ selectedPeriod === 'month' ? t('reports.dailyStatistics') : t('reports.monthlyStatistics') }}</h3>
               <n-space :size="8">
                 <!-- 图表类型切换 -->
                 <n-button 
@@ -296,9 +298,9 @@ const reportData = computed(() => {
                 </n-button>
                 <!-- 数据类型切换 -->
                 <n-radio-group v-model:value="chartDataType" size="small">
-                  <n-radio-button value="expense">Expense</n-radio-button>
-                  <n-radio-button value="income">Income</n-radio-button>
-                  <n-radio-button value="both">Both</n-radio-button>
+                  <n-radio-button value="expense">{{ t('reports.expense') }}</n-radio-button>
+                  <n-radio-button value="income">{{ t('reports.income') }}</n-radio-button>
+                  <n-radio-button value="both">{{ t('common.all') }}</n-radio-button>
                 </n-radio-group>
               </n-space>
             </div>
@@ -320,12 +322,12 @@ const reportData = computed(() => {
         <n-card class="category-report-card" :bordered="true">
           <template #header>
             <div class="category-header">
-              <h3 class="category-title">Categorized Report</h3>
+              <h3 class="category-title">{{ t('reports.categorizedReport') }}</h3>
               
               <!-- 分类类型切换 -->
               <n-radio-group v-model:value="selectedCategoryType" size="small">
-                <n-radio-button value="expense">Expense</n-radio-button>
-                <n-radio-button value="income">Income</n-radio-button>
+                <n-radio-button value="expense">{{ t('reports.expense') }}</n-radio-button>
+                <n-radio-button value="income">{{ t('reports.income') }}</n-radio-button>
               </n-radio-group>
             </div>
           </template>
@@ -335,7 +337,7 @@ const reportData = computed(() => {
             <div class="pie-chart-wrapper">
               <PieChart
                 :data="pieChartData"
-                :center-label="selectedCategoryType === 'expense' ? 'Expense' : 'Income'"
+                :center-label="selectedCategoryType === 'expense' ? t('reports.expense') : t('reports.income')"
                 :center-value="formatCurrency(pieChartTotal)"
                 height="180px"
               />
@@ -394,9 +396,9 @@ const reportData = computed(() => {
     <n-card class="daily-report-card" :bordered="true">
       <template #header>
         <div class="daily-report-header">
-          <h3 class="daily-report-title">{{ selectedPeriod === 'month' ? 'Daily' : 'Monthly' }} Report</h3>
+          <h3 class="daily-report-title">{{ selectedPeriod === 'month' ? t('reports.dailyReport') : t('reports.monthlyReport') }}</h3>
           <span class="daily-report-subtitle">
-            Avg. {{ selectedPeriod === 'month' ? 'Daily' : 'Monthly' }} Expense: {{ formatCurrency(periodStats.avgDailyExpense) }}
+            {{ t('reports.avgDailyExpense') }}: {{ formatCurrency(periodStats.avgDailyExpense) }}
           </span>
         </div>
       </template>

@@ -5,7 +5,10 @@
  * 解决 NDatePicker type="month" 的 UX 问题
  */
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NSelect, NSpace } from 'naive-ui'
+
+const { t } = useI18n()
 
 interface Props {
   /** 时间戳 */
@@ -49,20 +52,20 @@ const yearOptions = computed(() => {
 })
 
 // 月份选项
-const monthOptions = [
-  { label: 'Jan', value: 0 },
-  { label: 'Feb', value: 1 },
-  { label: 'Mar', value: 2 },
-  { label: 'Apr', value: 3 },
-  { label: 'May', value: 4 },
-  { label: 'Jun', value: 5 },
-  { label: 'Jul', value: 6 },
-  { label: 'Aug', value: 7 },
-  { label: 'Sep', value: 8 },
-  { label: 'Oct', value: 9 },
-  { label: 'Nov', value: 10 },
-  { label: 'Dec', value: 11 }
-]
+const monthOptions = computed(() => [
+  { label: t('months.jan'), value: 0 },
+  { label: t('months.feb'), value: 1 },
+  { label: t('months.mar'), value: 2 },
+  { label: t('months.apr'), value: 3 },
+  { label: t('months.may'), value: 4 },
+  { label: t('months.jun'), value: 5 },
+  { label: t('months.jul'), value: 6 },
+  { label: t('months.aug'), value: 7 },
+  { label: t('months.sep'), value: 8 },
+  { label: t('months.oct'), value: 9 },
+  { label: t('months.nov'), value: 10 },
+  { label: t('months.dec'), value: 11 }
+])
 </script>
 
 <template>

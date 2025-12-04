@@ -4,6 +4,7 @@
  */
 
 import { computed, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user.store'
 import type { Transaction } from '@/types'
 
@@ -39,15 +40,19 @@ export function useMonthlyTransactions(timestampRef: Ref<number>) {
  * 按日期分组交易记录
  */
 export function useGroupedTransactions(transactions: Ref<Transaction[]>) {
+  const { locale } = useI18n()
+  
   return computed((): GroupedTransactions[] => {
     const groups: Record<string, GroupedTransactions> = {}
+    // 根据当前语言选择日期格式化的 locale
+    const dateLocale = locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'
     
     transactions.value.forEach(t => {
       if (!groups[t.date]) {
         const date = new Date(t.date)
         groups[t.date] = {
           date: t.date,
-          dateDisplay: date.toLocaleDateString('en-US', {
+          dateDisplay: date.toLocaleDateString(dateLocale, {
             weekday: 'short',
             month: 'short',
             day: 'numeric'

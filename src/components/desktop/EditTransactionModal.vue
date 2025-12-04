@@ -3,6 +3,7 @@
  * 编辑交易记录弹窗组件
  */
 import { ref, computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   NModal,
   NForm,
@@ -34,6 +35,7 @@ const emit = defineEmits<{
   'saved': [transaction: Transaction]
 }>()
 
+const { t } = useI18n()
 const userStore = useUserStore()
 const currencyStore = useCurrencyStore()
 const message = useMessage()
@@ -120,9 +122,9 @@ const refreshRate = async () => {
     await currencyStore.fetchExchangeRates()
     const rate = currencyStore.getRate(formData.value.currency, currencyStore.primaryCurrency)
     formData.value.exchangeRate = rate
-    message.success('Exchange rate updated')
+    message.success(t('messages.updated'))
   } catch {
-    message.error('Failed to fetch exchange rate')
+    message.error(t('messages.updateFailed'))
   } finally {
     isLoadingRate.value = false
   }
@@ -160,12 +162,12 @@ const handleClose = () => {
 // 保存
 const handleSave = async () => {
   if (formData.value.amount <= 0) {
-    message.warning('Please enter a valid amount')
+    message.warning(t('messages.enterValidAmount'))
     return
   }
 
   if (!selectedCategory.value) {
-    message.warning('Please select a category')
+    message.warning(t('messages.selectCategory'))
     return
   }
 
@@ -184,7 +186,7 @@ const handleSave = async () => {
   }
 
   await userStore.updateTransaction(props.transaction.id, updates)
-  message.success('Transaction updated!')
+  message.success(t('messages.saveSuccess'))
   
   emit('saved', { ...props.transaction, ...updates })
   handleClose()
@@ -201,28 +203,28 @@ const selectCategory = (categoryId: string) => {
     :show="show"
     @update:show="emit('update:show', $event)"
     preset="card"
-    title="Edit Transaction"
+    :title="t('transaction.edit')"
     :style="{ width: '480px', maxWidth: '90vw' }"
     :mask-closable="true"
     :close-on-esc="true"
   >
     <n-form v-if="transaction" label-placement="top">
       <!-- 交易类型 -->
-      <n-form-item label="Type">
+      <n-form-item :label="t('transaction.type')">
         <n-radio-group v-model:value="formData.type">
-          <n-radio-button value="expense">Expense</n-radio-button>
-          <n-radio-button value="income">Income</n-radio-button>
+          <n-radio-button value="expense">{{ t('entry.expense') }}</n-radio-button>
+          <n-radio-button value="income">{{ t('entry.income') }}</n-radio-button>
         </n-radio-group>
       </n-form-item>
 
       <!-- 金额和币种 -->
-      <n-form-item label="Amount">
+      <n-form-item :label="t('entry.amount')">
         <div class="amount-currency-row">
           <n-input-number
             v-model:value="formData.amount"
             :min="0"
             :precision="2"
-            placeholder="Enter amount"
+            :placeholder="t('transaction.enterAmount')"
             style="flex: 1"
           >
             <template #prefix>{{ currentCurrencyInfo?.symbol || '$' }}</template>
@@ -237,7 +239,7 @@ const selectCategory = (categoryId: string) => {
       </n-form-item>
 
       <!-- 汇率（币种不同时显示） -->
-      <n-form-item v-if="formData.currency !== currencyStore.primaryCurrency" label="Exchange Rate">
+      <n-form-item v-if="formData.currency !== currencyStore.primaryCurrency" :label="t('entry.exchangeRate')">
         <div class="exchange-rate-row">
           <n-input-number
             v-model:value="formData.exchangeRate"
@@ -261,7 +263,7 @@ const selectCategory = (categoryId: string) => {
                 <span class="material-symbols-outlined">refresh</span>
               </n-button>
             </template>
-            Fetch latest rate
+            {{ t('transaction.fetchRate') }}
           </n-tooltip>
         </div>
         <div class="converted-preview">
@@ -271,7 +273,7 @@ const selectCategory = (categoryId: string) => {
       </n-form-item>
 
       <!-- 分类 -->
-      <n-form-item label="Category">
+      <n-form-item :label="t('entry.category')">
         <n-scrollbar style="max-height: 200px">
           <div class="category-grid">
             <div
@@ -288,15 +290,15 @@ const selectCategory = (categoryId: string) => {
       </n-form-item>
 
       <!-- 描述 -->
-      <n-form-item label="Description">
+      <n-form-item :label="t('entry.description')">
         <n-input
           v-model:value="formData.description"
-          placeholder="Enter description"
+          :placeholder="t('transaction.enterDescription')"
         />
       </n-form-item>
 
       <!-- 日期 -->
-      <n-form-item label="Date">
+      <n-form-item :label="t('entry.date')">
         <n-date-picker
           v-model:value="formData.date"
           type="date"
@@ -307,8 +309,8 @@ const selectCategory = (categoryId: string) => {
 
     <template #footer>
       <n-space justify="end">
-        <n-button @click="handleClose">Cancel</n-button>
-        <n-button type="primary" @click="handleSave">Save Changes</n-button>
+        <n-button @click="handleClose">{{ t('common.cancel') }}</n-button>
+        <n-button type="primary" @click="handleSave">{{ t('transaction.saveChanges') }}</n-button>
       </n-space>
     </template>
   </n-modal>

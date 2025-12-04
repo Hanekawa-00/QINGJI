@@ -4,6 +4,7 @@
  */
 
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user.store'
 import { formatDateISO } from './useFormatters'
 
@@ -25,6 +26,7 @@ export interface UseChartDataOptions {
 }
 
 export function useChartData(options: UseChartDataOptions = {}) {
+  const { t } = useI18n()
   const userStore = useUserStore()
   
   const chartPeriod = ref<ChartPeriod>(options.defaultPeriod || 'week')
@@ -32,11 +34,11 @@ export function useChartData(options: UseChartDataOptions = {}) {
   const hoveredBarIndex = ref<number | null>(null)
 
   // 时间范围选项
-  const periodOptions = [
-    { label: 'This Week', value: 'week' },
-    { label: 'Last 7 Days', value: '7days' },
-    { label: 'Last 15 Days', value: '15days' }
-  ]
+  const periodOptions = computed(() => [
+    { label: t('chart.thisWeek'), value: 'week' },
+    { label: t('chart.last7Days'), value: '7days' },
+    { label: t('chart.last15Days'), value: '15days' }
+  ])
 
   // 图表数据计算
   const chartData = computed((): ChartBarData[] => {
@@ -75,7 +77,8 @@ export function useChartData(options: UseChartDataOptions = {}) {
       // 格式化标签
       let label: string
       if (chartPeriod.value === 'week') {
-        label = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getDay()]
+        const weekDays = [t('chart.sun'), t('chart.mon'), t('chart.tue'), t('chart.wed'), t('chart.thu'), t('chart.fri'), t('chart.sat')]
+        label = weekDays[date.getDay()]
       } else {
         label = `${date.getMonth() + 1}/${date.getDate()}`
       }

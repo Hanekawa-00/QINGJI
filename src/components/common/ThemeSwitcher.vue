@@ -3,17 +3,20 @@
  * 主题切换组件
  * 跨平台通用（桌面端/移动端）
  */
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useThemeStore } from '@/stores/theme.store'
 import type { ThemeMode, ThemeName } from '@/types'
 
+const { t } = useI18n()
 const themeStore = useThemeStore()
 
 // Mode options
-const modeOptions: { value: ThemeMode; label: string; icon: string }[] = [
-  { value: 'light', label: 'Light', icon: 'light_mode' },
-  { value: 'dark', label: 'Dark', icon: 'dark_mode' },
-  { value: 'system', label: 'System', icon: 'contrast' }
-]
+const modeOptions = computed(() => [
+  { value: 'light' as ThemeMode, label: t('settings.light'), icon: 'light_mode' },
+  { value: 'dark' as ThemeMode, label: t('settings.dark'), icon: 'dark_mode' },
+  { value: 'system' as ThemeMode, label: t('settings.system'), icon: 'contrast' }
+])
 
 // 切换明暗模式
 const handleModeChange = (mode: ThemeMode) => {
@@ -30,7 +33,7 @@ const handleThemeChange = (name: ThemeName) => {
   <div class="theme-switcher">
     <!-- 明暗模式切换 -->
     <div class="section">
-      <div class="section-title">Appearance</div>
+      <div class="section-title">{{ t('settings.appearance') }}</div>
       <div class="mode-options">
         <button
           v-for="option in modeOptions"
@@ -46,7 +49,7 @@ const handleThemeChange = (name: ThemeName) => {
 
     <!-- 颜色主题选择 -->
     <div class="section">
-      <div class="section-title">Theme Color</div>
+      <div class="section-title">{{ t('settings.themeColor') }}</div>
       <div class="theme-options">
         <button
           v-for="theme in themeStore.availableThemes"

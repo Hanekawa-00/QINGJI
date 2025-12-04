@@ -5,6 +5,7 @@
  * 可跨平台复用（桌面端/移动端）
  */
 import { h, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NListItem, NThing, NDropdown, NButton, useDialog, useMessage } from 'naive-ui'
 import { formatWithCurrency, getAmountColor } from '@/hooks'
 import type { Transaction } from '@/types'
@@ -26,6 +27,7 @@ const emit = defineEmits<{
   delete: [transaction: Transaction]
 }>()
 
+const { t } = useI18n()
 const dialog = useDialog()
 const message = useMessage()
 
@@ -37,18 +39,18 @@ const formattedAmount = computed(() => {
 })
 
 // 下拉菜单选项
-const dropdownOptions = [
+const dropdownOptions = computed(() => [
   {
-    label: 'Edit',
+    label: t('common.edit'),
     key: 'edit',
     icon: () => h('span', { class: 'material-symbols-outlined', style: 'font-size: 18px' }, 'edit')
   },
   {
-    label: 'Delete',
+    label: t('common.delete'),
     key: 'delete',
     icon: () => h('span', { class: 'material-symbols-outlined', style: 'font-size: 18px; color: var(--color-expense)' }, 'delete')
   }
-]
+])
 
 const handleClick = () => {
   if (props.clickable) {
@@ -61,13 +63,13 @@ const handleSelect = (key: string) => {
     emit('edit', props.transaction)
   } else if (key === 'delete') {
     dialog.warning({
-      title: 'Delete Transaction',
-      content: `Are you sure you want to delete "${props.transaction.description}"?`,
-      positiveText: 'Delete',
-      negativeText: 'Cancel',
+      title: t('transaction.deleteTitle'),
+      content: t('transaction.deleteConfirm', { name: props.transaction.description }),
+      positiveText: t('common.delete'),
+      negativeText: t('common.cancel'),
       onPositiveClick: () => {
         emit('delete', props.transaction)
-        message.success('Transaction deleted')
+        message.success(t('messages.deleteSuccess'))
       }
     })
   }
