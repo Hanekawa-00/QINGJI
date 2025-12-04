@@ -153,6 +153,13 @@ export default {
     import: '导入',
     importJSONTitle: '导入 JSON 数据',
     importCSVTitle: '导入 CSV 数据',
+    clearData: '清空所有数据',
+    clearDataDesc: '删除所有交易记录和分类',
+    clearDataDialog: {
+      title: '清空所有数据',
+      content: '这将永久删除所有交易记录和分类。此操作无法撤销。是否继续？',
+      confirm: '全部删除'
+    },
     
     // 云同步
     cloudSync: '云同步 (WebDAV)',

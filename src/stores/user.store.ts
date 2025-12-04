@@ -594,6 +594,25 @@ export const useUserStore = defineStore('user', () => {
     return true
   }
 
+  /**
+   * 清空所有数据（用于覆盖导入）
+   */
+  async function clearAllData() {
+    if (isInitialized.value) {
+      try {
+        await db.clearAllData()
+      } catch (error) {
+        console.error('Failed to clear all data:', error)
+        dbError.value = String(error)
+        throw error
+      }
+    }
+    
+    // 清空本地状态
+    transactions.value = []
+    categories.value = []
+  }
+
   return {
     // 状态
     transactions,
@@ -619,6 +638,7 @@ export const useUserStore = defineStore('user', () => {
     getPeriodStatistics,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    clearAllData
   }
 })

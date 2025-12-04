@@ -353,6 +353,31 @@ export async function deleteTransaction(id: string): Promise<void> {
   await database.execute('DELETE FROM transactions WHERE id = $1', [id])
 }
 
+/**
+ * 删除所有交易
+ */
+export async function deleteAllTransactions(): Promise<void> {
+  const database = await getDatabase()
+  await database.execute('DELETE FROM transactions')
+}
+
+/**
+ * 删除所有分类
+ */
+export async function deleteAllCategories(): Promise<void> {
+  const database = await getDatabase()
+  await database.execute('DELETE FROM categories')
+}
+
+/**
+ * 清空所有数据（交易和分类）
+ */
+export async function clearAllData(): Promise<void> {
+  const database = await getDatabase()
+  await database.execute('DELETE FROM transactions')
+  await database.execute('DELETE FROM categories')
+}
+
 // ==================== 统计查询 ====================
 
 /**

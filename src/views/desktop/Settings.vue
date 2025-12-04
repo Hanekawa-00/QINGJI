@@ -365,7 +365,12 @@ async function doCSVImport(result: CSVImportResult) {
 // 执行导入
 async function doImport(data: ExportData, overwrite: boolean = false) {
   try {
-    // 覆盖模式下传空数组，这样所有记录都会被当作新记录添加
+    // 覆盖模式下先清除所有现有数据
+    if (overwrite) {
+      await userStore.clearAllData()
+    }
+    
+    // 执行导入
     const result = await performImport(
       data,
       overwrite ? [] : userStore.categories,
@@ -662,6 +667,25 @@ async function handleDeleteBackup(filename: string) {
   })
 }
 
+// 清空所有数据
+async function handleClearAllData() {
+  dialog.error({
+    title: t('settings.clearDataDialog.title'),
+    content: t('settings.clearDataDialog.content'),
+    positiveText: t('settings.clearDataDialog.confirm'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      try {
+        await userStore.clearAllData()
+        message.success(t('messages.deleteSuccess'))
+      } catch (error) {
+        console.error('Failed to clear data:', error)
+        message.error(t('messages.deleteFailed'))
+      }
+    }
+  })
+}
+
 // 初始化加载配置
 onMounted(() => {
   loadConfig()
@@ -810,6 +834,15 @@ onMounted(() => {
             style="display: none"
             @change="handleFileImport"
           />
+        </div>
+        <div class="setting-item">
+          <div class="setting-info">
+            <span class="setting-label">{{ t('settings.clearData') }}</span>
+            <span class="setting-description">{{ t('settings.clearDataDesc') }}</span>
+          </div>
+          <button class="setting-btn danger" @click="handleClearAllData">
+            {{ t('common.delete') }}
+          </button>
         </div>
       </n-card>
 

@@ -153,6 +153,13 @@ export default {
     import: 'Import',
     importJSONTitle: 'Import JSON Data',
     importCSVTitle: 'Import CSV Data',
+    clearData: 'Clear All Data',
+    clearDataDesc: 'Delete all transactions and categories',
+    clearDataDialog: {
+      title: 'Clear All Data',
+      content: 'This will permanently delete all your transactions and categories. This action cannot be undone. Continue?',
+      confirm: 'Delete All'
+    },
     
     // Cloud sync
     cloudSync: 'Cloud Sync (WebDAV)',
