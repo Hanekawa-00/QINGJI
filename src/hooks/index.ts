@@ -27,8 +27,10 @@ export {
 export {
   useMonthlyTransactions,
   useGroupedTransactions,
+  useMonthlyStats,
   useTransactions,
-  type GroupedTransactions
+  type GroupedTransactions,
+  type MonthlyStats
 } from './useTransactions'
 
 // 日历

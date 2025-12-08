@@ -44,13 +44,13 @@ const changeMonth = (delta: number) => {
 }
 
 // 使用交易数据 Hook（按月份筛选）
-const { groupedTransactions } = useTransactions(selectedMonthTimestamp)
+const { groupedTransactions, monthlyStats } = useTransactions(selectedMonthTimestamp)
 
-// 统计数据
+// 统计数据（使用选中月份的统计）
 const stats = computed(() => ({
-  balance: userStore.statistics.totalBalance,
-  income: userStore.statistics.monthlyIncome,
-  expense: userStore.statistics.monthlyExpense
+  balance: userStore.statistics.totalBalance,  // 总余额始终显示全部
+  income: monthlyStats.value.income,
+  expense: monthlyStats.value.expense
 }))
 
 // 使用图表数据 Hook（带周期和类型切换）

@@ -79,14 +79,52 @@ export function useGroupedTransactions(transactions: Ref<Transaction[]>) {
 }
 
 /**
+ * 月度统计数据
+ */
+export interface MonthlyStats {
+  income: number
+  expense: number
+  balance: number
+}
+
+/**
+ * 获取指定月份的统计数据
+ */
+export function useMonthlyStats(timestampRef: Ref<number>) {
+  const monthlyTransactions = useMonthlyTransactions(timestampRef)
+
+  return computed<MonthlyStats>(() => {
+    let income = 0
+    let expense = 0
+
+    monthlyTransactions.value.forEach(t => {
+      const amount = t.convertedAmount ?? t.amount
+      if (t.type === 'income') {
+        income += amount
+      } else {
+        expense += amount
+      }
+    })
+
+    return {
+      income,
+      expense,
+      balance: income - expense
+    }
+  })
+}
+
+/**
  * 交易数据组合式函数
  */
 export function useTransactions(timestampRef: Ref<number>) {
   const monthlyTransactions = useMonthlyTransactions(timestampRef)
   const groupedTransactions = useGroupedTransactions(monthlyTransactions)
+  const monthlyStats = useMonthlyStats(timestampRef)
 
   return {
     monthlyTransactions,
-    groupedTransactions
+    groupedTransactions,
+    monthlyStats
   }
 }

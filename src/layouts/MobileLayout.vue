@@ -50,6 +50,9 @@ useSafeArea()
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  /* 左右安全区域内边距 */
+  padding-left: var(--safe-area-inset-left, 0px);
+  padding-right: var(--safe-area-inset-right, 0px);
   /* 禁用弹性滚动 */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;

@@ -31,27 +31,30 @@ const { format: formatCurrency } = useCurrencyFormat()
 const showEditModal = ref(false)
 const editingTransaction = ref<Transaction | null>(null)
 
-// 统计卡片数据
+// 月份选择器
+const selectedMonthTimestamp = ref<number>(Date.now())
+
+// 使用复用的交易数据 Hook（包含月度统计）
+const { groupedTransactions, monthlyStats } = useTransactions(selectedMonthTimestamp)
+
+// 统计卡片数据（使用选中月份的统计）
 const statsCards = computed(() => [
   {
     label: t('dashboard.currentBalance'),
-    value: formatCurrency(userStore.statistics.totalBalance),
+    value: formatCurrency(userStore.statistics.totalBalance),  // 总余额始终显示全部
     valueColor: 'var(--color-text-strong)'
   },
   {
     label: t('dashboard.monthlyIncome'),
-    value: formatCurrency(userStore.statistics.monthlyIncome),
+    value: formatCurrency(monthlyStats.value.income),
     valueColor: 'var(--color-income)'
   },
   {
     label: t('dashboard.monthlySpending'),
-    value: formatCurrency(userStore.statistics.monthlyExpense),
+    value: formatCurrency(monthlyStats.value.expense),
     valueColor: 'var(--color-expense)'
   }
 ])
-
-// 月份选择器
-const selectedMonthTimestamp = ref<number>(Date.now())
 
 // 使用复用的图表数据 Hook
 const { chartPeriod, chartType, periodOptions, chartData } = useChartData()
@@ -64,9 +67,6 @@ const echartsData = computed(() =>
     expense: bar.expense
   }))
 )
-
-// 使用复用的交易数据 Hook
-const { groupedTransactions } = useTransactions(selectedMonthTimestamp)
 
 // 是否为当前月份（用于控制图表显示）
 const isCurrentMonth = computed(() => {

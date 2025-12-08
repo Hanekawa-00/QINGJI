@@ -20,3 +20,6 @@ export { default as ActionBar } from './ActionBar.vue'
 
 // 日历网格组件
 export { default as CalendarGrid } from './CalendarGrid.vue'
+
+// 设置面板组件
+export { default as SettingsPanel } from './SettingsPanel.vue'
