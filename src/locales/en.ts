@@ -70,6 +70,8 @@ export default {
     editCategory: 'Edit Category',
     categoryName: 'Category name',
     selectIcon: 'Select icon',
+    searchOrAddCategory: 'Search or add category...',
+    noMatchingCategory: 'No matching category',
     quickTags: 'Quick tags',
     exchangeRate: 'Exchange rate',
     convertedAmount: 'Converted amount',

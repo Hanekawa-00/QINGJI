@@ -29,7 +29,7 @@ function goBack() {
     </header>
 
     <!-- 设置面板 -->
-    <div class="settings-content">
+    <div class="m-settings-content">
       <SettingsPanel compact />
     </div>
   </div>
@@ -78,50 +78,50 @@ function goBack() {
 }
 
 /* 内容区 */
-.settings-content {
+.m-settings-content {
   padding: 0 16px 24px;
 }
 
 /* ===== 移动端 NaiveUI 组件样式覆盖 ===== */
 /* 设置面板间距 */
-.settings-content :deep(.settings-panel) {
+.m-settings-content :deep(.settings-panel) {
   gap: 12px;
 }
 
 /* 卡片样式 */
-.settings-content :deep(.n-card) {
+.m-settings-content :deep(.n-card) {
   overflow: hidden;
   border-radius: 12px;
 }
 
-.settings-content :deep(.n-card__content) {
+.m-settings-content :deep(.n-card__content) {
   padding: 12px !important;
 }
 
 /* 设置项布局 */
-.settings-content :deep(.setting-item) {
+.m-settings-content :deep(.setting-item) {
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.settings-content :deep(.setting-info) {
+.m-settings-content :deep(.setting-info) {
   flex: 1;
   min-width: 0;
 }
 
-.settings-content :deep(.setting-description) {
+.m-settings-content :deep(.setting-description) {
   word-break: break-word;
 }
 
 /* 输入框和选择器宽度 */
-.settings-content :deep(.n-input),
-.settings-content :deep(.n-select) {
+.m-settings-content :deep(.n-input),
+.m-settings-content :deep(.n-select) {
   max-width: 140px !important;
   flex-shrink: 0;
 }
 
 /* 按钮组 */
-.settings-content :deep(.export-buttons) {
+.m-settings-content :deep(.export-buttons) {
   flex-shrink: 0;
 }
 </style>

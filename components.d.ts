@@ -29,5 +29,6 @@ declare module 'vue' {
     ThemeSwitcher: typeof import('./src/components/common/ThemeSwitcher.vue')['default']
     TransactionItem: typeof import('./src/components/desktop/TransactionItem.vue')['default']
     TransactionList: typeof import('./src/components/desktop/TransactionList.vue')['default']
+    YearMonthPicker: typeof import('./src/components/common/YearMonthPicker.vue')['default']
   }
 }

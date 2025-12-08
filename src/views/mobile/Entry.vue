@@ -19,6 +19,7 @@ import 'vant/es/toast/style'
 
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyStore } from '@/stores/currency.store'
+import { ALL_CATEGORY_ICONS } from '@/config/icons'
 import type { TransactionType, Category, CurrencyCode } from '@/types'
 
 defineOptions({ name: 'MobileEntry' })
@@ -51,8 +52,10 @@ const showDatePicker = ref(false)
 const showCurrencyPicker = ref(false)
 const showCategoryManager = ref(false)
 
-// 分类管理
+// 分类管理（输入框同时用于搜索和添加）
 const newCategoryName = ref('')
+const newCategoryIcon = ref('category')
+const showIconPicker = ref(false)
 
 // 计算器状态
 const operator = ref<'+' | '-' | null>(null)
@@ -68,6 +71,15 @@ const currentAmount = computed(() => parseFloat(displayValue.value) || 0)
 const categories = computed(() => 
   userStore.categories.filter((c: Category) => c.type === transactionType.value)
 )
+
+// 过滤后的分类列表（根据输入框关键词）
+const filteredCategories = computed(() => {
+  const query = newCategoryName.value.trim().toLowerCase()
+  if (!query) return categories.value
+  return categories.value.filter((c: Category) => 
+    c.name.toLowerCase().includes(query)
+  )
+})
 
 // 币种选项
 const currencyColumns = computed(() => 
@@ -251,11 +263,18 @@ const handleAddCategory = async () => {
   }
   await userStore.addCategory({
     name: newCategoryName.value,
-    icon: 'category',
+    icon: newCategoryIcon.value,
     type: transactionType.value
   })
   showToast(t('messages.categoryAdded'))
   newCategoryName.value = ''
+  newCategoryIcon.value = 'category'
+}
+
+// 选择图标
+const selectIcon = (icon: string) => {
+  newCategoryIcon.value = icon
+  showIconPicker.value = false
 }
 
 // 删除分类
@@ -419,7 +438,7 @@ const handleSubmit = async () => {
     </div>
 
     <!-- 分类管理弹窗 -->
-    <van-popup v-model:show="showCategoryManager" position="bottom" round lock-scroll :style="{ height: '60%' }">
+    <van-popup v-model:show="showCategoryManager" position="bottom" round lock-scroll :style="{ height: '70%' }">
       <div class="m-cat-manager">
         <div class="m-manager-header">
           <span>{{ t('entry.manageCategories') }}</span>
@@ -428,10 +447,25 @@ const handleSubmit = async () => {
           </button>
         </div>
         
+        <!-- 搜索/添加输入框（合并） -->
+        <div class="m-add-cat-row">
+          <button class="m-icon-btn" @click="showIconPicker = true">
+            <span class="material-symbols-outlined">{{ newCategoryIcon }}</span>
+          </button>
+          <input 
+            v-model="newCategoryName"
+            type="text"
+            :placeholder="t('entry.searchOrAddCategory')"
+          />
+          <button class="m-add-btn" @click="handleAddCategory" :disabled="!newCategoryName.trim()">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+        </div>
+        
         <!-- 分类列表 -->
         <div class="m-manager-list">
           <div 
-            v-for="cat in categories" 
+            v-for="cat in filteredCategories" 
             :key="cat.id"
             class="m-manager-item"
           >
@@ -441,17 +475,33 @@ const handleSubmit = async () => {
               <span class="material-symbols-outlined">delete</span>
             </button>
           </div>
+          
+          <!-- 无匹配结果时显示添加提示 -->
+          <div v-if="filteredCategories.length === 0 && newCategoryName.trim()" class="m-no-match">
+            <span>{{ t('entry.noMatchingCategory') }}</span>
+          </div>
         </div>
-        
-        <!-- 添加新分类 -->
-        <div class="m-add-cat-row">
-          <input 
-            v-model="newCategoryName"
-            type="text"
-            :placeholder="t('entry.categoryName')"
-          />
-          <button class="m-add-btn" @click="handleAddCategory">
-            <span class="material-symbols-outlined">add</span>
+      </div>
+    </van-popup>
+    
+    <!-- 图标选择弹窗 -->
+    <van-popup v-model:show="showIconPicker" position="bottom" round lock-scroll :style="{ height: '50%' }">
+      <div class="m-icon-picker">
+        <div class="m-icon-picker-header">
+          <span>{{ t('entry.selectIcon') }}</span>
+          <button @click="showIconPicker = false">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <div class="m-icon-grid">
+          <button 
+            v-for="icon in ALL_CATEGORY_ICONS" 
+            :key="icon"
+            class="m-icon-item"
+            :class="{ active: icon === newCategoryIcon }"
+            @click="selectIcon(icon)"
+          >
+            <span class="material-symbols-outlined">{{ icon }}</span>
           </button>
         </div>
       </div>
@@ -903,5 +953,141 @@ const handleSubmit = async () => {
 
 .m-add-btn .material-symbols-outlined {
   font-size: 22px;
+}
+
+/* 搜索行 */
+.m-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.m-search-row .search-icon {
+  font-size: 20px;
+  color: var(--color-text-muted);
+}
+
+.m-search-row input {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--color-text-strong);
+  outline: none;
+}
+
+.m-search-row input::placeholder {
+  color: var(--color-text-muted);
+}
+
+/* 无匹配提示 */
+.m-no-match {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+/* 添加分类区域 */
+.m-add-cat-section {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 图标选择按钮 */
+.m-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.m-icon-btn .material-symbols-outlined {
+  font-size: 22px;
+}
+
+/* 图标选择弹窗 */
+.m-icon-picker {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+}
+
+.m-icon-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.m-icon-picker-header span {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.m-icon-picker-header button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.m-icon-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.m-icon-item {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.m-icon-item:active {
+  transform: scale(0.95);
+}
+
+.m-icon-item.active {
+  background: var(--color-primary-alpha-20);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.m-icon-item .material-symbols-outlined {
+  font-size: 24px;
 }
 </style>

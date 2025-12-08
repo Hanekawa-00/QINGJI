@@ -153,6 +153,13 @@ const availableCategories = computed(() => {
   return userStore.categories.filter(c => c.type === transactionType.value)
 })
 
+// 分类管理中的过滤列表（根据输入框关键词）
+const filteredManagerCategories = computed(() => {
+  const query = newCategory.value.name.trim().toLowerCase()
+  if (!query) return availableCategories.value
+  return availableCategories.value.filter(c => c.name.toLowerCase().includes(query))
+})
+
 // 当交易类型变化或初始化时，自动选择第一个可用分类
 watch([() => transactionType.value, () => availableCategories.value], () => {
   const firstCategory = availableCategories.value[0]
@@ -415,9 +422,34 @@ const handleSaveTransaction = async (value: number) => {
       <div class="category-manager">
         <p class="manager-subtitle">{{ transactionType === 'expense' ? t('entry.expense') : t('entry.income') }} {{ t('entry.category') }}</p>
         
+        <!-- 搜索/添加分类（合并） -->
+        <div class="add-category-form" style="margin-bottom: 12px">
+          <n-input 
+            v-model:value="newCategory.name"
+            :placeholder="t('entry.searchOrAddCategory')"
+            size="small"
+            clearable
+            style="flex: 1"
+          >
+            <template #prefix>
+              <span class="material-symbols-outlined" style="font-size: 16px; color: var(--color-text-muted);">search</span>
+            </template>
+          </n-input>
+          <n-select
+            v-model:value="newCategory.icon"
+            :options="categoryIcons.map(i => ({ label: i, value: i }))"
+            size="small"
+            style="width: 100px"
+            :render-label="(option: any) => h('span', { class: 'material-symbols-outlined', style: 'font-size: 18px' }, option.label)"
+          />
+          <n-button type="primary" size="small" :disabled="!newCategory.name.trim()" @click="handleAddCategory">
+            <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+          </n-button>
+        </div>
+        
         <div class="category-list">
           <div 
-            v-for="category in availableCategories" 
+            v-for="category in filteredManagerCategories" 
             :key="category.id"
             class="category-list-item"
           >
@@ -463,32 +495,9 @@ const handleSaveTransaction = async (value: number) => {
             </template>
           </div>
           
-          <!-- 空状态 -->
-          <div v-if="availableCategories.length === 0" class="empty-categories">
-            {{ t('common.noData') }}
-          </div>
-        </div>
-        
-        <!-- 添加新分类 -->
-        <div class="add-category-section">
-          <p class="manager-subtitle">{{ t('entry.addCategory') }}</p>
-          <div class="add-category-form">
-            <n-input 
-              v-model:value="newCategory.name" 
-              :placeholder="t('entry.categoryName')" 
-              size="small"
-              style="flex: 1"
-            />
-            <n-select
-              v-model:value="newCategory.icon"
-              :options="categoryIcons.map(i => ({ label: i, value: i }))"
-              size="small"
-              style="width: 120px"
-              :render-label="(option: any) => h('span', { class: 'material-symbols-outlined', style: 'font-size: 18px' }, option.label)"
-            />
-            <n-button type="primary" size="small" @click="handleAddCategory">
-              <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
-            </n-button>
+          <!-- 空状态 / 无匹配 -->
+          <div v-if="filteredManagerCategories.length === 0" class="empty-categories">
+            {{ newCategory.name.trim() ? t('entry.noMatchingCategory') : t('common.noData') }}
           </div>
         </div>
       </div>

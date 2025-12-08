@@ -70,6 +70,8 @@ export default {
     editCategory: '编辑分类',
     categoryName: '分类名称',
     selectIcon: '选择图标',
+    searchOrAddCategory: '搜索或添加分类...',
+    noMatchingCategory: '没有匹配的分类',
     quickTags: '快捷标签',
     exchangeRate: '汇率',
     convertedAmount: '换算金额',
