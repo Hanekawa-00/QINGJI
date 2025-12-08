@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'select': [day: CalendarDay]
   'month-change': [year: number, month: number]
+  'month-click': []
   'back': []
 }>()
 
@@ -111,6 +112,13 @@ const goToNextMonth = () => {
   emit('month-change', selectedYear.value, selectedMonth.value)
 }
 
+// 设置年月
+const setYearMonth = (year: number, month: number) => {
+  selectedYear.value = year
+  selectedMonth.value = month
+  emit('month-change', selectedYear.value, selectedMonth.value)
+}
+
 // 暴露给父组件的数据和方法
 defineExpose({
   selectedYear,
@@ -120,7 +128,8 @@ defineExpose({
   selectedDateDisplay,
   monthStats,
   calendarData,
-  formatCurrency
+  formatCurrency,
+  setYearMonth
 })
 </script>
 
@@ -136,7 +145,10 @@ defineExpose({
       <button class="nav-btn" @click="goToPreviousMonth">
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
-      <span class="month-title">{{ monthDisplay }}</span>
+      <button class="month-title" @click="emit('month-click')">
+          <span>{{ monthDisplay }}</span>
+          <span class="material-symbols-outlined arrow-icon">keyboard_arrow_down</span>
+        </button>
       <button class="nav-btn" @click="goToNextMonth">
         <span class="material-symbols-outlined">chevron_right</span>
       </button>
@@ -247,11 +259,28 @@ defineExpose({
 }
 
 .month-title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-strong);
   min-width: 140px;
   text-align: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.month-title:active {
+  background: var(--color-surface-hover);
+}
+
+.month-title .arrow-icon {
+  font-size: 18px;
+  color: var(--color-text-muted);
 }
 
 .compact .month-title {

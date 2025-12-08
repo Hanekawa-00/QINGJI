@@ -11,6 +11,7 @@ import 'vant/es/empty/style'
 import 'vant/es/dialog/style'
 import 'vant/es/toast/style'
 
+import YearMonthPicker from '@/components/common/YearMonthPicker.vue'
 import { useUserStore } from '@/stores/user.store'
 import { CalendarGrid } from '@/components/common'
 import { TransactionItem } from '@/components/mobile'
@@ -27,6 +28,19 @@ const calendarRef = ref<InstanceType<typeof CalendarGrid> | null>(null)
 
 // 返回上一页
 const goBack = () => router.back()
+
+// 年月选择器
+const showYearMonthPicker = ref(false)
+const selectedYear = computed(() => calendarRef.value?.selectedYear ?? new Date().getFullYear())
+const selectedMonth = computed(() => (calendarRef.value?.selectedMonth ?? new Date().getMonth()) + 1)
+
+const onMonthClick = () => {
+  showYearMonthPicker.value = true
+}
+
+const onYearMonthConfirm = (year: number, month: number) => {
+  calendarRef.value?.setYearMonth(year, month - 1)
+}
 
 // 选中日期的交易记录（按创建时间倒序）
 const dayTransactions = computed(() => {
@@ -66,7 +80,7 @@ const goToEntry = () => router.push({ name: 'MobileEntry' })
   <div class="mobile-calendar">
     <!-- 日历网格组件（包含返回按钮和月份导航） -->
     <div class="calendar-wrapper">
-      <CalendarGrid ref="calendarRef" compact show-back @back="goBack">
+      <CalendarGrid ref="calendarRef" compact show-back @back="goBack" @month-click="onMonthClick">
         <!-- 月度统计插槽 -->
         <template #stats="{ stats, format }">
           <div class="month-stats-card">
@@ -127,6 +141,14 @@ const goToEntry = () => router.push({ name: 'MobileEntry' })
     <button class="fab-button" @click="goToEntry">
       <span class="material-symbols-outlined">add</span>
     </button>
+    
+    <!-- 年月选择器 -->
+    <YearMonthPicker
+      v-model:show="showYearMonthPicker"
+      :year="selectedYear"
+      :month="selectedMonth"
+      @confirm="onYearMonthConfirm"
+    />
   </div>
 </template>
 

@@ -11,6 +11,7 @@ import 'vant/es/empty/style'
 import 'vant/es/dialog/style'
 import 'vant/es/toast/style'
 
+import YearMonthPicker from '@/components/common/YearMonthPicker.vue'
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyFormat, useTransactions, useChartData } from '@/hooks'
 import { BarLineChart } from '@/components/common/charts'
@@ -40,6 +41,18 @@ const currentMonthDisplay = computed(() => {
 const changeMonth = (delta: number) => {
   const date = new Date(selectedMonthTimestamp.value)
   date.setMonth(date.getMonth() + delta)
+  selectedMonthTimestamp.value = date.getTime()
+}
+
+// 年月选择器
+const showYearMonthPicker = ref(false)
+const selectedYear = computed(() => new Date(selectedMonthTimestamp.value).getFullYear())
+const selectedMonth = computed(() => new Date(selectedMonthTimestamp.value).getMonth() + 1)
+
+const onYearMonthConfirm = (year: number, month: number) => {
+  const date = new Date(selectedMonthTimestamp.value)
+  date.setFullYear(year)
+  date.setMonth(month - 1)
   selectedMonthTimestamp.value = date.getTime()
 }
 
@@ -149,22 +162,27 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
   <div class="mobile-dashboard">
     <!-- 顶部导航栏 -->
     <header class="dashboard-header">
-      <button class="nav-btn" @click="goToSettings">
-        <span class="material-symbols-outlined">settings</span>
-      </button>
+      <div class="header-left">
+        <button class="nav-btn" @click="goToSettings">
+          <span class="material-symbols-outlined">settings</span>
+        </button>
+      </div>
       
-      <!-- 月份选择器 -->
+      <!-- 月份选择器（居中） -->
       <div class="month-selector">
         <button class="month-nav" @click="changeMonth(-1)">
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
-        <span class="month-text">{{ currentMonthDisplay }}</span>
+        <button class="month-text" @click="showYearMonthPicker = true">
+          <span>{{ currentMonthDisplay }}</span>
+          <span class="material-symbols-outlined arrow-icon">keyboard_arrow_down</span>
+        </button>
         <button class="month-nav" @click="changeMonth(1)">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>
       
-      <div class="nav-actions">
+      <div class="header-right">
         <button class="nav-btn" @click="goToReports">
           <span class="material-symbols-outlined">bar_chart</span>
         </button>
@@ -273,6 +291,14 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
       :cancel-text="t('common.cancel')"
       @select="onSelectPeriod"
     />
+    
+    <!-- 年月选择器 -->
+    <YearMonthPicker
+      v-model:show="showYearMonthPicker"
+      :year="selectedYear"
+      :month="selectedMonth"
+      @confirm="onYearMonthConfirm"
+    />
   </div>
 </template>
 
@@ -328,11 +354,21 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
   margin: 0;
 }
 
-.nav-actions {
+.header-left,
+.header-right {
   display: flex;
   flex-direction: row;
   gap: 8px;
   flex-shrink: 0;
+  min-width: 80px;
+}
+
+.header-left {
+  justify-content: flex-start;
+}
+
+.header-right {
+  justify-content: flex-end;
 }
 
 /* 月份选择器 */
@@ -364,11 +400,28 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
 }
 
 .month-text {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text-strong);
   min-width: 100px;
   text-align: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.month-text:active {
+  background: var(--color-surface-hover);
+}
+
+.month-text .arrow-icon {
+  font-size: 18px;
+  color: var(--color-text-muted);
 }
 
 /* 统计卡片网格 */

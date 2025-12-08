@@ -6,9 +6,10 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Empty as VanEmpty, ActionSheet as VanActionSheet } from 'vant'
+import { Empty as VanEmpty } from 'vant'
 import 'vant/es/empty/style'
-import 'vant/es/action-sheet/style'
+
+import YearMonthPicker from '@/components/common/YearMonthPicker.vue'
 
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyFormat } from '@/hooks'
@@ -66,18 +67,17 @@ const goToNext = () => {
   }
 }
 
-// 年份选择器
-const showYearPicker = ref(false)
-const yearOptions = computed(() => {
-  const current = new Date().getFullYear()
-  return Array.from({ length: 7 }, (_, i) => ({
-    name: String(current - 3 + i),
-    value: current - 3 + i
-  }))
-})
-const onSelectYear = (action: { value: number }) => {
-  selectedYear.value = action.value
-  showYearPicker.value = false
+// 年月选择器
+const showYearMonthPicker = ref(false)
+
+// 选择器模式：月份模式显示年月，年份模式只显示年
+const pickerMode = computed(() => selectedPeriod.value === 'year' ? 'year' : 'year-month')
+
+const onYearMonthConfirm = (year: number, month: number) => {
+  selectedYear.value = year
+  if (selectedPeriod.value === 'month') {
+    selectedMonth.value = month - 1 // YearMonthPicker 使用 1-12，这里需要 0-11
+  }
 }
 
 // ==================== 统计数据 ====================
@@ -183,9 +183,10 @@ const goBack = () => router.back()
       </button>
       <button 
         class="period-display" 
-        @click="selectedPeriod === 'year' && (showYearPicker = true)"
+        @click="showYearMonthPicker = true"
       >
-        {{ periodDisplay }}
+        <span>{{ periodDisplay }}</span>
+        <span class="material-symbols-outlined arrow-icon">keyboard_arrow_down</span>
       </button>
       <button class="nav-btn" @click="goToNext">
         <span class="material-symbols-outlined">chevron_right</span>
@@ -373,12 +374,13 @@ const goBack = () => router.back()
       <van-empty v-else :description="t('reports.noData')" image="search" />
     </div>
 
-    <!-- 年份选择器 -->
-    <van-action-sheet
-      v-model:show="showYearPicker"
-      :actions="yearOptions"
-      :cancel-text="t('common.cancel')"
-      @select="onSelectYear"
+    <!-- 年月选择器 -->
+    <YearMonthPicker
+      v-model:show="showYearMonthPicker"
+      :year="selectedYear"
+      :month="selectedMonth + 1"
+      :mode="pickerMode"
+      @confirm="onYearMonthConfirm"
     />
   </div>
 </template>
@@ -480,6 +482,9 @@ const goBack = () => router.back()
 }
 
 .period-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   min-width: 100px;
   padding: 4px 12px;
   border: none;
@@ -489,6 +494,11 @@ const goBack = () => router.back()
   color: var(--color-text-strong);
   text-align: center;
   cursor: pointer;
+}
+
+.period-display .arrow-icon {
+  font-size: 18px;
+  color: var(--color-text-muted);
 }
 
 /* 统计卡片 */
