@@ -1,33 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { platform } from '@tauri-apps/plugin-os'
-import { useAndroidBack } from '@/hooks'
+import { useAndroidBack, useSafeArea } from '@/hooks'
 
 defineOptions({ name: 'MobileLayout' })
-
-const isAndroid = ref(false)
 
 // 启用 Android 返回手势处理
 useAndroidBack()
 
-onMounted(async () => {
-  try {
-    const os = await platform()
-    isAndroid.value = os === 'android'
-    
-    // iOS 使用 CSS env() 自动适配
-    // Android 使用原生 WindowInsets 处理，无需额外设置
-  } catch (e) {
-    // 非 Tauri 环境（浏览器）
-    console.log('Platform detection failed, using defaults')
-  }
-})
+// 初始化安全区域（设置 CSS 变量）
+useSafeArea()
 </script>
 
 <template>
   <div class="mobile-layout">
-    <!-- 安全区域：顶部状态栏（仅 iOS 需要，Android 由原生处理） -->
-    <div v-if="!isAndroid" class="safe-area-top" />
+    <!-- 顶部安全区域占位 -->
+    <div class="safe-area-top" />
     
     <!-- 主内容区 -->
     <main class="mobile-content">
@@ -38,8 +24,8 @@ onMounted(async () => {
       </router-view>
     </main>
     
-    <!-- 安全区域：底部（仅 iOS 需要） -->
-    <div v-if="!isAndroid" class="safe-area-bottom" />
+    <!-- 底部安全区域占位 -->
+    <div class="safe-area-bottom" />
   </div>
 </template>
 
@@ -52,9 +38,9 @@ onMounted(async () => {
   overflow: hidden;
 }
 
-/* 顶部安全区域（状态栏）- 仅 iOS */
+/* 顶部安全区域（状态栏） */
 .safe-area-top {
-  height: env(safe-area-inset-top, 0px);
+  height: var(--safe-area-inset-top, 0px);
   background: var(--color-background);
   flex-shrink: 0;
 }
@@ -76,9 +62,9 @@ onMounted(async () => {
   display: none;
 }
 
-/* 底部安全区域（Home Indicator）- 仅 iOS */
+/* 底部安全区域（Home Indicator） */
 .safe-area-bottom {
-  height: env(safe-area-inset-bottom, 0px);
+  height: var(--safe-area-inset-bottom, 0px);
   background: var(--color-background);
   flex-shrink: 0;
 }

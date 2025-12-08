@@ -15,16 +15,20 @@ interface Props {
   showStats?: boolean
   // 是否紧凑模式（移动端）
   compact?: boolean
+  // 是否显示返回按钮
+  showBack?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showStats: true,
-  compact: false
+  compact: false,
+  showBack: false
 })
 
 const emit = defineEmits<{
   'select': [day: CalendarDay]
   'month-change': [year: number, month: number]
+  'back': []
 }>()
 
 const { locale } = useI18n()
@@ -124,6 +128,11 @@ defineExpose({
   <div class="calendar-grid" :class="{ compact }">
     <!-- 月份导航 -->
     <div class="month-nav">
+      <!-- 返回按钮（可选） -->
+      <button v-if="showBack" class="back-btn" @click="emit('back')">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      
       <button class="nav-btn" @click="goToPreviousMonth">
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
@@ -193,16 +202,34 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.nav-btn {
+.back-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: transparent;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 8px;
+}
+
+.back-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
   color: var(--color-text-muted);
   display: flex;
   align-items: center;
@@ -212,7 +239,6 @@ defineExpose({
 }
 
 .nav-btn:hover {
-  background: var(--color-surface);
   color: var(--color-text-strong);
 }
 

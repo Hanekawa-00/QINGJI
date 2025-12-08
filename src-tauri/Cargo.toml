@@ -31,4 +31,6 @@ tauri-plugin-dialog = "2.0.0"
 tauri-plugin-fs = "2.0.0"
 tauri-plugin-http = "2.0.0"
 tauri-plugin-log = "2.0.0"
+# Mobile safe area insets
+tauri-plugin-safe-area-insets = "0.1.0"
 

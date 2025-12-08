@@ -86,6 +86,12 @@ pub fn run() {
         builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
     }
     
+    // safe-area-insets 仅在移动端可用
+    #[cfg(mobile)]
+    {
+        builder = builder.plugin(tauri_plugin_safe_area_insets::init());
+    }
+    
     builder
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())

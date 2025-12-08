@@ -25,6 +25,7 @@
     "@tauri-apps/plugin-sql": "^2.3.1",
     "@tauri-apps/plugin-store": "^2.2.0",
     "@tauri-apps/plugin-window-state": "^2.2.0",
+    "tauri-plugin-safe-area-insets": "^0.1.0",
     "@vant/auto-import-resolver": "^1.3.0",
     "echarts": "^6.0.0",
     "material-symbols": "^0.40.0",

@@ -1,0 +1,75 @@
+/**
+ * 移动端安全区域样式
+ * 参考 HuLa 项目实现
+ */
+
+/* 安全区域 CSS 变量 - 使用 env() 获取系统值，并设置默认最小值 */
+:root {
+  /* 顶部安全区域（状态栏） */
+  --safe-area-inset-top: max(env(safe-area-inset-top, 0px), 0px);
+  /* 底部安全区域（Home 指示器） */
+  --safe-area-inset-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+  /* 左右安全区域（横屏刘海屏） */
+  --safe-area-inset-left: max(env(safe-area-inset-left, 0px), 0px);
+  --safe-area-inset-right: max(env(safe-area-inset-right, 0px), 0px);
+}
+
+/* iOS 11.0 兼容（使用 constant() ） */
+@supports (padding-top: constant(safe-area-inset-top)) {
+  :root {
+    --safe-area-inset-top: max(constant(safe-area-inset-top), 0px);
+    --safe-area-inset-bottom: max(constant(safe-area-inset-bottom), 0px);
+    --safe-area-inset-left: max(constant(safe-area-inset-left), 0px);
+    --safe-area-inset-right: max(constant(safe-area-inset-right), 0px);
+  }
+}
+
+/* 安全区域占位元素样式 */
+.safe-area-top {
+  padding-top: var(--safe-area-inset-top);
+  background: var(--color-background);
+}
+
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+  background: var(--color-background);
+}
+
+/* 安全区域内边距工具类 */
+.pt-safe {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.pb-safe {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.pl-safe {
+  padding-left: var(--safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* 安全区域外边距工具类 */
+.mt-safe {
+  margin-top: var(--safe-area-inset-top);
+}
+
+.mb-safe {
+  margin-bottom: var(--safe-area-inset-bottom);
+}
+
+/* 移动端布局容器 */
+.mobile-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.mobile-layout__content {
+  flex: 1;
+  overflow-y: auto;
+}

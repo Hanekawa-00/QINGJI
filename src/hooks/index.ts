@@ -51,3 +51,10 @@ export {
 
 // Android 返回手势
 export { useAndroidBack } from './useAndroidBack'
+
+// 安全区域
+export {
+  useSafeArea,
+  setupSafeArea,
+  type SafeAreaInsets
+} from './useSafeArea'

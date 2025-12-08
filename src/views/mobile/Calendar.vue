@@ -64,17 +64,9 @@ const goToEntry = () => router.push({ name: 'MobileEntry' })
 
 <template>
   <div class="mobile-calendar">
-    <!-- 顶部导航 -->
-    <header class="calendar-header">
-      <button class="back-btn" @click="goBack">
-        <span class="material-symbols-outlined">arrow_back</span>
-      </button>
-      <div class="header-spacer" />
-    </header>
-
-    <!-- 日历网格组件 -->
+    <!-- 日历网格组件（包含返回按钮和月份导航） -->
     <div class="calendar-wrapper">
-      <CalendarGrid ref="calendarRef" compact>
+      <CalendarGrid ref="calendarRef" compact show-back @back="goBack">
         <!-- 月度统计插槽 -->
         <template #stats="{ stats, format }">
           <div class="month-stats-card">
@@ -145,46 +137,16 @@ const goToEntry = () => router.push({ name: 'MobileEntry' })
   padding-bottom: 100px;
 }
 
-/* 顶部导航 */
-.calendar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--color-background);
-}
-
-.back-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.back-btn .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.header-spacer {
-  width: 32px;
-}
-
 /* 日历网格容器 */
 .calendar-wrapper {
   padding: 0 16px;
 }
 
-/* 月度统计卡片 */
+/* 月度统计卡片 - 与首页保持一致 */
 .month-stats-card {
   display: flex;
   justify-content: space-between;
-  margin: 0 16px 16px;
+  margin: 12px 0 16px;
   padding: 12px 16px;
   border-radius: 12px;
   background: var(--color-surface);
@@ -218,7 +180,8 @@ const goToEntry = () => router.push({ name: 'MobileEntry' })
 
 /* 选中日期的交易列表 */
 .day-transactions {
-  padding: 0 16px;
+  padding: 0;
+  margin-top: 16px;
 }
 
 .day-header {
