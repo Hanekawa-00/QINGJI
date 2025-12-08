@@ -4,7 +4,7 @@
  * 通用组件（移动端 + 桌面端）
  * 居中弹窗，左侧年份列表，右侧月份网格
  */
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 defineOptions({ name: 'YearMonthPicker' })
@@ -31,8 +31,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   month: 1,
   mode: 'year-month',
-  minYear: 2020,
-  maxYear: () => new Date().getFullYear() + 1
+  minYear: 1970,
+  maxYear: () => new Date().getFullYear() + 5
 })
 
 const emit = defineEmits<{
@@ -74,14 +74,33 @@ watch(() => props.month, (val) => {
   selectedMonth.value = val
 })
 
-// 弹窗打开时滚动到当前年份
+// 锁定/解锁背景滚动
+function lockBodyScroll() {
+  document.body.style.overflow = 'hidden'
+  document.body.style.touchAction = 'none'
+}
+
+function unlockBodyScroll() {
+  document.body.style.overflow = ''
+  document.body.style.touchAction = ''
+}
+
+// 弹窗打开时滚动到当前年份并锁定背景
 watch(() => props.show, async (visible) => {
   if (visible) {
+    lockBodyScroll()
     selectedYear.value = props.year
     selectedMonth.value = props.month
     await nextTick()
     scrollToYear(selectedYear.value)
+  } else {
+    unlockBodyScroll()
   }
+})
+
+// 组件卸载时确保解锁
+onBeforeUnmount(() => {
+  unlockBodyScroll()
 })
 
 // 滚动到指定年份
