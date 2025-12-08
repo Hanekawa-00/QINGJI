@@ -289,6 +289,7 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
       v-model:show="showPeriodPicker"
       :actions="periodActions"
       :cancel-text="t('common.cancel')"
+      lock-scroll
       @select="onSelectPeriod"
     />
     

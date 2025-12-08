@@ -419,7 +419,7 @@ const handleSubmit = async () => {
     </div>
 
     <!-- 分类管理弹窗 -->
-    <van-popup v-model:show="showCategoryManager" position="bottom" round :style="{ height: '60%' }">
+    <van-popup v-model:show="showCategoryManager" position="bottom" round lock-scroll :style="{ height: '60%' }">
       <div class="m-cat-manager">
         <div class="m-manager-header">
           <span>{{ t('entry.manageCategories') }}</span>
@@ -458,7 +458,7 @@ const handleSubmit = async () => {
     </van-popup>
 
     <!-- 日期选择器 -->
-    <van-popup v-model:show="showDatePicker" position="bottom" round>
+    <van-popup v-model:show="showDatePicker" position="bottom" round lock-scroll>
       <van-date-picker 
         :title="t('entry.selectDate')"
         :min-date="new Date(2020, 0, 1)"
@@ -469,7 +469,7 @@ const handleSubmit = async () => {
     </van-popup>
     
     <!-- 币种选择器 -->
-    <van-popup v-model:show="showCurrencyPicker" position="bottom" round>
+    <van-popup v-model:show="showCurrencyPicker" position="bottom" round lock-scroll>
       <van-picker
         :columns="currencyColumns"
         @confirm="onCurrencyConfirm"

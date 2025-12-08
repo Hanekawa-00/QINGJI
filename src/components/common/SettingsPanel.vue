@@ -3,7 +3,7 @@
  * 设置面板组件
  * 桌面端和移动端共用，通过 compact prop 控制布局
  */
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NCard, NSpin, NProgress, NInput, NModal, NSelect, NRadioGroup, NRadio, NButton, useDialog, useMessage } from 'naive-ui'
 import ThemeSwitcher from './ThemeSwitcher.vue'
@@ -396,6 +396,29 @@ const backupList = ref<BackupFileInfo[]>([])
 const selectedBackup = ref<string | null>(null)
 const isLoadingBackups = ref(false)
 const restoreMode = ref<'merge' | 'overwrite'>('merge')
+
+// 移动端弹窗背景滚动锁定
+function lockBodyScroll() {
+  document.body.style.overflow = 'hidden'
+  document.body.style.touchAction = 'none'
+}
+
+function unlockBodyScroll() {
+  document.body.style.overflow = ''
+  document.body.style.touchAction = ''
+}
+
+watch(showBackupModal, (visible) => {
+  if (visible) {
+    lockBodyScroll()
+  } else {
+    unlockBodyScroll()
+  }
+})
+
+onBeforeUnmount(() => {
+  unlockBodyScroll()
+})
 
 const presetOptions = [
   { label: t('settings.jianguoyun'), value: 'jianguoyun' },
@@ -921,6 +944,8 @@ watch(() => currencyStore.isInitialized, (initialized) => {
       :title="t('settings.selectBackup')"
       :style="{ width: compact ? '90vw' : '500px', maxWidth: '90vw' }"
       :mask-closable="!isSyncing"
+      :block-scroll="true"
+      to="body"
     >
       <div class="backup-modal-content">
         <div v-if="isLoadingBackups" class="backup-loading">
