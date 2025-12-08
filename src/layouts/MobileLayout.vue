@@ -1,5 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { ConfigProvider as VanConfigProvider } from 'vant'
+import 'vant/es/config-provider/style'
 import { useAndroidBack, useSafeArea } from '@/hooks'
+import { useThemeStore } from '@/stores/theme.store'
 
 defineOptions({ name: 'MobileLayout' })
 
@@ -8,10 +12,15 @@ useAndroidBack()
 
 // 初始化安全区域（设置 CSS 变量）
 useSafeArea()
+
+// Vant 主题
+const themeStore = useThemeStore()
+const vantTheme = computed(() => themeStore.resolvedMode === 'dark' ? 'dark' : 'light')
 </script>
 
 <template>
-  <div class="mobile-layout">
+  <van-config-provider :theme="vantTheme">
+    <div class="mobile-layout">
     <!-- 顶部安全区域占位 -->
     <div class="safe-area-top" />
     
@@ -27,6 +36,7 @@ useSafeArea()
     <!-- 底部安全区域占位 -->
     <div class="safe-area-bottom" />
   </div>
+  </van-config-provider>
 </template>
 
 <style scoped>

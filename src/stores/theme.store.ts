@@ -275,6 +275,13 @@ export const useThemeStore = defineStore('theme', () => {
     root.setAttribute('data-color-theme', themeName.value)
     root.classList.remove('light', 'dark')
     root.classList.add(actualMode)
+    
+    // Vant 暗色主题支持
+    if (actualMode === 'dark') {
+      root.classList.add('van-theme-dark')
+    } else {
+      root.classList.remove('van-theme-dark')
+    }
   }
 
   /**
