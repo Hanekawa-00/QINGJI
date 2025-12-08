@@ -61,7 +61,7 @@ fn get_migrations() -> Vec<Migration> {
 pub fn run() {
     let migrations = get_migrations();
     
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         // SQLite 数据库插件（带迁移）
         .plugin(
@@ -70,7 +70,6 @@ pub fn run() {
                 .build()
         )
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
@@ -79,7 +78,15 @@ pub fn run() {
         .plugin(tauri_plugin_log::Builder::new().targets([
             Target::new(TargetKind::Stdout),
             Target::new(TargetKind::LogDir { file_name: Some("account-app.log".to_string()) }),
-        ]).build())
+        ]).build());
+    
+    // window-state 仅在桌面端可用
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
+    }
+    
+    builder
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

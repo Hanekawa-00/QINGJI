@@ -17,7 +17,11 @@ export default {
     error: 'Error',
     warning: 'Warning',
     all: 'All',
-    done: 'Done'
+    done: 'Done',
+    refreshed: 'Refreshed',
+    deleted: 'Deleted',
+    saved: 'Saved',
+    updated: 'Updated'
   },
 
   // Navigation
@@ -44,7 +48,9 @@ export default {
     monthlyIncome: 'Monthly Income',
     monthlySpending: 'Monthly Spending',
     monthlyTransactions: 'Monthly Transactions',
-    noTransactions: 'No transactions this month'
+    noTransactions: 'No transactions this month',
+    weeklyActivity: 'Weekly Activity',
+    recentTransactions: 'Recent Transactions'
   },
 
   // Entry
@@ -66,7 +72,12 @@ export default {
     selectIcon: 'Select icon',
     quickTags: 'Quick tags',
     exchangeRate: 'Exchange rate',
-    convertedAmount: 'Converted amount'
+    convertedAmount: 'Converted amount',
+    selectCategory: 'Select Category',
+    notePlaceholder: 'Add note...',
+    deleteConfirm: 'Are you sure you want to delete this record?',
+    selectDate: 'Select Date',
+    editTransaction: 'Edit Transaction'
   },
 
   // Calendar
@@ -75,7 +86,8 @@ export default {
     today: 'Today',
     income: 'Income',
     expense: 'Expense',
-    noTransactions: 'No transactions on this day'
+    noTransactions: 'No transactions on this day',
+    noTransactionsOnDay: 'No transactions on this day'
   },
 
   // Reports
@@ -97,7 +109,18 @@ export default {
     needsAttention: 'Needs attention',
     steadySpending: 'Steady spending',
     incomeLogged: 'Income logged',
-    noIncomeLogged: 'No income logged'
+    noIncomeLogged: 'No income logged',
+    totalExpense: 'Total Expense',
+    totalIncome: 'Total Income',
+    thisWeek: 'This Week',
+    weekly: 'Weekly',
+    byCategory: 'By Category',
+    noData: 'No Data',
+    incomeVsExpense: 'Income vs Expense',
+    avgDaily: 'Avg. Daily',
+    dailyStats: 'Daily Statistics',
+    monthly: 'Monthly',
+    yearly: 'Yearly'
   },
 
   // Settings
@@ -107,10 +130,14 @@ export default {
     
     // Appearance
     appearance: 'Appearance',
+    darkMode: 'Dark Mode',
+    theme: 'Theme',
+    themeMode: 'Mode',
     themeColor: 'Theme Color',
     light: 'Light',
     dark: 'Dark',
     system: 'System',
+    regional: 'Regional',
     
     // Language
     language: 'Language',
@@ -146,8 +173,15 @@ export default {
     
     // Data
     data: 'Data',
+    dataManagement: 'Data Management',
+    version: 'Version',
+    feedback: 'Feedback',
+    clearDataTitle: 'Clear All Data',
+    clearDataMessage: 'This will permanently delete all transactions and categories. Continue?',
     exportData: 'Export Data',
     exportDesc: 'Download your transaction history',
+    exportJSON: 'Export as JSON',
+    exportCSV: 'Export as CSV',
     importData: 'Import Data',
     importDesc: 'Import from JSON or CSV file',
     import: 'Import',
@@ -186,6 +220,9 @@ export default {
     syncActions: 'Sync Actions',
     lastSync: 'Last sync',
     neverSynced: 'Never synced',
+    notConfigured: 'Not configured',
+    configureWebDAV: 'Configure WebDAV',
+    editConfig: 'Edit Configuration',
     upload: 'Upload',
     download: 'Download',
     

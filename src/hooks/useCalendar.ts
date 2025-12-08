@@ -83,10 +83,10 @@ export function useCalendar(options: UseCalendarOptions) {
       const dayTransactions = transactions.value.filter(t => t.date === dateStr)
       const income = dayTransactions
         .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0)
+        .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
       const expense = dayTransactions
         .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0)
+        .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
       
       days.push({
         date: dateStr,

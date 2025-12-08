@@ -8,180 +8,25 @@ import {
   NSpace
 } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
-import { useCurrencyFormat } from '@/hooks'
-import { TransactionList, MonthYearPicker, EditTransactionModal } from '@/components/desktop'
-import type { CalendarDay, MonthCalendar, Transaction } from '@/types'
+import { CalendarGrid } from '@/components/common'
+import { TransactionList, EditTransactionModal } from '@/components/desktop'
+import type { Transaction } from '@/types'
 
-const { t, locale } = useI18n()
+const { t } = useI18n()
 const router = useRouter()
 const userStore = useUserStore()
-const { format: formatCurrency } = useCurrencyFormat()
+
+// 日历组件引用
+const calendarRef = ref<InstanceType<typeof CalendarGrid> | null>(null)
 
 // 编辑弹窗状态
 const showEditModal = ref(false)
 const editingTransaction = ref<Transaction | null>(null)
 
-// 当前选择的年月
-const currentDate = new Date()
-const selectedYear = ref(currentDate.getFullYear())
-const selectedMonth = ref(currentDate.getMonth())
-const selectedDate = ref(currentDate.toISOString().split('T')[0])
-
-// 月份选择器时间戳
-const monthPickerTimestamp = computed({
-  get: () => new Date(selectedYear.value, selectedMonth.value, 1).getTime(),
-  set: (val: number) => {
-    const date = new Date(val)
-    selectedYear.value = date.getFullYear()
-    selectedMonth.value = date.getMonth()
-  }
+// 从日历组件获取选中日期的交易
+const selectedDayTransactions = computed(() => {
+  return calendarRef.value?.selectedDayData?.transactions || []
 })
-
-// 星期标签
-const weekDays = computed(() => [
-  t('chart.sun'), t('chart.mon'), t('chart.tue'), t('chart.wed'), 
-  t('chart.thu'), t('chart.fri'), t('chart.sat')
-])
-
-// 格式化日期显示
-const monthYearDisplay = computed(() => {
-  const date = new Date(selectedYear.value, selectedMonth.value)
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit' })
-})
-
-// 生成日历数据
-const calendarData = computed<MonthCalendar>(() => {
-  const year = selectedYear.value
-  const month = selectedMonth.value
-  
-  // 获取当月第一天和最后一天
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-  
-  // 获取第一天是星期几（0-6）
-  const firstDayOfWeek = firstDay.getDay()
-  
-  // 生成日历数组（6周 * 7天 = 42天）
-  const days: CalendarDay[] = []
-  const today = new Date().toISOString().split('T')[0]
-  
-  // 填充上月的日期
-  const prevMonthLastDay = new Date(year, month, 0).getDate()
-  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-    const day = prevMonthLastDay - i
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    days.push({
-      date: dateStr,
-      day,
-      isCurrentMonth: false,
-      isToday: false,
-      isSelected: false,
-      income: 0,
-      expense: 0,
-      transactions: []
-    })
-  }
-  
-  // 填充当月的日期
-  for (let day = 1; day <= lastDay.getDate(); day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    
-    // 获取该日的交易（使用 convertedAmount 用于统计）
-    const dayTransactions = userStore.transactions.filter(t => t.date === dateStr)
-    const income = dayTransactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
-    const expense = dayTransactions
-      .filter(t => t.type === 'expense')
-      .reduce((sum, t) => sum + (t.convertedAmount ?? t.amount), 0)
-    
-    days.push({
-      date: dateStr,
-      day,
-      isCurrentMonth: true,
-      isToday: dateStr === today,
-      isSelected: dateStr === selectedDate.value,
-      income,
-      expense,
-      transactions: dayTransactions
-    })
-  }
-  
-  // 填充下月的日期
-  const remainingDays = 42 - days.length
-  for (let day = 1; day <= remainingDays; day++) {
-    const dateStr = `${year}-${String(month + 2).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    days.push({
-      date: dateStr,
-      day,
-      isCurrentMonth: false,
-      isToday: false,
-      isSelected: false,
-      income: 0,
-      expense: 0,
-      transactions: []
-    })
-  }
-  
-  // 计算本月统计
-  const currentMonthDays = days.filter(d => d.isCurrentMonth)
-  const totalIncome = currentMonthDays.reduce((sum, d) => sum + d.income, 0)
-  const totalExpense = currentMonthDays.reduce((sum, d) => sum + d.expense, 0)
-  
-  return {
-    year,
-    month,
-    days,
-    totalIncome,
-    totalExpense,
-    balance: totalIncome - totalExpense
-  }
-})
-
-// 选中日期的数据
-const selectedDayData = computed(() => {
-  return calendarData.value.days.find(d => d.date === selectedDate.value)
-})
-
-// 选中日期的显示文本（使用浏览器内置国际化 API）
-const selectedDateDisplay = computed(() => {
-  if (!selectedDayData.value) return ''
-  const date = new Date(selectedDate.value)
-  const dateLocale = locale.value === 'zh-CN' ? 'zh-CN' : 'en-US'
-  return date.toLocaleDateString(dateLocale, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric'
-  })
-})
-
-// 点击日期
-const selectDate = (day: CalendarDay) => {
-  if (day.isCurrentMonth) {
-    selectedDate.value = day.date
-  }
-}
-
-// 上一月
-const goToPreviousMonth = () => {
-  if (selectedMonth.value === 0) {
-    selectedMonth.value = 11
-    selectedYear.value--
-  } else {
-    selectedMonth.value--
-  }
-}
-
-// 下一月
-const goToNextMonth = () => {
-  if (selectedMonth.value === 11) {
-    selectedMonth.value = 0
-    selectedYear.value++
-  } else {
-    selectedMonth.value++
-  }
-}
-
 
 // 导航到新建条目
 const navigateToEntry = () => {
@@ -207,14 +52,11 @@ const handleDelete = async (transaction: Transaction) => {
       <div class="header-left">
         <h1 class="calendar-title">{{ t('calendar.title') }}</h1>
       </div>
-      <n-space align="center">
-<MonthYearPicker v-model:value="monthPickerTimestamp" />
-        <n-button type="primary" circle @click="navigateToEntry">
-          <template #icon>
-            <span class="material-symbols-outlined">add</span>
-          </template>
-        </n-button>
-      </n-space>
+      <n-button type="primary" circle @click="navigateToEntry">
+        <template #icon>
+          <span class="material-symbols-outlined">add</span>
+        </template>
+      </n-button>
     </header>
 
     <!-- Main Content -->
@@ -222,43 +64,9 @@ const handleDelete = async (transaction: Transaction) => {
       <!-- Calendar Grid -->
       <div class="calendar-left">
         <n-card class="calendar-grid-card" :bordered="true">
-          <!-- Month Navigation -->
-          <div class="month-navigation">
-            <n-button text @click="goToPreviousMonth">
-              <span class="material-symbols-outlined">chevron_left</span>
-            </n-button>
-            <h2 class="current-month">{{ monthYearDisplay }}</h2>
-            <n-button text @click="goToNextMonth">
-              <span class="material-symbols-outlined">chevron_right</span>
-            </n-button>
-          </div>
-
-          <!-- Week Days Header -->
-          <div class="week-days">
-            <span v-for="day in weekDays" :key="day" class="week-day">{{ day }}</span>
-          </div>
-
-          <!-- Calendar Days -->
-          <div class="calendar-days">
-            <div
-              v-for="day in calendarData.days"
-              :key="day.date"
-              :class="[
-                'calendar-day',
-                {
-                  'not-current-month': !day.isCurrentMonth,
-                  'today': day.isToday,
-                  'selected': day.isSelected,
-                  'has-transactions': day.transactions.length > 0
-                }
-              ]"
-              @click="selectDate(day)"
-            >
-              <span class="day-number">{{ day.day }}</span>
-              <span v-if="day.income > 0" class="day-income">+{{ day.income.toFixed(0) }}</span>
-              <span v-if="day.expense > 0" class="day-expense">-{{ day.expense.toFixed(0) }}</span>
-            </div>
-          </div>
+          <CalendarGrid ref="calendarRef">
+            <!-- 月度统计通过插槽显示在右侧面板 -->
+          </CalendarGrid>
         </n-card>
       </div>
 
@@ -270,15 +78,15 @@ const handleDelete = async (transaction: Transaction) => {
             <div class="stats-row">
               <div class="stat-item">
                 <p class="stat-label">{{ t('calendar.income') }}</p>
-                <p class="stat-value income">{{ formatCurrency(calendarData.totalIncome) }}</p>
+                <p class="stat-value income">{{ calendarRef?.formatCurrency(calendarRef?.monthStats?.income || 0) }}</p>
               </div>
               <div class="stat-item">
                 <p class="stat-label">{{ t('calendar.expense') }}</p>
-                <p class="stat-value expense">{{ formatCurrency(calendarData.totalExpense) }}</p>
+                <p class="stat-value expense">{{ calendarRef?.formatCurrency(calendarRef?.monthStats?.expense || 0) }}</p>
               </div>
               <div class="stat-item">
                 <p class="stat-label">{{ t('reports.balance') }}</p>
-                <p class="stat-value">{{ formatCurrency(calendarData.balance) }}</p>
+                <p class="stat-value">{{ calendarRef?.formatCurrency(calendarRef?.monthStats?.balance || 0) }}</p>
               </div>
             </div>
           </n-card>
@@ -287,16 +95,16 @@ const handleDelete = async (transaction: Transaction) => {
           <n-card class="day-transactions-card" :bordered="true">
             <template #header>
               <div class="card-header">
-                <h2 class="day-title">{{ selectedDateDisplay }}</h2>
+                <h2 class="day-title">{{ calendarRef?.selectedDateDisplay || '' }}</h2>
                 <div class="day-summary">
-                  <span>{{ t('calendar.income') }}: {{ formatCurrency(selectedDayData?.income || 0) }}</span>
-                  <span>{{ t('calendar.expense') }}: {{ formatCurrency(selectedDayData?.expense || 0) }}</span>
+                  <span>{{ t('calendar.income') }}: {{ calendarRef?.formatCurrency(calendarRef?.selectedDayData?.income || 0) }}</span>
+                  <span>{{ t('calendar.expense') }}: {{ calendarRef?.formatCurrency(calendarRef?.selectedDayData?.expense || 0) }}</span>
                 </div>
               </div>
             </template>
 
             <TransactionList 
-              :transactions="selectedDayData?.transactions || []"
+              :transactions="selectedDayTransactions"
               hoverable
               :empty-text="t('calendar.noTransactions')"
               empty-icon="event_busy"

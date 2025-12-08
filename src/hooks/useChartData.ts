@@ -77,10 +77,12 @@ export function useChartData(options: UseChartDataOptions = {}) {
       // 格式化标签
       let label: string
       if (chartPeriod.value === 'week') {
+        // 本周：显示星期几
         const weekDays = [t('chart.sun'), t('chart.mon'), t('chart.tue'), t('chart.wed'), t('chart.thu'), t('chart.fri'), t('chart.sat')]
         label = weekDays[date.getDay()]
       } else {
-        label = `${date.getMonth() + 1}/${date.getDate()}`
+        // 近7天/近15天：只显示日期数字
+        label = `${date.getDate()}`
       }
       
       data.push({

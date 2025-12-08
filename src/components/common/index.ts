@@ -17,3 +17,6 @@ export { default as Calculator } from './Calculator.vue'
 
 // 窗口控制栏组件
 export { default as ActionBar } from './ActionBar.vue'
+
+// 日历网格组件
+export { default as CalendarGrid } from './CalendarGrid.vue'

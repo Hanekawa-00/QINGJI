@@ -49,7 +49,11 @@
   
   /* 收入和支出 */
   --color-income: #16b396;
+  --color-income-alpha-40: rgba(22, 179, 150, 0.4);
+  --color-income-alpha-10: rgba(22, 179, 150, 0.1);
   --color-expense: #f472b6;
+  --color-expense-alpha-40: rgba(244, 114, 182, 0.4);
+  --color-expense-alpha-10: rgba(244, 114, 182, 0.1);
   
   /* ===== 字体系统 ===== */
   --font-family-base: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

@@ -175,8 +175,8 @@ const option = computed(() => {
       axisLabel: {
         color: mutedColor,
         fontSize: 11,
-        interval: props.data.length > 15 ? 'auto' : 0,
-        rotate: props.data.length > 20 ? 45 : 0
+        interval: 0, // 显示所有标签
+        rotate: 0    // 不旋转
       }
     },
     yAxis: {

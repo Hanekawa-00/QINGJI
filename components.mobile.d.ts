@@ -16,15 +16,11 @@ declare module 'vue' {
     BarLineChart: typeof import('./src/components/common/charts/BarLineChart.vue')['default']
     Calculator: typeof import('./src/components/common/Calculator.vue')['default']
     CalendarGrid: typeof import('./src/components/common/CalendarGrid.vue')['default']
-    DesktopSidebar: typeof import('./src/components/desktop/DesktopSidebar.vue')['default']
-    EditTransactionModal: typeof import('./src/components/desktop/EditTransactionModal.vue')['default']
-    GroupedTransactionList: typeof import('./src/components/desktop/GroupedTransactionList.vue')['default']
-    MonthYearPicker: typeof import('./src/components/desktop/MonthYearPicker.vue')['default']
     PieChart: typeof import('./src/components/common/charts/PieChart.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     ThemeSwitcher: typeof import('./src/components/common/ThemeSwitcher.vue')['default']
-    TransactionItem: typeof import('./src/components/desktop/TransactionItem.vue')['default']
-    TransactionList: typeof import('./src/components/desktop/TransactionList.vue')['default']
+    TransactionItem: typeof import('./src/components/mobile/TransactionItem.vue')['default']
+    VanActionSheet: typeof import('vant/es')['ActionSheet']
   }
 }

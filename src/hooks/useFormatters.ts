@@ -122,6 +122,7 @@ export function formatDateISO(date: Date | string | number): string {
 /**
  * 格式化交易金额（带正负号）
  * 支持传入交易对象或单独的金额和类型
+ * 使用 Unicode 减号 (−) U+2212 以获得更好的视觉效果
  */
 export function formatTransactionAmount(
   amountOrTransaction: number | { amount: number; type: 'income' | 'expense' },
@@ -129,10 +130,10 @@ export function formatTransactionAmount(
 ): string {
   if (typeof amountOrTransaction === 'object') {
     const formatted = formatCurrency(amountOrTransaction.amount)
-    return amountOrTransaction.type === 'income' ? `+${formatted}` : `-${formatted}`
+    return amountOrTransaction.type === 'income' ? `+${formatted}` : `−${formatted}`
   }
   const formatted = formatCurrency(amountOrTransaction)
-  return type === 'income' ? `+${formatted}` : `-${formatted}`
+  return type === 'income' ? `+${formatted}` : `−${formatted}`
 }
 
 /**

@@ -17,7 +17,11 @@ export default {
     error: '错误',
     warning: '警告',
     all: '全部',
-    done: '完成'
+    done: '完成',
+    refreshed: '已刷新',
+    deleted: '已删除',
+    saved: '已保存',
+    updated: '已更新'
   },
 
   // 导航
@@ -44,7 +48,9 @@ export default {
     monthlyIncome: '本月收入',
     monthlySpending: '本月支出',
     monthlyTransactions: '本月交易',
-    noTransactions: '本月暂无交易记录'
+    noTransactions: '本月暂无交易记录',
+    weeklyActivity: '本周活动',
+    recentTransactions: '最近交易'
   },
 
   // 记账
@@ -66,7 +72,12 @@ export default {
     selectIcon: '选择图标',
     quickTags: '快捷标签',
     exchangeRate: '汇率',
-    convertedAmount: '换算金额'
+    convertedAmount: '换算金额',
+    selectCategory: '选择分类',
+    notePlaceholder: '添加备注...',
+    deleteConfirm: '确定删除这条记录吗？',
+    selectDate: '选择日期',
+    editTransaction: '编辑记录'
   },
 
   // 日历
@@ -75,7 +86,8 @@ export default {
     today: '今天',
     income: '收入',
     expense: '支出',
-    noTransactions: '当日无交易记录'
+    noTransactions: '当日无交易记录',
+    noTransactionsOnDay: '当天无交易记录'
   },
 
   // 报表
@@ -97,7 +109,18 @@ export default {
     needsAttention: '需关注',
     steadySpending: '消费稳定',
     incomeLogged: '已记录收入',
-    noIncomeLogged: '未记录收入'
+    noIncomeLogged: '未记录收入',
+    totalExpense: '总支出',
+    totalIncome: '总收入',
+    thisWeek: '本周',
+    weekly: '周',
+    byCategory: '按分类',
+    noData: '暂无数据',
+    incomeVsExpense: '收支对比',
+    avgDaily: '日均支出',
+    dailyStats: '每日统计',
+    monthly: '月',
+    yearly: '年'
   },
 
   // 设置
@@ -107,10 +130,14 @@ export default {
     
     // 外观
     appearance: '外观',
+    darkMode: '深色模式',
+    theme: '主题',
+    themeMode: '模式',
     themeColor: '主题色',
     light: '浅色',
     dark: '深色',
     system: '跟随系统',
+    regional: '区域设置',
     
     // 语言
     language: '语言',
@@ -146,8 +173,15 @@ export default {
     
     // 数据
     data: '数据',
+    dataManagement: '数据管理',
+    version: '版本',
+    feedback: '反馈建议',
+    clearDataTitle: '清空所有数据',
+    clearDataMessage: '这将永久删除所有交易和分类，是否继续？',
     exportData: '导出数据',
     exportDesc: '下载您的交易记录',
+    exportJSON: '导出为 JSON',
+    exportCSV: '导出为 CSV',
     importData: '导入数据',
     importDesc: '从 JSON 或 CSV 文件导入',
     import: '导入',
@@ -186,6 +220,9 @@ export default {
     syncActions: '同步操作',
     lastSync: '上次同步',
     neverSynced: '从未同步',
+    notConfigured: '未配置',
+    configureWebDAV: '配置 WebDAV',
+    editConfig: '编辑配置',
     upload: '上传',
     download: '下载',
     

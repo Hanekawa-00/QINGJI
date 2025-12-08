@@ -35,7 +35,7 @@ const message = useMessage()
 const formattedAmount = computed(() => {
   const currency = props.transaction.currency || 'USD'
   const formatted = formatWithCurrency(props.transaction.amount, currency)
-  return props.transaction.type === 'income' ? `+${formatted}` : `-${formatted}`
+  return props.transaction.type === 'income' ? `+${formatted}` : `−${formatted}` // Unicode 减号 U+2212
 })
 
 // 下拉菜单选项

@@ -44,7 +44,7 @@ const desktopRoutes = [
   }
 ]
 
-// 移动端路由（待实现）
+// 移动端路由
 const mobileRoutes = [
   {
     path: '/mobile',
@@ -53,7 +53,32 @@ const mobileRoutes = [
       {
         path: '',
         name: 'MobileDashboard',
-        component: () => import('@/views/mobile/Dashboard.vue')
+        component: () => import('@/views/mobile/Dashboard.vue'),
+        meta: { keepAlive: true }
+      },
+      {
+        path: 'calendar',
+        name: 'MobileCalendar',
+        component: () => import('@/views/mobile/Calendar.vue'),
+        meta: { keepAlive: true }
+      },
+      {
+        path: 'entry',
+        name: 'MobileEntry',
+        component: () => import('@/views/mobile/Entry.vue'),
+        meta: { keepAlive: false }
+      },
+      {
+        path: 'reports',
+        name: 'MobileReports',
+        component: () => import('@/views/mobile/Reports.vue'),
+        meta: { keepAlive: true }
+      },
+      {
+        path: 'settings',
+        name: 'MobileSettings',
+        component: () => import('@/views/mobile/Settings.vue'),
+        meta: { keepAlive: false }
       }
     ]
   }

@@ -8,7 +8,9 @@ import type { Transaction, Category, CurrencyCode } from '@/types'
 // 延迟导入 Tauri APIs（避免在非 Tauri 环境报错）
 let tauriSave: typeof import('@tauri-apps/plugin-dialog').save | null = null
 let tauriWriteTextFile: typeof import('@tauri-apps/plugin-fs').writeTextFile | null = null
+let tauriPlatform: typeof import('@tauri-apps/plugin-os').platform | null = null
 let tauriInitialized = false
+let currentPlatform: string | null = null
 
 // 初始化 Tauri APIs
 async function initTauriApis(): Promise<boolean> {
@@ -27,15 +29,53 @@ async function initTauriApis(): Promise<boolean> {
     
     const dialogModule = await import('@tauri-apps/plugin-dialog')
     const fsModule = await import('@tauri-apps/plugin-fs')
+    const osModule = await import('@tauri-apps/plugin-os')
     
     tauriSave = dialogModule.save
     tauriWriteTextFile = fsModule.writeTextFile
+    tauriPlatform = osModule.platform
     
-    console.log('Tauri APIs initialized successfully')
+    // 获取当前平台
+    currentPlatform = await tauriPlatform()
+    
+    console.log('Tauri APIs initialized, platform:', currentPlatform)
     return true
   } catch (error) {
     console.warn('Failed to initialize Tauri APIs:', error)
     return false
+  }
+}
+
+// 检查是否为移动端
+function isMobilePlatform(): boolean {
+  return currentPlatform === 'android' || currentPlatform === 'ios'
+}
+
+// 移动端导出：保存到应用目录并提示用户
+async function exportForMobile(
+  content: string, 
+  fileName: string
+): Promise<{ success: boolean; path?: string; error?: string }> {
+  try {
+    if (!tauriWriteTextFile) {
+      throw new Error('writeTextFile not available')
+    }
+    
+    // 在移动端，我们使用 BaseDirectory.Document 保存文件
+    const fsModule = await import('@tauri-apps/plugin-fs')
+    const { BaseDirectory } = fsModule
+    
+    // 直接保存到 Documents 目录
+    await tauriWriteTextFile(fileName, content, { 
+      baseDir: BaseDirectory.Document 
+    })
+    
+    return { success: true, path: `Documents/${fileName}` }
+  } catch (error) {
+    console.error('Mobile export failed:', error)
+    // 回退到浏览器方式
+    downloadFileBrowser(content, fileName)
+    return { success: true, error: 'Saved via browser download' }
   }
 }
 
@@ -155,8 +195,20 @@ async function saveFileWithDialog(
   // 初始化并检查 Tauri 环境
   const hasTauri = await initTauriApis()
   
-  if (!hasTauri || !tauriSave || !tauriWriteTextFile) {
+  if (!hasTauri || !tauriWriteTextFile) {
     console.log('Using browser download')
+    downloadFileBrowser(content, defaultFileName)
+    return { success: true }
+  }
+  
+  // 移动端使用直接保存
+  if (isMobilePlatform()) {
+    console.log('Using mobile export')
+    return exportForMobile(content, defaultFileName)
+  }
+
+  // 桌面端使用对话框
+  if (!tauriSave) {
     downloadFileBrowser(content, defaultFileName)
     return { success: true }
   }

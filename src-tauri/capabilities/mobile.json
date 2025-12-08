@@ -6,6 +6,7 @@
   "permissions": [
     "core:default",
     "core:window:default",
+    "core:event:default",
     "opener:default",
     "sql:allow-load",
     "sql:allow-execute",
@@ -20,6 +21,12 @@
     "store:allow-load",
     "store:allow-delete",
     "log:allow-log",
+    "fs:allow-write-text-file",
+    "fs:allow-read-text-file",
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [{ "path": "$DOCUMENT/**" }]
+    },
     {
       "identifier": "http:default",
       "allow": [
