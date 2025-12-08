@@ -175,8 +175,15 @@ const option = computed(() => {
       axisLabel: {
         color: mutedColor,
         fontSize: 11,
-        interval: 0, // 显示所有标签
-        rotate: 0    // 不旋转
+        rotate: 0,
+        // 整月数据时只显示月初、月中、月底
+        interval: (index: number) => {
+          const total = labels.length
+          if (total <= 12) return true // 年度数据全部显示
+          // 月度数据：显示第1天、中间天、最后一天
+          const mid = Math.floor(total / 2)
+          return index === 0 || index === mid || index === total - 1
+        }
       }
     },
     yAxis: {
