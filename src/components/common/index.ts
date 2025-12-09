@@ -23,3 +23,6 @@ export { default as CalendarGrid } from './CalendarGrid.vue'
 
 // 设置面板组件
 export { default as SettingsPanel } from './SettingsPanel.vue'
+
+// 年月选择器组件
+export { default as YearMonthPicker } from './YearMonthPicker.vue'

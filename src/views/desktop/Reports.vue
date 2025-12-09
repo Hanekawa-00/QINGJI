@@ -11,13 +11,13 @@ import {
   NDataTable,
   NRadioGroup,
   NRadioButton,
-  NProgress,
-  NSelect
+  NProgress
 } from 'naive-ui'
 import type { DataTableColumns } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyFormat } from '@/hooks'
-import { MonthYearPicker, BarLineChart, PieChart } from '@/components/desktop'
+import { BarLineChart, PieChart } from '@/components/desktop'
+import { YearMonthPicker } from '@/components/common'
 import type { ReportPeriod } from '@/types'
 
 const { t } = useI18n()
@@ -32,23 +32,28 @@ const currentDate = new Date()
 const selectedYear = ref(currentDate.getFullYear())
 const selectedMonth = ref(currentDate.getMonth())
 
-// 期间选择器时间戳
-const periodPickerTimestamp = computed({
-  get: () => new Date(selectedYear.value, selectedMonth.value, 1).getTime(),
-  set: (val: number) => {
-    const date = new Date(val)
-    selectedYear.value = date.getFullYear()
-    selectedMonth.value = date.getMonth()
-  }
-})
+// 年月选择器状态
+const showYearMonthPicker = ref(false)
+const showYearPicker = ref(false)
 
-// 年份选择器选项
-const yearOptions = computed(() => {
-  const current = new Date().getFullYear()
-  return Array.from({ length: 7 }, (_, i) => ({
-    label: String(current - 5 + i),
-    value: current - 5 + i
-  }))
+// 年月选择确认
+const onYearMonthConfirm = (year: number, month: number) => {
+  selectedYear.value = year
+  selectedMonth.value = month - 1  // 内部使用 0-11
+}
+
+// 年份选择确认
+const onYearConfirm = (year: number) => {
+  selectedYear.value = year
+}
+
+// 显示文本
+const periodDisplayText = computed(() => {
+  const date = new Date(selectedYear.value, selectedMonth.value)
+  if (selectedPeriod.value === 'month') {
+    return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })
+  }
+  return `${selectedYear.value}年`
 })
 
 // 获取当前期间的统计数据
@@ -195,19 +200,13 @@ const reportData = computed(() => {
           <n-button text @click="goToPrevious">
             <span class="material-symbols-outlined">chevron_left</span>
           </n-button>
-          <!-- 月度：使用 MonthYearPicker -->
-          <MonthYearPicker 
-            v-if="selectedPeriod === 'month'"
-            v-model:value="periodPickerTimestamp" 
-          />
-          <!-- 年度：使用年份下拉框 -->
-          <n-select
-            v-else
-            v-model:value="selectedYear"
-            :options="yearOptions"
-            size="small"
-            :style="{ width: '90px' }"
-          />
+          <button 
+            class="period-display" 
+            @click="selectedPeriod === 'month' ? showYearMonthPicker = true : showYearPicker = true"
+          >
+            <span>{{ periodDisplayText }}</span>
+            <span class="material-symbols-outlined">keyboard_arrow_down</span>
+          </button>
           <n-button text @click="goToNext">
             <span class="material-symbols-outlined">chevron_right</span>
           </n-button>
@@ -220,6 +219,22 @@ const reportData = computed(() => {
         </n-radio-group>
       </n-space>
     </header>
+
+    <!-- 年月选择器弹窗 -->
+    <YearMonthPicker
+      v-model:show="showYearMonthPicker"
+      :year="selectedYear"
+      :month="selectedMonth + 1"
+      @confirm="onYearMonthConfirm"
+    />
+
+    <!-- 年份选择器弹窗 -->
+    <YearMonthPicker
+      v-model:show="showYearPicker"
+      :year="selectedYear"
+      mode="year"
+      @confirm="onYearConfirm"
+    />
 
     <!-- 统计卡片 -->
     <n-grid cols="1 s:2 l:4" :x-gap="24" :y-gap="16" responsive="screen" class="stats-grid">

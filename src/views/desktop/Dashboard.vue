@@ -19,7 +19,8 @@ import {
   useChartData,
   useTransactions
 } from '@/hooks'
-import { GroupedTransactionList, MonthYearPicker, BarLineChart, EditTransactionModal } from '@/components/desktop'
+import { GroupedTransactionList, BarLineChart, EditTransactionModal } from '@/components/desktop'
+import { YearMonthPicker } from '@/components/common'
 import type { Transaction } from '@/types'
 
 const { t } = useI18n()
@@ -32,7 +33,26 @@ const showEditModal = ref(false)
 const editingTransaction = ref<Transaction | null>(null)
 
 // 月份选择器
-const selectedMonthTimestamp = ref<number>(Date.now())
+const selectedYear = ref(new Date().getFullYear())
+const selectedMonth = ref(new Date().getMonth() + 1)
+const showYearMonthPicker = ref(false)
+
+// 计算选中月份的时间戳
+const selectedMonthTimestamp = computed(() => 
+  new Date(selectedYear.value, selectedMonth.value - 1, 1).getTime()
+)
+
+// 年月选择确认
+const onYearMonthConfirm = (year: number, month: number) => {
+  selectedYear.value = year
+  selectedMonth.value = month
+}
+
+// 月份显示文本
+const monthDisplayText = computed(() => {
+  const date = new Date(selectedYear.value, selectedMonth.value - 1)
+  return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long' })
+})
 
 // 使用复用的交易数据 Hook（包含月度统计）
 const { groupedTransactions, monthlyStats } = useTransactions(selectedMonthTimestamp)
@@ -100,8 +120,11 @@ const handleDelete = async (transaction: Transaction) => {
       <div class="header-left">
         <h1 class="dashboard-title">{{ t('dashboard.title') }}</h1>
       </div>
-      <n-space align="center">
-<MonthYearPicker v-model:value="selectedMonthTimestamp" />
+      <n-space align="center" :size="12">
+        <button class="period-display" @click="showYearMonthPicker = true">
+          <span>{{ monthDisplayText }}</span>
+          <span class="material-symbols-outlined">keyboard_arrow_down</span>
+        </button>
         <n-button type="primary" circle @click="navigateToEntry">
           <template #icon>
             <span class="material-symbols-outlined">add</span>
@@ -109,6 +132,14 @@ const handleDelete = async (transaction: Transaction) => {
         </n-button>
       </n-space>
     </header>
+
+    <!-- 年月选择器弹窗 -->
+    <YearMonthPicker
+      v-model:show="showYearMonthPicker"
+      :year="selectedYear"
+      :month="selectedMonth"
+      @confirm="onYearMonthConfirm"
+    />
 
     <!-- 统计卡片 -->
     <n-grid cols="1 s:2 m:3" :x-gap="24" :y-gap="16" responsive="screen" class="stats-grid">

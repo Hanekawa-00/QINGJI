@@ -4,10 +4,11 @@
  * 跨平台复用（桌面端/移动端）
  * 内置 useCalendar hook
  */
-import { computed, toRef } from 'vue'
+import { ref, computed, toRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useUserStore } from '@/stores/user.store'
 import { useCalendar, useCurrencyFormat } from '@/hooks'
+import YearMonthPicker from './YearMonthPicker.vue'
 import type { CalendarDay } from '@/types'
 
 interface Props {
@@ -119,6 +120,13 @@ const setYearMonth = (year: number, month: number) => {
   emit('month-change', selectedYear.value, selectedMonth.value)
 }
 
+// 年月选择器
+const showYearMonthPicker = ref(false)
+
+const onYearMonthConfirm = (year: number, month: number) => {
+  setYearMonth(year, month - 1)  // YearMonthPicker 使用 1-12，内部使用 0-11
+}
+
 // 暴露给父组件的数据和方法
 defineExpose({
   selectedYear,
@@ -145,7 +153,7 @@ defineExpose({
       <button class="nav-btn" @click="goToPreviousMonth">
         <span class="material-symbols-outlined">chevron_left</span>
       </button>
-      <button class="month-title" @click="emit('month-click')">
+      <button class="month-title" @click="showYearMonthPicker = true">
           <span>{{ monthDisplay }}</span>
           <span class="material-symbols-outlined arrow-icon">keyboard_arrow_down</span>
         </button>
@@ -153,6 +161,14 @@ defineExpose({
         <span class="material-symbols-outlined">chevron_right</span>
       </button>
     </div>
+
+    <!-- 年月选择器弹窗 -->
+    <YearMonthPicker
+      v-model:show="showYearMonthPicker"
+      :year="selectedYear"
+      :month="selectedMonth + 1"
+      @confirm="onYearMonthConfirm"
+    />
 
     <!-- 星期标题 -->
     <div class="week-header">
