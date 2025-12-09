@@ -17,7 +17,6 @@ declare module 'vue' {
     Calculator: typeof import('./src/components/common/Calculator.vue')['default']
     CalendarGrid: typeof import('./src/components/common/CalendarGrid.vue')['default']
     PieChart: typeof import('./src/components/common/charts/PieChart.vue')['default']
-    ReportsPanel: typeof import('./src/components/common/ReportsPanel.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SettingsPanel: typeof import('./src/components/common/SettingsPanel.vue')['default']

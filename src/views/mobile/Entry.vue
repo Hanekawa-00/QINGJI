@@ -19,6 +19,7 @@ import 'vant/es/toast/style'
 
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyStore } from '@/stores/currency.store'
+import { Calculator } from '@/components/common'
 import { ALL_CATEGORY_ICONS } from '@/config/icons'
 import type { TransactionType, Category, CurrencyCode } from '@/types'
 
@@ -38,7 +39,6 @@ const isEditMode = computed(() => !!editingId.value)
 
 // 表单数据
 const transactionType = ref<TransactionType>('expense')
-const displayValue = ref('0')
 const selectedCategory = ref<Category | null>(null)
 const description = ref('')
 const selectedDate = ref(new Date())
@@ -57,15 +57,10 @@ const newCategoryName = ref('')
 const newCategoryIcon = ref('category')
 const showIconPicker = ref(false)
 
-// 计算器状态
-const operator = ref<'+' | '-' | null>(null)
-const firstOperand = ref<number | null>(null)
-const justCalculated = ref(false)
+// 计算器金额
+const calculatorAmount = ref(0)
 
 // ==================== 计算属性 ====================
-
-// 当前数值
-const currentAmount = computed(() => parseFloat(displayValue.value) || 0)
 
 // 分类列表
 const categories = computed(() => 
@@ -100,10 +95,16 @@ const isNonPrimaryCurrency = computed(() =>
   selectedCurrency.value !== currencyStore.primaryCurrency
 )
 
+// 当前币种符号
+const currencySymbol = computed(() => {
+  const info = currencyStore.getCurrencyInfo(selectedCurrency.value)
+  return info?.symbol || '¥'
+})
+
 // 转换后金额
 const convertedAmount = computed(() => {
-  if (!currentAmount.value || !isNonPrimaryCurrency.value) return 0
-  return currentAmount.value * exchangeRate.value
+  if (!calculatorAmount.value || !isNonPrimaryCurrency.value) return 0
+  return calculatorAmount.value * exchangeRate.value
 })
 
 // 格式化日期显示
@@ -115,13 +116,21 @@ const displayDate = computed(() => {
   })
 })
 
-// 计算表达式显示
-const expressionDisplay = computed(() => {
-  if (operator.value && firstOperand.value !== null) {
-    return `${firstOperand.value} ${operator.value}`
-  }
-  return ''
+// 日期选择器绑定值（Vant DatePicker 需要字符串数组）
+const datePickerValue = computed(() => {
+  const d = selectedDate.value
+  return [
+    String(d.getFullYear()),
+    String(d.getMonth() + 1).padStart(2, '0'),
+    String(d.getDate()).padStart(2, '0')
+  ]
 })
+
+// 计算器引用
+const calculatorRef = ref<InstanceType<typeof Calculator> | null>(null)
+
+// 计算表达式显示
+const expressionDisplay = computed(() => calculatorRef.value?.expression || '')
 
 // ==================== 初始化 ====================
 
@@ -136,7 +145,7 @@ onMounted(() => {
     if (transaction) {
       editingId.value = id
       transactionType.value = transaction.type
-      displayValue.value = String(transaction.amount)
+      calculatorAmount.value = transaction.amount
       description.value = transaction.description || ''
       selectedDate.value = new Date(transaction.date)
       selectedCurrency.value = transaction.currency as CurrencyCode
@@ -172,68 +181,6 @@ watch(selectedCurrency, async (newCurrency) => {
 watch(transactionType, () => {
   selectedCategory.value = null
 })
-
-// ==================== 计算器逻辑 ====================
-
-function calculate(a: number, op: string, b: number): number {
-  switch (op) {
-    case '+': return a + b
-    case '-': return Math.max(0, a - b)
-    default: return b
-  }
-}
-
-function onKeyInput(key: string) {
-  if (key === '.' && displayValue.value.includes('.')) return
-  if (displayValue.value.includes('.') && displayValue.value.split('.')[1]?.length >= 2) return
-  
-  if (justCalculated.value && /[0-9]/.test(key)) {
-    displayValue.value = key
-    justCalculated.value = false
-  } else if (displayValue.value === '0' && key !== '.') {
-    displayValue.value = key
-  } else {
-    displayValue.value += key
-  }
-}
-
-function onKeyDelete() {
-  if (displayValue.value.length > 1) {
-    displayValue.value = displayValue.value.slice(0, -1)
-  } else {
-    displayValue.value = '0'
-  }
-  justCalculated.value = false
-}
-
-function onKeyClear() {
-  displayValue.value = '0'
-  firstOperand.value = null
-  operator.value = null
-  justCalculated.value = false
-}
-
-function onKeyOperator(op: '+' | '-') {
-  if (firstOperand.value !== null && operator.value) {
-    const result = calculate(firstOperand.value, operator.value, currentAmount.value)
-    displayValue.value = result.toString()
-    firstOperand.value = result
-  } else {
-    firstOperand.value = currentAmount.value
-  }
-  operator.value = op
-  justCalculated.value = true
-}
-
-function onKeyEquals() {
-  if (firstOperand.value !== null && operator.value) {
-    const result = calculate(firstOperand.value, operator.value, currentAmount.value)
-    displayValue.value = result.toString()
-    firstOperand.value = null
-    operator.value = null
-    justCalculated.value = true
-  }
-}
 
 // ==================== 事件处理 ====================
 
@@ -290,14 +237,8 @@ const handleDeleteCategory = async (categoryId: string) => {
   }
 }
 
-// 提交
-const handleSubmit = async () => {
-  // 先完成计算
-  if (firstOperand.value !== null && operator.value) {
-    onKeyEquals()
-  }
-  
-  const amount = parseFloat(displayValue.value)
+// 提交（由 Calculator @save 事件触发）
+const handleSubmit = async (amount: number) => {
   if (!amount || amount <= 0) {
     showToast(t('entry.amountRequired'))
     return
@@ -363,9 +304,9 @@ const handleSubmit = async () => {
     <div class="m-amount-area">
       <div v-if="expressionDisplay" class="m-expression">{{ expressionDisplay }}</div>
       <div class="m-amount-row">
-        <span class="m-amount-value">{{ displayValue }}</span>
+        <span class="m-amount-value">{{ calculatorRef?.formattedDisplay || `${currencySymbol}0` }}</span>
       </div>
-      <div v-if="isNonPrimaryCurrency && currentAmount" class="m-convert-hint">
+      <div v-if="isNonPrimaryCurrency && calculatorAmount" class="m-convert-hint">
         ≈ {{ currencyStore.formatAmount(convertedAmount) }}
       </div>
     </div>
@@ -408,33 +349,16 @@ const handleSubmit = async () => {
         </button>
       </div>
 
-      <!-- 键盘 -->
-      <div class="m-keypad-grid">
-        <button class="m-key" @click="onKeyInput('1')">1</button>
-        <button class="m-key" @click="onKeyInput('2')">2</button>
-        <button class="m-key" @click="onKeyInput('3')">3</button>
-        <button class="m-key m-key-op" @click="onKeyDelete">
-          <span class="material-symbols-outlined">backspace</span>
-        </button>
-        <button class="m-key" @click="onKeyInput('4')">4</button>
-        <button class="m-key" @click="onKeyInput('5')">5</button>
-        <button class="m-key" @click="onKeyInput('6')">6</button>
-        <button class="m-key m-key-op" @click="onKeyOperator('+')">+</button>
-        <button class="m-key" @click="onKeyInput('7')">7</button>
-        <button class="m-key" @click="onKeyInput('8')">8</button>
-        <button class="m-key" @click="onKeyInput('9')">9</button>
-        <button class="m-key m-key-op" @click="onKeyOperator('-')">−</button>
-        <button class="m-key" @click="onKeyInput('.')">.</button>
-        <button class="m-key" @click="onKeyInput('0')">0</button>
-        <button class="m-key m-key-clear" @click="onKeyClear">C</button>
-        <button 
-          class="m-key m-key-save" 
-          :disabled="!currentAmount || !selectedCategory"
-          @click="handleSubmit"
-        >
-          <span class="material-symbols-outlined">check</span>
-        </button>
-      </div>
+      <!-- 计算器键盘 -->
+      <Calculator
+        ref="calculatorRef"
+        v-model="calculatorAmount"
+        :currency-symbol="currencySymbol"
+        :save-disabled="!calculatorAmount || !selectedCategory"
+        :show-display="false"
+        compact
+        @save="handleSubmit"
+      />
     </div>
 
     <!-- 分类管理弹窗 -->
@@ -510,9 +434,10 @@ const handleSubmit = async () => {
     <!-- 日期选择器 -->
     <van-popup v-model:show="showDatePicker" position="bottom" round lock-scroll>
       <van-date-picker 
+        v-model="datePickerValue"
         :title="t('entry.selectDate')"
-        :min-date="new Date(2020, 0, 1)"
-        :max-date="new Date()"
+        :min-date="new Date(1970, 0, 1)"
+        :max-date="new Date(new Date().getFullYear() + 5, 11, 31)"
         @confirm="onDateConfirm"
         @cancel="showDatePicker = false"
       />
@@ -773,59 +698,6 @@ const handleSubmit = async () => {
 
 .m-date-btn .material-symbols-outlined {
   font-size: 16px;
-}
-
-/* 键盘 */
-.m-keypad-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
-}
-
-.m-key {
-  height: 44px;
-  border-radius: 10px;
-  background: var(--color-background);
-  border: none;
-  color: var(--color-text-strong);
-  font-size: 18px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.1s;
-}
-
-.m-key:active {
-  background: var(--color-surface-hover);
-}
-
-.m-key-op {
-  color: var(--color-primary);
-  font-size: 20px;
-}
-
-.m-key-op .material-symbols-outlined {
-  font-size: 18px;
-}
-
-.m-key-clear {
-  color: var(--color-expense);
-  font-weight: 600;
-}
-
-.m-key-save {
-  background: var(--color-primary);
-  color: white;
-}
-
-.m-key-save:disabled {
-  opacity: 0.4;
-}
-
-.m-key-save .material-symbols-outlined {
-  font-size: 22px;
 }
 
 /* 分类管理弹窗 */

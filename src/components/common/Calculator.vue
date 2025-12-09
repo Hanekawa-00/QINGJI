@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
- * 可复用计算器组件
- * 支持基本四则运算
+ * 统一计算器组件
+ * 支持桌面端和移动端，四则运算
  */
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 
@@ -10,13 +10,19 @@ interface Props {
   currencySymbol?: string
   showSaveButton?: boolean
   saveButtonText?: string
+  saveDisabled?: boolean
+  compact?: boolean // 紧凑模式（移动端）
+  showDisplay?: boolean // 是否显示顶部显示区
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: 0,
   currencySymbol: '¥',
   showSaveButton: true,
-  saveButtonText: 'Save'
+  saveButtonText: 'Save',
+  saveDisabled: false,
+  compact: false,
+  showDisplay: true
 })
 
 const emit = defineEmits<{
@@ -36,7 +42,7 @@ const justCalculated = ref(false)
 // 当前数值
 const currentValue = computed(() => parseFloat(display.value) || 0)
 
-// 格式化显示
+// 格式化显示（带货币符号）
 const formattedDisplay = computed(() => {
   const value = parseFloat(display.value) || 0
   return `${props.currencySymbol}${value.toLocaleString(undefined, {
@@ -65,28 +71,6 @@ watch(currentValue, (val) => {
   emit('update:modelValue', val)
 })
 
-// 键盘按键定义
-const keys = [
-  { label: 'C', type: 'clear', value: 'C' },
-  { label: '÷', type: 'operator', value: '÷' },
-  { label: '×', type: 'operator', value: '×' },
-  { label: 'backspace', type: 'backspace', value: 'backspace', icon: true },
-  { label: '7', type: 'number', value: '7' },
-  { label: '8', type: 'number', value: '8' },
-  { label: '9', type: 'number', value: '9' },
-  { label: '-', type: 'operator', value: '-' },
-  { label: '4', type: 'number', value: '4' },
-  { label: '5', type: 'number', value: '5' },
-  { label: '6', type: 'number', value: '6' },
-  { label: '+', type: 'operator', value: '+' },
-  { label: '1', type: 'number', value: '1' },
-  { label: '2', type: 'number', value: '2' },
-  { label: '3', type: 'number', value: '3' },
-  { label: '=', type: 'equals', value: '=' },
-  { label: '0', type: 'number', value: '0', span: 2 },
-  { label: '.', type: 'decimal', value: '.' }
-]
-
 // 执行计算
 function calculate(a: number, op: string, b: number): number {
   switch (op) {
@@ -98,72 +82,77 @@ function calculate(a: number, op: string, b: number): number {
   }
 }
 
-// 处理按键
-function handleKey(key: typeof keys[0]) {
-  switch (key.type) {
-    case 'number':
-      if (justCalculated.value) {
-        display.value = key.value
-        justCalculated.value = false
-      } else if (display.value === '0') {
-        display.value = key.value
-      } else {
-        display.value += key.value
-      }
-      break
-
-    case 'decimal':
-      if (justCalculated.value) {
-        display.value = '0.'
-        justCalculated.value = false
-      } else if (!display.value.includes('.')) {
-        display.value += '.'
-      }
-      break
-
-    case 'operator':
-      if (firstOperand.value !== null && operator.value) {
-        // 链式运算
-        const result = calculate(firstOperand.value, operator.value, currentValue.value)
-        display.value = result.toString()
-        firstOperand.value = result
-      } else {
-        firstOperand.value = currentValue.value
-      }
-      operator.value = key.value as '+' | '-' | '×' | '÷'
-      justCalculated.value = true
-      break
-
-    case 'equals':
-      if (firstOperand.value !== null && operator.value) {
-        const result = calculate(firstOperand.value, operator.value, currentValue.value)
-        display.value = result.toString()
-        firstOperand.value = null
-        operator.value = null
-        justCalculated.value = true
-      }
-      break
-
-    case 'backspace':
-      if (display.value.length > 1) {
-        display.value = display.value.slice(0, -1)
-      } else {
-        display.value = '0'
-      }
-      justCalculated.value = false
-      break
-
-    case 'clear':
-      display.value = '0'
-      firstOperand.value = null
-      operator.value = null
-      justCalculated.value = false
-      break
+// 输入数字
+function inputNumber(num: string) {
+  // 限制小数位数
+  if (display.value.includes('.') && display.value.split('.')[1]?.length >= 2) return
+  
+  if (justCalculated.value) {
+    display.value = num
+    justCalculated.value = false
+  } else if (display.value === '0') {
+    display.value = num
+  } else {
+    display.value += num
   }
+}
+
+// 输入小数点
+function inputDecimal() {
+  if (display.value.includes('.')) return
+  if (justCalculated.value) {
+    display.value = '0.'
+    justCalculated.value = false
+  } else {
+    display.value += '.'
+  }
+}
+
+// 输入运算符
+function inputOperator(op: '+' | '-' | '×' | '÷') {
+  if (firstOperand.value !== null && operator.value) {
+    const result = calculate(firstOperand.value, operator.value, currentValue.value)
+    display.value = result.toString()
+    firstOperand.value = result
+  } else {
+    firstOperand.value = currentValue.value
+  }
+  operator.value = op
+  justCalculated.value = true
+}
+
+// 计算等于
+function inputEquals() {
+  if (firstOperand.value !== null && operator.value) {
+    const result = calculate(firstOperand.value, operator.value, currentValue.value)
+    display.value = result.toString()
+    firstOperand.value = null
+    operator.value = null
+    justCalculated.value = true
+  }
+}
+
+// 退格
+function inputBackspace() {
+  if (display.value.length > 1) {
+    display.value = display.value.slice(0, -1)
+  } else {
+    display.value = '0'
+  }
+  justCalculated.value = false
+}
+
+// 清除
+function inputClear() {
+  display.value = '0'
+  firstOperand.value = null
+  operator.value = null
+  justCalculated.value = false
 }
 
 // 保存
 function handleSave() {
+  if (props.saveDisabled) return
   // 先完成未完成的计算
   if (firstOperand.value !== null && operator.value) {
     const result = calculate(firstOperand.value, operator.value, currentValue.value)
@@ -176,69 +165,53 @@ function handleSave() {
 
 // 键盘事件处理
 function handleKeyDown(e: KeyboardEvent) {
-  // 如果焦点在输入框中，不处理
   const target = e.target as HTMLElement
-  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-    return
-  }
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return
 
-  // 数字键 0-9
   if (/^[0-9]$/.test(e.key)) {
     e.preventDefault()
-    handleKey({ label: e.key, type: 'number', value: e.key })
+    inputNumber(e.key)
     return
   }
 
-  // 小数点
   if (e.key === '.' || e.key === ',') {
     e.preventDefault()
-    handleKey({ label: '.', type: 'decimal', value: '.' })
+    inputDecimal()
     return
   }
 
-  // 运算符
-  const operatorMap: Record<string, string> = {
-    '+': '+',
-    '-': '-',
-    '*': '×',
-    '/': '÷',
-    'x': '×',
-    'X': '×'
+  const opMap: Record<string, '+' | '-' | '×' | '÷'> = {
+    '+': '+', '-': '-', '*': '×', '/': '÷', 'x': '×', 'X': '×'
   }
-  if (operatorMap[e.key]) {
+  if (opMap[e.key]) {
     e.preventDefault()
-    handleKey({ label: operatorMap[e.key], type: 'operator', value: operatorMap[e.key] })
+    inputOperator(opMap[e.key])
     return
   }
 
-  // 等号/回车 - 保存
   if (e.key === 'Enter' || e.key === '=') {
     e.preventDefault()
-    // 如果有未完成的计算先完成，否则直接保存
     if (firstOperand.value !== null && operator.value) {
-      handleKey({ label: '=', type: 'equals', value: '=' })
+      inputEquals()
     } else {
       handleSave()
     }
     return
   }
 
-  // 退格键
   if (e.key === 'Backspace') {
     e.preventDefault()
-    handleKey({ label: 'backspace', type: 'backspace', value: 'backspace', icon: true })
+    inputBackspace()
     return
   }
 
-  // 清除键
   if (e.key === 'Escape' || e.key.toLowerCase() === 'c') {
     e.preventDefault()
-    handleKey({ label: 'C', type: 'clear', value: 'C' })
+    inputClear()
     return
   }
 }
 
-// 挂载/卸载时添加/移除键盘监听
 onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
 })
@@ -246,40 +219,68 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown)
 })
+
+// 暴露方法供外部调用
+defineExpose({
+  display,
+  expression,
+  formattedDisplay,
+  currentValue,
+  inputClear
+})
 </script>
 
 <template>
-  <div class="calculator">
-    <!-- 显示区域 -->
-    <div class="calculator-display">
-      <div v-if="expression" class="expression">{{ expression }}</div>
-      <div class="value">{{ formattedDisplay }}</div>
+  <div class="calculator" :class="{ compact }">
+    <!-- 显示区域（可选） -->
+    <div v-if="showDisplay" class="calc-display">
+      <div v-if="expression" class="calc-expression">{{ expression }}</div>
+      <div class="calc-value">{{ formattedDisplay }}</div>
     </div>
 
     <!-- 键盘区域 -->
-    <div class="calculator-keypad">
-      <button
-        v-for="key in keys"
-        :key="key.value"
-        class="calc-key"
-        :class="[
-          key.type,
-          { 'span-2': key.span === 2 }
-        ]"
-        @click="handleKey(key)"
-      >
-        <span v-if="key.icon" class="material-symbols-outlined">{{ key.label }}</span>
-        <span v-else>{{ key.label }}</span>
+    <div class="calc-keypad">
+      <!-- 第一行：C ÷ × ⌫ -->
+      <button class="calc-key clear" @click="inputClear">C</button>
+      <button class="calc-key operator" @click="inputOperator('÷')">÷</button>
+      <button class="calc-key operator" @click="inputOperator('×')">×</button>
+      <button class="calc-key backspace" @click="inputBackspace">
+        <span class="material-symbols-outlined">backspace</span>
       </button>
       
-      <!-- 保存按钮 -->
+      <!-- 第二行：7 8 9 - -->
+      <button class="calc-key number" @click="inputNumber('7')">7</button>
+      <button class="calc-key number" @click="inputNumber('8')">8</button>
+      <button class="calc-key number" @click="inputNumber('9')">9</button>
+      <button class="calc-key operator" @click="inputOperator('-')">−</button>
+      
+      <!-- 第三行：4 5 6 + -->
+      <button class="calc-key number" @click="inputNumber('4')">4</button>
+      <button class="calc-key number" @click="inputNumber('5')">5</button>
+      <button class="calc-key number" @click="inputNumber('6')">6</button>
+      <button class="calc-key operator" @click="inputOperator('+')">+</button>
+      
+      <!-- 第四行：1 2 3 = -->
+      <button class="calc-key number" @click="inputNumber('1')">1</button>
+      <button class="calc-key number" @click="inputNumber('2')">2</button>
+      <button class="calc-key number" @click="inputNumber('3')">3</button>
+      <button class="calc-key equals" @click="inputEquals">=</button>
+      
+      <!-- 第五行：. 0 保存 -->
+      <button class="calc-key decimal" @click="inputDecimal">.</button>
+      <button class="calc-key number" @click="inputNumber('0')">0</button>
       <button 
         v-if="showSaveButton"
         class="calc-key save"
+        :disabled="saveDisabled"
         @click="handleSave"
       >
-        {{ saveButtonText }}
+        <span v-if="compact" class="material-symbols-outlined">check</span>
+        <span v-else>{{ saveButtonText }}</span>
       </button>
+      <!-- 如果不显示保存按钮，补充空位 -->
+      <div v-else class="calc-key-placeholder" />
+      <div v-if="!showSaveButton" class="calc-key-placeholder" />
     </div>
   </div>
 </template>
@@ -295,8 +296,17 @@ onUnmounted(() => {
   border: 1px solid var(--color-border);
 }
 
-/* 显示区域 */
-.calculator-display {
+/* 紧凑模式 */
+.calculator.compact {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  gap: 0;
+}
+
+/* ===== 显示区域 ===== */
+.calc-display {
   text-align: right;
   padding: 16px;
   background: color-mix(in srgb, var(--color-background) 60%, transparent);
@@ -307,26 +317,42 @@ onUnmounted(() => {
   justify-content: center;
 }
 
-.expression {
+.compact .calc-display {
+  padding: 12px;
+  min-height: 60px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.calc-expression {
   font-size: 0.875rem;
   color: var(--color-text-muted);
   margin-bottom: 4px;
 }
 
-.value {
+.calc-value {
   font-size: 2rem;
   font-weight: 700;
   color: var(--color-text-strong);
   font-variant-numeric: tabular-nums;
 }
 
-/* 键盘区域 */
-.calculator-keypad {
+.compact .calc-value {
+  font-size: 1.5rem;
+}
+
+/* ===== 键盘区域 ===== */
+.calc-keypad {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
 }
 
+.compact .calc-keypad {
+  gap: 6px;
+}
+
+/* ===== 按键基础样式 ===== */
 .calc-key {
   aspect-ratio: 1;
   border: none;
@@ -343,26 +369,52 @@ onUnmounted(() => {
   border: 1px solid var(--color-border);
 }
 
+.compact .calc-key {
+  aspect-ratio: unset;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 500;
+  border: none;
+}
+
 .calc-key:hover {
   transform: scale(1.05);
   border-color: var(--color-primary);
+}
+
+.compact .calc-key:hover {
+  transform: none;
 }
 
 .calc-key:active {
   transform: scale(0.95);
 }
 
-/* 数字键 */
-.calc-key.number {
+.compact .calc-key:active {
+  transform: none;
+  background: var(--color-surface-hover);
+}
+
+/* ===== 数字键 ===== */
+.calc-key.number,
+.calc-key.decimal {
   background: var(--color-background);
 }
 
-/* 运算符键 */
+/* ===== 运算符键 ===== */
 .calc-key.operator,
 .calc-key.equals {
   background: color-mix(in srgb, var(--color-primary) 15%, transparent);
   color: var(--color-primary);
   border-color: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  font-size: 1.5rem;
+}
+
+.compact .calc-key.operator,
+.compact .calc-key.equals {
+  background: var(--color-background);
+  font-size: 20px;
 }
 
 .calc-key.operator:hover,
@@ -370,18 +422,23 @@ onUnmounted(() => {
   background: color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
-/* 清除键 */
+/* ===== 清除键 ===== */
 .calc-key.clear {
   background: color-mix(in srgb, var(--color-expense) 15%, transparent);
   color: var(--color-expense);
   border-color: color-mix(in srgb, var(--color-expense) 30%, transparent);
 }
 
+.compact .calc-key.clear {
+  background: var(--color-background);
+  font-weight: 600;
+}
+
 .calc-key.clear:hover {
   background: color-mix(in srgb, var(--color-expense) 25%, transparent);
 }
 
-/* 退格键 */
+/* ===== 退格键 ===== */
 .calc-key.backspace {
   background: var(--color-background);
 }
@@ -390,19 +447,14 @@ onUnmounted(() => {
   font-size: 1.25rem;
 }
 
-/* 跨列 */
-.calc-key.span-2 {
-  grid-column: span 2;
-  border-radius: 9999px;
-  aspect-ratio: unset;
-  height: 100%;
+.compact .calc-key.backspace .material-symbols-outlined {
+  font-size: 18px;
 }
 
-/* 保存按钮 */
+/* ===== 保存按钮 ===== */
 .calc-key.save {
-  grid-column: span 4;
+  grid-column: span 2;
   aspect-ratio: unset;
-  height: 56px;
   border-radius: 9999px;
   background: var(--color-primary);
   color: white;
@@ -411,31 +463,38 @@ onUnmounted(() => {
   box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
+.compact .calc-key.save {
+  height: 44px;
+  border-radius: 10px;
+  box-shadow: none;
+  font-size: 22px;
+}
+
 .calc-key.save:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 32px color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.compact .calc-key.save:hover {
+  transform: none;
 }
 
 .calc-key.save:active {
   transform: translateY(0);
 }
 
-/* 小屏适配 */
-@media (max-width: 400px) {
-  .calculator {
-    padding: 12px;
-  }
-  
-  .calculator-keypad {
-    gap: 8px;
-  }
-  
-  .calc-key {
-    font-size: 1rem;
-  }
-  
-  .value {
-    font-size: 1.5rem;
-  }
+.calc-key.save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.calc-key.save:disabled:hover {
+  transform: none;
+}
+
+/* 占位符 */
+.calc-key-placeholder {
+  visibility: hidden;
 }
 </style>
