@@ -7,6 +7,21 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+# 开发环境配置
+[profile.dev]
+opt-level = 0       # 无优化，加快编译
+debug = true        # 开启调试信息
+overflow-checks = true
+
+# 发布环境优化配置 - 关键！
+[profile.release]
+panic = "abort"     # 崩溃时直接终止，减小体积
+codegen-units = 1   # 单线程编译，更好的优化
+lto = true          # 链接时优化 (Link-Time Optimization)
+opt-level = "s"     # 优化体积 (可选 "z" 更激进, "3" 优化性能)
+strip = true        # 移除调试符号
+debug = false       # 关闭调试信息
+
 [lib]
 # The `_lib` suffix may seem redundant but it is necessary
 # to make the lib name unique and wouldn't conflict with the bin name.

@@ -1,4 +1,4 @@
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig, loadEnv, Plugin } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "node:path";
 import Components from "unplugin-vue-components/vite";
@@ -27,27 +27,83 @@ function getComponentsDirs(isDesktop: boolean): string[] {
 
 /**
  * 获取组件解析器（根据平台）
+ * 注意：common 组件中也使用了 NaiveUI，所以两端都需要 NaiveUI 解析器
  */
 function getResolvers(isDesktop: boolean) {
   if (isDesktop) {
+    // 桌面端：只用 NaiveUI
     return [NaiveUiResolver()]
   }
-  return [VantResolver()]
+  // 移动端：Vant + NaiveUI（common 组件如 SettingsPanel 使用了 NaiveUI）
+  return [VantResolver(), NaiveUiResolver()]
+}
+
+/**
+ * 平台代码排除插件
+ * 在构建时排除另一个平台的视图、布局和路由文件
+ */
+function platformExcludePlugin(isDesktop: boolean): Plugin {
+  // 需要排除的路径模式
+  const excludePatterns = isDesktop
+    ? [
+        /[\\/]views[\\/]mobile[\\/]/,
+        /[\\/]layouts[\\/]MobileLayout\.vue/,
+        /[\\/]components[\\/]mobile[\\/]/,
+        /[\\/]router[\\/]mobile\.routes/
+      ]
+    : [
+        /[\\/]views[\\/]desktop[\\/]/,
+        /[\\/]layouts[\\/]DesktopLayout\.vue/,
+        /[\\/]components[\\/]desktop[\\/]/,
+        /[\\/]router[\\/]desktop\.routes/
+      ]
+
+  return {
+    name: 'platform-exclude',
+    enforce: 'pre',
+    resolveId(source, importer, options) {
+      // 将源路径标准化
+      const normalizedSource = source.replace(/\\/g, '/')
+      
+      // 检查是否匹配排除模式
+      if (excludePatterns.some(pattern => pattern.test(normalizedSource))) {
+        console.log(`[platform-exclude] Excluding: ${source}`)
+        return '\0platform-empty:' + source
+      }
+      return null
+    },
+    load(id) {
+      if (id.startsWith('\0platform-empty:')) {
+        const originalPath = id.replace('\0platform-empty:', '')
+        // 根据文件类型返回不同的空模块
+        if (originalPath.includes('.routes')) {
+          // 路由文件：返回空数组
+          return `export const desktopRoutes = []; export const mobileRoutes = [];`
+        }
+        // Vue 组件：返回空组件
+        return `export default { render: () => null }`
+      }
+      return null
+    }
+  }
 }
 
 // https://vite.dev/config/
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(async ({ mode, command }) => {
   // 加载环境变量
   const env = loadEnv(mode, process.cwd())
   
   // 检测 Tauri 平台（由 Tauri CLI 设置）
   const tauriPlatform = process.env.TAURI_ENV_PLATFORM
   const isDesktop = isDesktopPlatform(tauriPlatform)
+  const isBuild = command === 'build'
   
-  console.log(`[Vite] Platform: ${tauriPlatform || 'web'}, isDesktop: ${isDesktop}, TAURI_DEV_HOST: ${host || 'not set'}`)
+  console.log(`[Vite] Platform: ${tauriPlatform || 'web'}, isDesktop: ${isDesktop}, mode: ${mode}, command: ${command}`)
   
   return {
     plugins: [
+      // 构建时启用平台代码排除
+      isBuild && platformExcludePlugin(isDesktop),
       vue(),
       Components({
         // 根据平台动态配置组件目录
@@ -57,7 +113,14 @@ export default defineConfig(async ({ mode }) => {
         // 生成对应平台的类型声明
         dts: isDesktop ? 'components.d.ts' : 'components.mobile.d.ts',
       }),
-    ],
+    ].filter(Boolean),
+    
+    // 定义平台常量，用于条件编译
+    define: {
+      __PLATFORM__: JSON.stringify(isDesktop ? 'desktop' : 'mobile'),
+      __IS_DESKTOP__: isDesktop,
+      __IS_MOBILE__: !isDesktop,
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
@@ -70,6 +133,32 @@ export default defineConfig(async ({ mode }) => {
         "@layouts": path.resolve(__dirname, "./src/layouts"),
         "@hooks": path.resolve(__dirname, "./src/hooks"),
       },
+    },
+
+    // 构建优化
+    build: {
+      // 生产环境移除 console 和 debugger
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true,
+          drop_debugger: true,
+        },
+      },
+      // 分包策略
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vue-vendor': ['vue', 'vue-router', 'pinia'],
+            'ui-vendor': ['naive-ui', 'vant'],
+            'chart-vendor': ['echarts', 'vue-echarts'],
+          },
+        },
+      },
+      // 压缩大小报告
+      reportCompressedSize: false,
+      // chunk 大小警告阈值
+      chunkSizeWarningLimit: 1000,
     },
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

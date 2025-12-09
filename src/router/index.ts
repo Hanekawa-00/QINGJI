@@ -1,96 +1,27 @@
 /**
  * 路由配置
  * 支持桌面端和移动端平台感知路由
+ * 构建时通过 Vite 插件排除另一端的代码
  */
 
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import { detectPlatform } from '@/utils/platform'
+
+// 导入平台路由（构建时会被 Vite 插件处理，排除另一端）
+import { desktopRoutes } from './desktop.routes'
+import { mobileRoutes } from './mobile.routes'
 
 // 检测平台
 const platform = detectPlatform()
-
-// 桌面端路由
-const desktopRoutes = [
-  {
-    path: '/desktop',
-    component: () => import('@/layouts/DesktopLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'DesktopDashboard',
-        component: () => import('@/views/desktop/Dashboard.vue')
-      },
-      {
-        path: 'calendar',
-        name: 'DesktopCalendar',
-        component: () => import('@/views/desktop/Calendar.vue')
-      },
-      {
-        path: 'reports',
-        name: 'DesktopReports',
-        component: () => import('@/views/desktop/Reports.vue')
-      },
-      {
-        path: 'entry',
-        name: 'DesktopEntry',
-        component: () => import('@/views/desktop/Entry.vue')
-      },
-      {
-        path: 'settings',
-        name: 'DesktopSettings',
-        component: () => import('@/views/desktop/Settings.vue')
-      }
-    ]
-  }
-]
-
-// 移动端路由
-const mobileRoutes = [
-  {
-    path: '/mobile',
-    component: () => import('@/layouts/MobileLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'MobileDashboard',
-        component: () => import('@/views/mobile/Dashboard.vue'),
-        meta: { keepAlive: true }
-      },
-      {
-        path: 'calendar',
-        name: 'MobileCalendar',
-        component: () => import('@/views/mobile/Calendar.vue'),
-        meta: { keepAlive: true }
-      },
-      {
-        path: 'entry',
-        name: 'MobileEntry',
-        component: () => import('@/views/mobile/Entry.vue'),
-        meta: { keepAlive: false }
-      },
-      {
-        path: 'reports',
-        name: 'MobileReports',
-        component: () => import('@/views/mobile/Reports.vue'),
-        meta: { keepAlive: true }
-      },
-      {
-        path: 'settings',
-        name: 'MobileSettings',
-        component: () => import('@/views/mobile/Settings.vue'),
-        meta: { keepAlive: false }
-      }
-    ]
-  }
-]
+const isDesktop = platform === 'desktop'
 
 // 根据平台选择路由
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    redirect: platform === 'desktop' ? '/desktop' : '/mobile'
+    redirect: isDesktop ? '/desktop' : '/mobile'
   },
-  ...(platform === 'desktop' ? desktopRoutes : mobileRoutes)
+  ...(isDesktop ? desktopRoutes : mobileRoutes)
 ]
 
 const router = createRouter({
