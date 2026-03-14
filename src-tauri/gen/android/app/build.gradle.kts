@@ -24,6 +24,10 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+        ndk {
+            // 仅打包 arm64-v8a（覆盖所有现代 Android 设备）
+            abiFilters += listOf("arm64-v8a")
+        }
     }
     buildTypes {
         getByName("debug") {
@@ -44,6 +48,16 @@ android {
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
+            // 仅保留 arm64-v8a，排除其他 ABI 的预构建 .so
+            packaging {
+                jniLibs {
+                    excludes += setOf(
+                        "**/armeabi-v7a/**",
+                        "**/x86/**",
+                        "**/x86_64/**"
+                    )
+                }
+            }
         }
     }
     kotlinOptions {

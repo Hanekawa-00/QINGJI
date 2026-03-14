@@ -13,15 +13,15 @@ import "@/styles/components/index.css";
 import "@/styles/views/index.css";
 import "@/styles/mobile.css";
 
-// 导入 Material Symbols 图标字体（本地）
-import "material-symbols";
+// 导入 Material Symbols Outlined 图标字体（本地）
+import "material-symbols/outlined.css";
 
-// 导入 Manrope 字体（本地）
-import "@fontsource/manrope/300.css";
-import "@fontsource/manrope/400.css";
-import "@fontsource/manrope/500.css";
-import "@fontsource/manrope/600.css";
-import "@fontsource/manrope/700.css";
+// 导入 Manrope 字体（仅 Latin 子集 + woff2，适配移动端）
+import "@fontsource/manrope/latin-300.css";
+import "@fontsource/manrope/latin-400.css";
+import "@fontsource/manrope/latin-500.css";
+import "@fontsource/manrope/latin-600.css";
+import "@fontsource/manrope/latin-700.css";
 
 const app = createApp(App);
 const pinia = createPinia();
