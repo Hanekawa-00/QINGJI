@@ -13,6 +13,15 @@ val tauriProperties = Properties().apply {
     }
 }
 
+// 读取 TAURI_ANDROID_ARCHS 环境变量（与 HuLa 相同的做法）
+// 示例：TAURI_ANDROID_ARCHS=arm64-v8a          → 只打包 arm64
+//        TAURI_ANDROID_ARCHS=arm64-v8a,armeabi-v7a → 打包 arm64 + armv7
+//        未设置                                    → 打包全部 ABI（universal）
+val tauriAndroidArchs = System.getenv("TAURI_ANDROID_ARCHS")
+val targetAbis: List<String>? = tauriAndroidArchs
+    ?.split("[\\s,]+".toRegex())
+    ?.filter { it.isNotEmpty() }
+
 android {
     compileSdk = 36
     buildToolsVersion = "35.0.1"
@@ -24,9 +33,10 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
-        ndk {
-            // 仅打包 arm64-v8a（覆盖所有现代 Android 设备）
-            abiFilters += listOf("arm64-v8a")
+        if (targetAbis != null) {
+            ndk {
+                abiFilters += targetAbis
+            }
         }
     }
     buildTypes {
@@ -48,14 +58,15 @@ android {
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
-            // 仅保留 arm64-v8a，排除其他 ABI 的预构建 .so
-            packaging {
-                jniLibs {
-                    excludes += setOf(
-                        "**/armeabi-v7a/**",
-                        "**/x86/**",
-                        "**/x86_64/**"
-                    )
+            if (targetAbis != null) {
+                val allAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+                val excludeAbis = allAbis.filter { it !in targetAbis }
+                if (excludeAbis.isNotEmpty()) {
+                    packaging {
+                        jniLibs {
+                            excludes += excludeAbis.map { "**/$it/**" }.toSet()
+                        }
+                    }
                 }
             }
         }

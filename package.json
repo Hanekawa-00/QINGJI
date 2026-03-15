@@ -11,9 +11,13 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "android:dev": "tauri android dev --host 127.0.0.1",
-    "android:build": "tauri android build",
+    "android:build": "cross-env TAURI_ANDROID_ARCHS=arm64-v8a tauri android build",
     "android:build:arm64": "cross-env TAURI_ANDROID_ARCHS=arm64-v8a tauri android build",
-    "android:build:aab": "tauri android build --aab"
+    "android:build:armv7": "cross-env TAURI_ANDROID_ARCHS=armeabi-v7a tauri android build",
+    "android:build:arm-dual": "cross-env TAURI_ANDROID_ARCHS=arm64-v8a,armeabi-v7a tauri android build",
+    "android:build:x86_64": "cross-env TAURI_ANDROID_ARCHS=x86_64 tauri android build",
+    "android:build:universal": "tauri android build",
+    "android:build:aab": "cross-env TAURI_ANDROID_ARCHS=arm64-v8a tauri android build --aab"
   },
   "dependencies": {
     "@fontsource/manrope": "^5.2.8",
