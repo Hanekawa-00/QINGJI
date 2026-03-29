@@ -41,7 +41,8 @@ const vantTheme = computed(() => themeStore.resolvedMode === 'dark' ? 'dark' : '
 
 <style scoped>
 .mobile-layout {
-  height: 100%;
+  height: 100dvh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--color-background);
@@ -58,6 +59,7 @@ const vantTheme = computed(() => themeStore.resolvedMode === 'dark' ? 'dark' : '
 /* 主内容区 */
 .mobile-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   /* 左右安全区域内边距 */
