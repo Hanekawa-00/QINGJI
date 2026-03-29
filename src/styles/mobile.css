@@ -73,3 +73,23 @@
   flex: 1;
   overflow-y: auto;
 }
+
+/* ===== 通知组件安全区域修复 ===== */
+/* Vant 顶部 Toast：避开状态栏/刘海区 */
+.van-toast--top {
+  top: calc(var(--safe-area-inset-top, 0px) + 12px) !important;
+}
+
+/* Vant 顶部 Notify：从安全区下方开始 */
+.van-notify--top {
+  top: var(--safe-area-inset-top, 0px) !important;
+}
+
+/* NaiveUI Message：顶部容器下移到安全区外 */
+.n-message-container {
+  padding-top: var(--safe-area-inset-top, 0px);
+}
+
+.n-message-container.n-message-container--top {
+  top: 0 !important;
+}

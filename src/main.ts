@@ -4,6 +4,7 @@ import router from "./router";
 import i18n from "./locales";
 import App from "./App.vue";
 import { setupSafeArea } from "@/hooks";
+import { setToastDefaultOptions } from "vant";
 
 // 导入全局样式
 import "@/styles/tokens.css";
@@ -32,5 +33,8 @@ app.use(i18n);
 
 // 初始化安全区域（移动端）
 setupSafeArea().then(() => {
+  // 官方支持通过全局配置设置 Toast 位置，统一用顶部并配合 safe-area 偏移。
+  setToastDefaultOptions({ position: "top" });
+
   app.mount("#app");
 });
