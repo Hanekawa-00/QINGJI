@@ -1,6 +1,6 @@
-# Qingzhang (青账) Project Guidelines
+# QINGJI Project Guidelines
 
-This file is the single source of truth for AI agents interacting with the Qingzhang repository. It is a dual-platform (Desktop + Mobile) personal finance application built with Vue 3, TypeScript, Tauri 2, and Rust.
+This file is the single source of truth for AI agents interacting with the QINGJI repository. It is a dual-platform (Desktop + Mobile) personal finance application built with Vue 3, TypeScript, Tauri 2, and Rust.
 
 ## 1. Architecture & Platform Separation
 

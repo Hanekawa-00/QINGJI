@@ -36,7 +36,7 @@ export default {
 
   // App info
   app: {
-    name: 'Qingzhang',
+    name: 'QINGJI',
     subtitle: 'Finance Tracker',
     description: 'A cross-platform personal finance management app built with Vue 3 + Tauri.',
     version: 'Version'

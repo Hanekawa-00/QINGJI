@@ -41,7 +41,8 @@ export interface BackupFileInfo {
 
 // ==================== 常量 ====================
 
-const BACKUP_PREFIX = 'qingzhang-backup-'
+const BACKUP_PREFIX = 'qingji-backup-'
+const LEGACY_BACKUP_PREFIX = 'qingzhang-backup-'
 const BACKUP_EXT = '.json'
 const CONFIG_KEY = 'webdav_config'
 const SYNC_STATUS_KEY = 'webdav_sync_status'
@@ -189,7 +190,7 @@ function generateBackupFilename(): string {
  * 从文件名解析时间戳
  */
 function parseBackupFilename(filename: string): { timestamp: string; displayName: string } | null {
-  const match = filename.match(/qingzhang-backup-(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.json/)
+  const match = filename.match(/(?:qingji|qingzhang)-backup-(\d{4}-\d{2}-\d{2})_(\d{2}-\d{2}-\d{2})\.json/)
   if (match) {
     const dateStr = match[1]
     const timeStr = match[2].replace(/-/g, ':')
@@ -367,7 +368,8 @@ export async function listBackupFiles(config: WebDAVConfig): Promise<BackupFileI
       const href = decodeURIComponent(match[1])
       const filename = href.split('/').filter(Boolean).pop() || ''
       
-      if (filename.startsWith(BACKUP_PREFIX) && filename.endsWith(BACKUP_EXT)) {
+      const hasSupportedPrefix = filename.startsWith(BACKUP_PREFIX) || filename.startsWith(LEGACY_BACKUP_PREFIX)
+      if (hasSupportedPrefix && filename.endsWith(BACKUP_EXT)) {
         const parsed = parseBackupFilename(filename)
         if (parsed) {
           backups.push({
@@ -461,21 +463,21 @@ export const WEBDAV_PRESETS = {
   jianguoyun: {
     name: '坚果云',
     serverUrl: 'https://dav.jianguoyun.com/dav',
-    defaultPath: '/Qingzhang'
+    defaultPath: '/QINGJI'
   },
   nextcloud: {
     name: 'Nextcloud',
     serverUrl: '', // 需要用户填写
-    defaultPath: '/Qingzhang'
+    defaultPath: '/QINGJI'
   },
   owncloud: {
     name: 'ownCloud',
     serverUrl: '', // 需要用户填写
-    defaultPath: '/Qingzhang'
+    defaultPath: '/QINGJI'
   },
   custom: {
     name: '自定义',
     serverUrl: '',
-    defaultPath: '/Qingzhang'
+    defaultPath: '/QINGJI'
   }
 }

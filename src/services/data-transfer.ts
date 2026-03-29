@@ -128,7 +128,7 @@ export interface ImportOptions {
 // ==================== 常量 ====================
 
 const CURRENT_VERSION = '1.0.0'
-const APP_NAME = 'Qingzhang'
+const APP_NAME = 'QINGJI'
 
 // ==================== 导出功能 ====================
 
@@ -164,7 +164,7 @@ export function exportToJSON(data: ExportData): string {
  */
 export function generateExportFileName(format: 'json' | 'csv' = 'json'): string {
   const date = new Date().toISOString().split('T')[0]
-  return `qingzhang-backup-${date}.${format}`
+  return `qingji-backup-${date}.${format}`
 }
 
 /**

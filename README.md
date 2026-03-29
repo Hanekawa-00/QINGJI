@@ -1,9 +1,235 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Hanekawa-00/QINGJI)
 
-# Tauri + Vue + TypeScript
+# QINGJI
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+QINGJI 是一个跨平台个人记账应用，基于 Tauri 2 + Vue 3 + TypeScript 构建。
 
-## Recommended IDE Setup
+- 桌面端: Windows / macOS / Linux
+- 移动端: Android
+- 开发模式支持 Web 预览（使用内存 Mock 数据）
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## 目录
+
+- [项目亮点](#项目亮点)
+- [技术栈](#技术栈)
+- [架构设计](#架构设计)
+- [快速开始](#快速开始)
+- [常用命令](#常用命令)
+- [Android 构建与 ABI 说明](#android-构建与-abi-说明)
+- [项目结构](#项目结构)
+- [开发约定](#开发约定)
+- [文档索引](#文档索引)
+
+## 项目亮点
+
+- 双端共享核心业务逻辑: 通过统一 Store 和类型定义，保证桌面端与移动端行为一致。
+- 严格平台隔离: 构建阶段排除非目标平台代码，减小包体并降低运行时分支复杂度。
+- 数据优先本地化: SQLite 本地存储，离线可用。
+- 多币种支持: 主币种 + 汇率转换 + 历史换算。
+- 主题系统: 多主题色与明暗模式切换。
+- 国际化: 中文 / English 双语。
+
+## 技术栈
+
+前端:
+
+- Vue 3 (`<script setup lang="ts">`)
+- TypeScript
+- Vite
+- Pinia
+- Vue Router
+- Vue I18n
+- Naive UI（桌面）
+- Vant（移动）
+- ECharts
+
+宿主与后端:
+
+- Tauri 2
+- Rust
+- SQLite（`tauri-plugin-sql`）
+
+## 架构设计
+
+### 1) 双平台分层
+
+项目通过构建时插件实现平台代码隔离：
+
+- 桌面页面/组件放在 `src/views/desktop`、`src/components/desktop`
+- 移动页面/组件放在 `src/views/mobile`、`src/components/mobile`
+- 共享组件放在 `src/components/common`
+
+路由在运行时按平台切换：
+
+- 桌面路由: `src/router/desktop.routes.ts`
+- 移动路由: `src/router/mobile.routes.ts`
+
+### 2) 数据流
+
+```text
+View -> Store (Pinia) -> Service -> SQLite
+```
+
+约定：页面与 hooks 不直接调用 service，统一经由 Store。
+
+关键 Store:
+
+- `src/stores/user.store.ts`: 交易、分类、统计
+- `src/stores/currency.store.ts`: 主币种、汇率与重算
+- `src/stores/theme.store.ts`: 主题和模式
+- `src/stores/app.store.ts`: 平台与初始化状态
+
+### 3) Web 回退模式
+
+当不在 Tauri 容器中（`pnpm dev`）时，使用 `src/stores/user/mock-data.ts` 进行 UI 开发。
+
+## 快速开始
+
+### 环境要求
+
+建议按 Tauri 2 官方要求准备环境。
+
+- Node.js（建议 LTS）
+- pnpm
+- Rust toolchain（stable）
+- Android 开发环境（Android Studio + SDK/NDK，若开发 Android）
+
+Android 需要 Rust 目标（只需执行一次）:
+
+```bash
+rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+```
+
+### 安装依赖
+
+```bash
+pnpm install
+```
+
+### 启动开发
+
+Web 预览（Mock 数据）:
+
+```bash
+pnpm dev
+```
+
+桌面端开发（Tauri）:
+
+```bash
+pnpm tauri:dev
+```
+
+Android 开发（需设备/模拟器）:
+
+```bash
+pnpm android:dev
+```
+
+## 常用命令
+
+| 命令 | 说明 |
+| --- | --- |
+| `pnpm dev` | Web 预览（Mock 数据） |
+| `pnpm tauri:dev` | 桌面端开发 |
+| `pnpm android:dev` | Android 端开发 |
+| `pnpm build` | 类型检查 + 前端构建（主要质量门） |
+| `pnpm tauri:build` | 构建桌面安装包 |
+| `pnpm preview` | 预览前端构建产物 |
+
+## Android 构建与 ABI 说明
+
+### 单 ABI 可安装包
+
+| ABI | 命令 |
+| --- | --- |
+| arm64-v8a | `pnpm run android:build:arm64:release:installable` |
+| armeabi-v7a | `pnpm run android:build:armv7:release:installable` |
+| x86 | `pnpm run android:build:x86:release:installable` |
+| x86_64 | `pnpm run android:build:x86_64:release:installable` |
+
+### 一次构建全部 ABI
+
+```bash
+pnpm run android:build:all:release:installable
+```
+
+签名后 APK 会输出到：
+
+- `src-tauri/gen/android/artifacts/apk/release/`
+
+这样可以避免串行构建时后一个 ABI 覆盖前一个 ABI 的产物。
+
+### 其他 Android 产物
+
+通用 APK:
+
+```bash
+pnpm run android:build:universal
+```
+
+AAB（当前脚本使用 arm64 目标）:
+
+```bash
+pnpm run android:build:aab
+```
+
+## 项目结构
+
+```text
+src/
+	components/
+		common/
+		desktop/
+		mobile/
+	views/
+		desktop/
+		mobile/
+	stores/
+	router/
+	services/
+	hooks/
+	styles/
+	locales/
+	utils/
+src-tauri/
+	src/
+	capabilities/
+	gen/android/
+docs/
+scripts/
+```
+
+## 开发约定
+
+### 命名与代码风格
+
+- 组件: `PascalCase.vue`
+- Hook: `useXxx.ts`
+- Store: `*.store.ts`
+- 全部 Vue SFC 使用 `<script setup lang="ts">`
+
+### 平台隔离（重要）
+
+- 不要把平台专属页面/组件放错目录。
+- 如果新增页面同时面向两端，优先实现共享逻辑，再分别实现桌面/移动 UI。
+
+### 质量门
+
+项目当前没有独立测试框架与 ESLint 流程，主要通过以下命令做静态质量检查：
+
+```bash
+pnpm build
+```
+
+### 提交建议
+
+推荐使用 Conventional Commits：
+
+```text
+feat(scope): short summary
+fix(scope): short summary
+refactor(scope): short summary
+docs(scope): short summary
+chore(scope): short summary
+```

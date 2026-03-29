@@ -378,7 +378,7 @@ const webdavConfig = ref<WebDAVConfig>({
   serverUrl: '',
   username: '',
   password: '',
-  remotePath: '/Qingzhang',
+  remotePath: '/QINGJI',
   autoSync: false,
   syncInterval: 30
 })
@@ -507,7 +507,7 @@ async function handleClearConfig() {
         serverUrl: '',
         username: '',
         password: '',
-        remotePath: '/Qingzhang',
+        remotePath: '/QINGJI',
         autoSync: false,
         syncInterval: 30
       }
@@ -870,7 +870,7 @@ watch(() => currencyStore.isInitialized, (initialized) => {
         </div>
         <n-input
           v-model:value="webdavConfig.remotePath"
-          placeholder="/Qingzhang"
+          placeholder="/QINGJI"
           style="width: 160px"
         />
       </div>
@@ -925,7 +925,7 @@ watch(() => currencyStore.isInitialized, (initialized) => {
       </template>
       <div class="about-info">
         <div class="app-logo">
-          <img src="@/assets/logo.svg" alt="Qingzhang" class="logo-img" />
+          <img src="@/assets/logo.svg" alt="QINGJI" class="logo-img" />
           <div class="logo-text">
             <span class="app-name">{{ t('app.name') }}</span>
             <span class="app-version">{{ t('app.version') }} 1.0.0</span>

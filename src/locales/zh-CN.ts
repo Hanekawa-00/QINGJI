@@ -36,7 +36,7 @@ export default {
 
   // 应用信息
   app: {
-    name: '青账',
+    name: 'QINGJI',
     subtitle: '个人记账',
     description: '跨平台个人财务管理应用，基于 Vue 3 + Tauri 构建。',
     version: '版本'

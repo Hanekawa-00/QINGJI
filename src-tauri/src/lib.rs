@@ -77,7 +77,7 @@ pub fn run() {
         // Logging for debugging
         .plugin(tauri_plugin_log::Builder::new().targets([
             Target::new(TargetKind::Stdout),
-            Target::new(TargetKind::LogDir { file_name: Some("account-app.log".to_string()) }),
+            Target::new(TargetKind::LogDir { file_name: Some("qingji.log".to_string()) }),
         ]).build());
     
     // window-state 仅在桌面端可用
