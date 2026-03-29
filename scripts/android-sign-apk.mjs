@@ -74,6 +74,7 @@ if (!input || !output) {
 
 const inApk = resolve(process.cwd(), input);
 const outApk = resolve(process.cwd(), output);
+mkdirSync(resolve(outApk, ".."), { recursive: true });
 
 if (!existsSync(inApk)) {
   console.error(`Input APK not found: ${inApk}`);

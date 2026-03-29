@@ -13,13 +13,6 @@ val tauriProperties = Properties().apply {
     }
 }
 
-val tauriAndroidArchs = System.getenv("TAURI_ANDROID_ARCHS")
-val targetAbis: List<String>? = tauriAndroidArchs
-    ?.split("[\\s,]+".toRegex())
-    ?.filter { it.isNotEmpty() }
-val allAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-val excludeAbis = if (targetAbis != null) allAbis.filter { it !in targetAbis } else emptyList()
-
 android {
     compileSdk = 36
     buildToolsVersion = "35.0.1"
@@ -31,18 +24,6 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
-        if (targetAbis != null) {
-            ndk {
-                abiFilters += targetAbis
-            }
-        }
-    }
-    if (excludeAbis.isNotEmpty()) {
-        packaging {
-            jniLibs {
-                excludes += excludeAbis.map { "**/$it/**" }.toSet()
-            }
-        }
     }
     buildTypes {
         getByName("debug") {
