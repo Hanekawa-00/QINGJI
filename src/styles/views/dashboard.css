@@ -32,12 +32,6 @@
   margin: 0;
 }
 
-.dashboard-subtitle {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin: 4px 0 0 0;
-}
-
 /* ===== 期间选择按钮 ===== */
 .period-display {
   display: inline-flex;

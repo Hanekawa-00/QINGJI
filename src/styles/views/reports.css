@@ -32,12 +32,6 @@
   margin: 0;
 }
 
-.reports-subtitle {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  margin: 4px 0 0 0;
-}
-
 .period-display {
   display: inline-flex;
   align-items: center;

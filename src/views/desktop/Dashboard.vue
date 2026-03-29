@@ -19,8 +19,9 @@ import {
   useChartData,
   useTransactions
 } from '@/hooks'
-import { GroupedTransactionList, BarLineChart, EditTransactionModal } from '@/components/desktop'
+import { GroupedTransactionList, EditTransactionModal } from '@/components/desktop'
 import { YearMonthPicker } from '@/components/common'
+import { BarLineChart } from '@/components/common/charts'
 import type { Transaction } from '@/types'
 
 const { t } = useI18n()

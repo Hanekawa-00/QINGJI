@@ -43,8 +43,7 @@
 }
 
 /* ===== 表单卡片 ===== */
-.form-card,
-.keypad-card {
+.form-card {
   background: var(--color-surface) !important;
   border-color: color-mix(in srgb, var(--color-primary) 20%, transparent) !important;
 }
@@ -141,64 +140,6 @@
 
 .tag-buttons {
   margin-top: 8px;
-}
-
-/* ===== 键盘区域 ===== */
-.keypad-label {
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-}
-
-.keypad-card {
-  min-width: 280px;
-}
-
-.keypad-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
-
-.keypad-btn {
-  width: 100% !important;
-  aspect-ratio: 1 !important;
-  height: unset !important;
-  min-width: unset !important;
-  max-width: unset !important;
-  padding: 0 !important;
-  font-size: clamp(16px, 4vw, 22px) !important;
-  font-weight: 600 !important;
-  border-radius: 50% !important;
-  background: var(--color-surface) !important;
-  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent) !important;
-  color: var(--color-text-strong) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.keypad-btn:hover {
-  background: var(--color-surface-hover) !important;
-}
-
-.keypad-btn:active {
-  background: var(--color-surface-active) !important;
-}
-
-.keypad-btn.operator {
-  color: var(--color-primary) !important;
-}
-
-.keypad-btn.save-btn {
-  grid-column: span 2;
-  aspect-ratio: unset !important;
-  height: 100% !important;
-  border-radius: 9999px !important;
-  background: var(--color-primary) !important;
-  color: var(--color-background) !important;
-  border-color: color-mix(in srgb, var(--color-primary) 70%, transparent) !important;
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  font-size: clamp(14px, 3vw, 18px) !important;
 }
 
 /* ===== Icon Picker ===== */

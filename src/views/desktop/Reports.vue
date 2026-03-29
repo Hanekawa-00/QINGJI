@@ -16,8 +16,8 @@ import {
 import type { DataTableColumns } from 'naive-ui'
 import { useUserStore } from '@/stores/user.store'
 import { useCurrencyFormat } from '@/hooks'
-import { BarLineChart, PieChart } from '@/components/desktop'
 import { YearMonthPicker } from '@/components/common'
+import { BarLineChart, PieChart } from '@/components/common/charts'
 import type { ReportPeriod } from '@/types'
 
 const { t } = useI18n()
