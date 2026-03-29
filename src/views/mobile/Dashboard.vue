@@ -131,7 +131,7 @@ const handleDelete = async (transaction: Transaction) => {
 const handleEdit = (transaction: Transaction) => {
   router.push({ 
     name: 'MobileEntry', 
-    query: { id: transaction.id } 
+    query: { id: transaction.id, from: 'MobileDashboard' } 
   })
 }
 
@@ -153,7 +153,7 @@ const goToCalendar = () => router.push({ name: 'MobileCalendar' })
 // 跳转到报表
 const goToReports = () => router.push({ name: 'MobileReports' })
 // 跳转到记账
-const goToEntry = () => router.push({ name: 'MobileEntry' })
+const goToEntry = () => router.push({ name: 'MobileEntry', query: { from: 'MobileDashboard' } })
 // 跳转到设置
 const goToSettings = () => router.push({ name: 'MobileSettings' })
 </script>

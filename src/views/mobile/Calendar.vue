@@ -54,7 +54,7 @@ const dayTransactions = computed(() => {
 const handleEdit = (transaction: Transaction) => {
   router.push({ 
     name: 'MobileEntry', 
-    query: { id: transaction.id } 
+    query: { id: transaction.id, from: 'MobileCalendar' } 
   })
 }
 
@@ -73,7 +73,7 @@ const handleDelete = async (transaction: Transaction) => {
 }
 
 // 跳转到记账
-const goToEntry = () => router.push({ name: 'MobileEntry' })
+const goToEntry = () => router.push({ name: 'MobileEntry', query: { from: 'MobileCalendar' } })
 </script>
 
 <template>

@@ -21,7 +21,8 @@ export default {
     refreshed: '已刷新',
     deleted: '已删除',
     saved: '已保存',
-    updated: '已更新'
+    updated: '已更新',
+    pressBackAgainToExit: '再按一次返回键退出应用'
   },
 
   // 导航

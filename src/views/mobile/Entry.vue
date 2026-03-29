@@ -184,7 +184,19 @@ watch(transactionType, () => {
 
 // ==================== 事件处理 ====================
 
-const goBack = () => router.back()
+const mainRoutes = ['MobileDashboard', 'MobileCalendar', 'MobileReports', 'MobileSettings'] as const
+
+const getReturnRoute = () => {
+  const from = route.query.from as string | undefined
+  if (from && mainRoutes.includes(from as typeof mainRoutes[number])) {
+    return { name: from }
+  }
+  return { name: 'MobileDashboard' as const }
+}
+
+const goBack = async () => {
+  await router.replace(getReturnRoute())
+}
 
 const onCurrencyConfirm = ({ selectedOptions }: any) => {
   const selected = selectedOptions[0]?.value as CurrencyCode
@@ -271,7 +283,7 @@ const handleSubmit = async (amount: number) => {
       showToast(t('common.saved'))
     }
     
-    router.push({ name: 'MobileDashboard' })
+    await router.replace(getReturnRoute())
   } catch {
     showToast(t('common.error'))
   }

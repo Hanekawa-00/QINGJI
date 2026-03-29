@@ -21,7 +21,8 @@ export default {
     refreshed: 'Refreshed',
     deleted: 'Deleted',
     saved: 'Saved',
-    updated: 'Updated'
+    updated: 'Updated',
+    pressBackAgainToExit: 'Press back again to exit'
   },
 
   // Navigation
