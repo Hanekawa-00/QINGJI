@@ -13,14 +13,12 @@ val tauriProperties = Properties().apply {
     }
 }
 
-// 读取 TAURI_ANDROID_ARCHS 环境变量（与 HuLa 相同的做法）
-// 示例：TAURI_ANDROID_ARCHS=arm64-v8a          → 只打包 arm64
-//        TAURI_ANDROID_ARCHS=arm64-v8a,armeabi-v7a → 打包 arm64 + armv7
-//        未设置                                    → 打包全部 ABI（universal）
 val tauriAndroidArchs = System.getenv("TAURI_ANDROID_ARCHS")
 val targetAbis: List<String>? = tauriAndroidArchs
     ?.split("[\\s,]+".toRegex())
     ?.filter { it.isNotEmpty() }
+val allAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+val excludeAbis = if (targetAbis != null) allAbis.filter { it !in targetAbis } else emptyList()
 
 android {
     compileSdk = 36
@@ -39,17 +37,19 @@ android {
             }
         }
     }
+    if (excludeAbis.isNotEmpty()) {
+        packaging {
+            jniLibs {
+                excludes += excludeAbis.map { "**/$it/**" }.toSet()
+            }
+        }
+    }
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
-            packaging {                jniLibs.keepDebugSymbols.add("*/arm64-v8a/*.so")
-                jniLibs.keepDebugSymbols.add("*/armeabi-v7a/*.so")
-                jniLibs.keepDebugSymbols.add("*/x86/*.so")
-                jniLibs.keepDebugSymbols.add("*/x86_64/*.so")
-            }
         }
         getByName("release") {
             isMinifyEnabled = true
@@ -58,17 +58,6 @@ android {
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
-            if (targetAbis != null) {
-                val allAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
-                val excludeAbis = allAbis.filter { it !in targetAbis }
-                if (excludeAbis.isNotEmpty()) {
-                    packaging {
-                        jniLibs {
-                            excludes += excludeAbis.map { "**/$it/**" }.toSet()
-                        }
-                    }
-                }
-            }
         }
     }
     kotlinOptions {
