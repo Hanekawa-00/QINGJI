@@ -139,26 +139,19 @@ pnpm android:dev
 
 ## Android 构建与 ABI 说明
 
-### 单 ABI 可安装包
-
-| ABI | 命令 |
-| --- | --- |
-| arm64-v8a | `pnpm run android:build:arm64:release:installable` |
-| armeabi-v7a | `pnpm run android:build:armv7:release:installable` |
-| x86 | `pnpm run android:build:x86:release:installable` |
-| x86_64 | `pnpm run android:build:x86_64:release:installable` |
-
-### 一次构建全部 ABI
+### 一次构建全部 ABI APK
 
 ```bash
 pnpm run android:build:all:release:installable
 ```
 
-签名后 APK 会输出到：
+该脚本等价于 Tauri 官方推荐命令：
 
-- `src-tauri/gen/android/artifacts/apk/release/`
+```bash
+pnpm tauri android build --apk true --split-per-abi
+```
 
-这样可以避免串行构建时后一个 ABI 覆盖前一个 ABI 的产物。
+Gradle 会在一次构建中为不同 ABI 生成独立 APK，避免逐个 `--target` 串行构建和手动复制/签名产物。
 
 ### 其他 Android 产物
 
@@ -168,7 +161,7 @@ pnpm run android:build:all:release:installable
 pnpm run android:build:universal
 ```
 
-AAB（当前脚本使用 arm64 目标）:
+AAB:
 
 ```bash
 pnpm run android:build:aab

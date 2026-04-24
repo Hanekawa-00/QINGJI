@@ -1,12 +1,6 @@
 use tauri_plugin_log::{Target, TargetKind};
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
 /// 数据库迁移定义
 fn get_migrations() -> Vec<Migration> {
     vec![
@@ -93,7 +87,6 @@ pub fn run() {
     }
     
     builder
-        .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

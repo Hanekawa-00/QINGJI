@@ -16,6 +16,7 @@ dist-ssr
 .vscode/*
 .windsurf/*
 .qoder/*
+.roo/
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -44,10 +45,11 @@ src-tauri/gen/android/artifacts
 CLAUDE.md
 .claude/
 .mcp.json
-AGENTS.md
 opencode.json
 
 # Docs (generated)
 docs/
 
+tools/
 
+.playwright-mcp/

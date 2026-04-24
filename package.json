@@ -11,13 +11,9 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "android:dev": "tauri android dev --host 127.0.0.1",
-    "android:build:arm64:release:installable": "tauri android build --target aarch64 && node ./scripts/android-sign-apk.mjs --input src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk --output src-tauri/gen/android/artifacts/apk/release/app-arm64-v8a-release-debugSigned.apk",
-    "android:build:armv7:release:installable": "tauri android build --target armv7 && node ./scripts/android-sign-apk.mjs --input src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk --output src-tauri/gen/android/artifacts/apk/release/app-armeabi-v7a-release-debugSigned.apk",
-    "android:build:x86:release:installable": "tauri android build --target i686 && node ./scripts/android-sign-apk.mjs --input src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk --output src-tauri/gen/android/artifacts/apk/release/app-x86-release-debugSigned.apk",
-    "android:build:x86_64:release:installable": "tauri android build --target x86_64 && node ./scripts/android-sign-apk.mjs --input src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk --output src-tauri/gen/android/artifacts/apk/release/app-x86_64-release-debugSigned.apk",
-    "android:build:all:release:installable": "pnpm run android:build:arm64:release:installable && pnpm run android:build:armv7:release:installable && pnpm run android:build:x86:release:installable && pnpm run android:build:x86_64:release:installable",
-    "android:build:universal": "tauri android build",
-    "android:build:aab": "tauri android build --target aarch64 --aab"
+    "android:build:all:release:installable": "tauri android build --apk true --split-per-abi",
+    "android:build:universal": "tauri android build --apk true",
+    "android:build:aab": "tauri android build --aab true"
   },
   "dependencies": {
     "@fontsource/manrope": "^5.2.8",
@@ -48,7 +44,6 @@
     "@tauri-apps/cli": "^2",
     "@types/node": "^24.10.1",
     "@vitejs/plugin-vue": "^5.2.1",
-    "internal-ip": "^8.0.1",
     "terser": "^5.37.0",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
