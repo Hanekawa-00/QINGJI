@@ -83,19 +83,32 @@ jobs:
       - run: pnpm install
 
       - name: Setup signing
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Using secret keystore"
+            echo "$KEYSTORE_BASE64" | base64 -d > src-tauri/gen/android/qingji.keystore
+          else
+            echo "Generating self-signed keystore"
+            keytool -genkey -v \
+              -keystore src-tauri/gen/android/qingji.keystore \
+              -alias qingji \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass ci-release \
+              -keypass ci-release \
+              -dname "CN=QINGJI CI, OU=Dev, O=QINGJI, L=Unknown, ST=Unknown, C=CN" \
+              -noprompt
+          fi
+          cat > src-tauri/gen/android/keystore.properties << EOF
+          storeFile=qingji.keystore
+          storePassword=${KEYSTORE_PASSWORD:-ci-release}
+          keyAlias=${KEY_ALIAS:-qingji}
+          keyPassword=${KEY_PASSWORD:-ci-release}
+          EOF
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > src-tauri/gen/android/qingji.keystore
-          cat > src-tauri/gen/android/keystore.properties << EOF
-          storeFile=qingji.keystore
-          storePassword=${KEYSTORE_PASSWORD}
-          keyAlias=${KEY_ALIAS}
-          keyPassword=${KEY_PASSWORD}
-          EOF
 
       - name: Build release APKs
         run: pnpm tauri android build --apk --split-per-abi
