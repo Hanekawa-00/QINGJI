@@ -494,8 +494,8 @@ const handleSubmit = async (amount: number) => {
 
 .m-close-btn,
 .m-more-btn {
-  width: 36px;
-  height: 36px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -512,8 +512,9 @@ const handleSubmit = async (amount: number) => {
 
 .m-more-btn {
   width: auto;
-  padding: 0 10px;
-  border-radius: 18px;
+  min-width: var(--touch-target-min);
+  padding: 0 12px;
+  border-radius: 22px;
 }
 
 .currency-text {
@@ -523,7 +524,7 @@ const handleSubmit = async (amount: number) => {
 
 .m-type-tabs {
   display: flex;
-  height: 32px;
+  min-height: var(--touch-target-min);
   padding: 3px;
   border-radius: 16px;
   background: var(--color-surface);
@@ -666,7 +667,7 @@ const handleSubmit = async (amount: number) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 36px;
+  min-height: var(--touch-target-min);
   padding: 0 10px;
   border-radius: 8px;
   background: var(--color-background);
@@ -696,7 +697,7 @@ const handleSubmit = async (amount: number) => {
   display: flex;
   align-items: center;
   gap: 4px;
-  height: 36px;
+  min-height: var(--touch-target-min);
   padding: 0 10px;
   border-radius: 8px;
   background: var(--color-background);
@@ -734,8 +735,8 @@ const handleSubmit = async (amount: number) => {
 }
 
 .m-manager-header button {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -781,8 +782,8 @@ const handleSubmit = async (amount: number) => {
 }
 
 .m-manager-del {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 8px;
   background: transparent;
   border: none;
@@ -808,7 +809,7 @@ const handleSubmit = async (amount: number) => {
 
 .m-add-cat-row input {
   flex: 1;
-  height: 40px;
+  min-height: var(--touch-target-min);
   padding: 0 12px;
   border-radius: 8px;
   background: var(--color-surface);
@@ -823,8 +824,8 @@ const handleSubmit = async (amount: number) => {
 }
 
 .m-add-btn {
-  width: 40px;
-  height: 40px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 8px;
   background: var(--color-primary);
   border: none;
@@ -888,8 +889,8 @@ const handleSubmit = async (amount: number) => {
 
 /* 图标选择按钮 */
 .m-icon-btn {
-  width: 40px;
-  height: 40px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 8px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -927,8 +928,8 @@ const handleSubmit = async (amount: number) => {
 }
 
 .m-icon-picker-header button {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);

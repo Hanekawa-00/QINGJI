@@ -315,8 +315,8 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  gap: 12px;
+  padding: 8px 12px;
+  gap: 4px;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -324,9 +324,9 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
 }
 
 .nav-btn {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   border-radius: 10px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -359,9 +359,8 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
 .header-right {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
-  min-width: 80px;
 }
 
 .header-left {
@@ -376,12 +375,16 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
 .month-selector {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .month-nav {
-  width: 28px;
-  height: 28px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   border-radius: 8px;
   background: transparent;
   border: none;
@@ -403,17 +406,26 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
 .month-text {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text-strong);
-  min-width: 100px;
+  min-width: 0;
+  max-width: 128px;
   text-align: center;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 0 6px;
+  min-height: var(--touch-target-min);
   border-radius: 8px;
+}
+
+.month-text span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .month-text:active {
@@ -506,7 +518,8 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  min-height: var(--touch-target-min);
+  padding: 0 12px;
   border-radius: 8px;
   background: var(--color-background);
   border: 1px solid var(--color-border);
@@ -575,13 +588,13 @@ const goToSettings = () => router.push({ name: 'MobileSettings' })
 
 /* 底部间距 */
 .bottom-spacer {
-  height: 80px;
+  height: calc(80px + var(--safe-area-inset-bottom, 0px));
 }
 
 /* 浮动添加按钮 */
 .fab-button {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + var(--safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 56px;

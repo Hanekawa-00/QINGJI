@@ -51,8 +51,8 @@ function goBack() {
 }
 
 .back-btn {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -74,7 +74,7 @@ function goBack() {
 }
 
 .header-spacer {
-  width: 32px;
+  width: var(--touch-target-min);
 }
 
 /* 内容区 */

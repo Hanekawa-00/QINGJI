@@ -156,7 +156,7 @@ const goToEntry = () => router.push({ name: 'MobileEntry', query: { from: 'Mobil
 .mobile-calendar {
   min-height: 100%;
   background: var(--color-background);
-  padding-bottom: 100px;
+  padding-bottom: calc(100px + var(--safe-area-inset-bottom, 0px));
 }
 
 /* 日历网格容器 */
@@ -244,13 +244,13 @@ const goToEntry = () => router.push({ name: 'MobileEntry', query: { from: 'Mobil
 
 /* 底部间距 */
 .bottom-spacer {
-  height: 80px;
+  height: calc(80px + var(--safe-area-inset-bottom, 0px));
 }
 
 /* 浮动添加按钮 */
 .fab-button {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(24px + var(--safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: 56px;

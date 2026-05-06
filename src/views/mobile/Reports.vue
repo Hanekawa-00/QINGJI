@@ -404,8 +404,8 @@ const goBack = () => router.back()
 }
 
 .back-btn {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -422,14 +422,14 @@ const goBack = () => router.back()
 }
 
 .header-spacer {
-  width: 32px;
+  width: var(--touch-target-min);
   flex-shrink: 0;
 }
 
 /* 年/月切换 */
 .period-switch {
   display: flex;
-  height: 36px;
+  min-height: var(--touch-target-min);
   padding: 4px;
   border-radius: 999px;
   background: var(--color-surface);
@@ -464,13 +464,15 @@ const goBack = () => router.back()
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0;
   padding: 8px 16px 16px;
+  min-width: 0;
 }
 
 .nav-btn {
-  width: 28px;
-  height: 28px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -484,9 +486,12 @@ const goBack = () => router.back()
 .period-display {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
-  min-width: 100px;
-  padding: 4px 12px;
+  min-width: 0;
+  max-width: 180px;
+  min-height: var(--touch-target-min);
+  padding: 0 12px;
   border: none;
   background: transparent;
   font-size: 15px;
@@ -494,6 +499,12 @@ const goBack = () => router.back()
   color: var(--color-text-strong);
   text-align: center;
   cursor: pointer;
+}
+
+.period-display span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .period-display .arrow-icon {
@@ -589,8 +600,8 @@ const goBack = () => router.back()
 }
 
 .chart-type-btn {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
   border-radius: 8px;
   border: 1px solid var(--color-border);
   background: transparent;
@@ -662,7 +673,7 @@ const goBack = () => router.back()
 
 .type-switch {
   display: flex;
-  height: 32px;
+  min-height: var(--touch-target-min);
   padding: 3px;
   border-radius: 999px;
   background: var(--color-background);
@@ -796,7 +807,7 @@ const goBack = () => router.back()
 
 .report-item {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-columns: minmax(42px, 0.75fr) repeat(3, minmax(0, 1fr));
   gap: 8px;
   padding: 10px 0;
   border-bottom: 1px solid var(--color-border);
@@ -809,21 +820,34 @@ const goBack = () => router.back()
 
 .report-date {
   color: var(--color-text-muted);
+  min-width: 0;
 }
 
 .report-income {
   color: var(--color-income);
   text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .report-expense {
   color: var(--color-expense);
   text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .report-balance {
   text-align: right;
   font-weight: 500;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .report-balance.income {

@@ -230,13 +230,15 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0;
   margin-bottom: 12px;
+  min-width: 0;
 }
 
 .back-btn {
-  width: 32px;
-  height: 32px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   border-radius: 50%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -245,7 +247,7 @@ defineExpose({
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin-right: 8px;
+  margin-right: 4px;
 }
 
 .back-btn .material-symbols-outlined {
@@ -253,8 +255,9 @@ defineExpose({
 }
 
 .nav-btn {
-  width: 28px;
-  height: 28px;
+  width: var(--touch-target-min);
+  height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
   border-radius: 50%;
   background: transparent;
   border: none;
@@ -277,17 +280,26 @@ defineExpose({
 .month-title {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   font-size: 16px;
   font-weight: 600;
   color: var(--color-text-strong);
-  min-width: 140px;
+  min-width: 0;
+  max-width: 160px;
   text-align: center;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 0 8px;
+  min-height: var(--touch-target-min);
   border-radius: 8px;
+}
+
+.month-title span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .month-title:active {
@@ -301,7 +313,7 @@ defineExpose({
 
 .compact .month-title {
   font-size: 15px;
-  min-width: 100px;
+  max-width: 128px;
 }
 
 /* 星期标题 */

@@ -76,6 +76,7 @@ const handleDelete = () => {
   background: var(--color-surface);
   border-radius: 12px;
   border: 1px solid var(--color-border);
+  overflow: hidden;
 }
 
 .tx-icon {
@@ -126,7 +127,11 @@ const handleDelete = () => {
   font-size: 15px;
   font-weight: 600;
   flex-shrink: 0;
+  max-width: 42%;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tx-amount.income {
@@ -141,17 +146,28 @@ const handleDelete = () => {
 .swipe-actions {
   display: flex;
   height: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  border-left: none;
 }
 
 .action-btn {
-  width: 60px;
+  width: 64px;
+  min-width: 64px;
   height: 100%;
+  min-height: 72px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   color: white;
   cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.action-btn:active {
+  filter: brightness(0.92);
 }
 
 .action-btn .material-symbols-outlined {
