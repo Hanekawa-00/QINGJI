@@ -111,7 +111,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build release APKs
-        run: pnpm tauri android build --apk --split-per-abi
+        run: pnpm tauri android build --apk true --split-per-abi
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
