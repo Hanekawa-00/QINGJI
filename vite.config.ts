@@ -167,6 +167,11 @@ export default defineConfig(async ({ mode, command }) => {
       environment: 'jsdom',
       setupFiles: ['src/test/setup.ts'],
       css: true,
+      server: {
+        deps: {
+          inline: ['vant'],
+        },
+      },
       globals: false,
       coverage: {
         provider: 'v8',
