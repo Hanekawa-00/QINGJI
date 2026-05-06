@@ -33,7 +33,12 @@ withDefaults(defineProps<{
 })
 
 // 窗口实例
-const appWindow = getCurrentWindow()
+let appWindow: ReturnType<typeof getCurrentWindow> | null = null
+try {
+  appWindow = getCurrentWindow()
+} catch {
+  appWindow = null
+}
 
 // 状态
 const isMaximized = ref(false)
@@ -43,6 +48,8 @@ const isMacOS = ref(false)
 // 检测平台
 onMounted(async () => {
   try {
+    if (!appWindow) return
+
     const os = await platform()
     isMacOS.value = os === 'macos'
     
@@ -65,6 +72,7 @@ onMounted(async () => {
 // 最小化
 async function handleMinimize() {
   try {
+    if (!appWindow) return
     await appWindow.minimize()
   } catch (e) {
     console.error('Failed to minimize:', e)
@@ -74,6 +82,7 @@ async function handleMinimize() {
 // 最大化/还原
 async function handleMaximize() {
   try {
+    if (!appWindow) return
     if (isMaximized.value) {
       await appWindow.unmaximize()
     } else {
@@ -88,6 +97,7 @@ async function handleMaximize() {
 // 关闭
 async function handleClose() {
   try {
+    if (!appWindow) return
     await appWindow.close()
   } catch (e) {
     console.error('Failed to close:', e)
@@ -97,6 +107,7 @@ async function handleClose() {
 // 置顶
 async function handlePin() {
   try {
+    if (!appWindow) return
     isPinned.value = !isPinned.value
     await appWindow.setAlwaysOnTop(isPinned.value)
   } catch (e) {

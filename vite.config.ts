@@ -8,11 +8,14 @@ import { NaiveUiResolver, VantResolver } from 'unplugin-vue-components/resolvers
 
 // Tauri CLI 会自动设置这个环境变量（移动端开发时）
 const host = process.env.TAURI_DEV_HOST;
+const disableHmr = process.env.VITE_DISABLE_HMR === 'true'
 
 /**
  * 判断是否为桌面平台
  */
-function isDesktopPlatform(platform: string | undefined): boolean {
+function isDesktopPlatform(platform: string | undefined, appPlatform: string | undefined): boolean {
+  if (appPlatform === 'desktop') return true
+  if (appPlatform === 'mobile') return false
   return !platform || ['windows', 'darwin', 'linux'].includes(platform)
 }
 
@@ -97,10 +100,11 @@ export default defineConfig(async ({ mode, command }) => {
   
   // 检测 Tauri 平台（由 Tauri CLI 设置）
   const tauriPlatform = process.env.TAURI_ENV_PLATFORM
-  const isDesktop = isDesktopPlatform(tauriPlatform)
+  const appPlatform = process.env.VITE_QINGJI_PLATFORM
+  const isDesktop = isDesktopPlatform(tauriPlatform, appPlatform)
   const isBuild = command === 'build'
   
-  console.log(`[Vite] Platform: ${tauriPlatform || 'web'}, isDesktop: ${isDesktop}, mode: ${mode}, command: ${command}`)
+  console.log(`[Vite] Platform: ${appPlatform || tauriPlatform || 'web'}, isDesktop: ${isDesktop}, mode: ${mode}, command: ${command}`)
   
   return {
     plugins: [
@@ -198,7 +202,7 @@ export default defineConfig(async ({ mode, command }) => {
       strictPort: true,
       // 模拟器开发：监听所有接口，配合 adb reverse 使用
       host: '0.0.0.0',
-      hmr: {
+      hmr: disableHmr ? false : {
         protocol: "ws",
         host: host || 'localhost',
         port: 1421,

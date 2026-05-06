@@ -16,10 +16,18 @@ export interface PlatformInfo {
   isMobile: boolean
 }
 
+function getPlatformOverride(): PlatformType | null {
+  const override = import.meta.env.VITE_QINGJI_PLATFORM
+  return override === 'desktop' || override === 'mobile' ? override : null
+}
+
 /**
  * 检测平台类型
  */
 export function detectPlatform(): PlatformType {
+  const override = getPlatformOverride()
+  if (override) return override
+
   try {
     const os = platform()
     
@@ -59,6 +67,10 @@ export function isMobile(): boolean {
  * 获取操作系统类型
  */
 export function getOSType(): OSType {
+  const override = getPlatformOverride()
+  if (override === 'desktop') return 'unknown'
+  if (override === 'mobile') return 'android'
+
   try {
     const os = platform()
     
@@ -86,6 +98,18 @@ export function getOSType(): OSType {
  * 获取完整平台信息
  */
 export async function getPlatformInfo(): Promise<PlatformInfo> {
+  const override = getPlatformOverride()
+  if (override) {
+    const osType = override === 'mobile' ? 'android' : 'unknown'
+    return {
+      platformType: override,
+      osType,
+      osVersion: 'test',
+      isDesktop: override === 'desktop',
+      isMobile: override === 'mobile'
+    }
+  }
+
   try {
     const osType = getOSType()
     const platformType = detectPlatform()
