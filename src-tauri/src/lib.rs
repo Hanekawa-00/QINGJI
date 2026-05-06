@@ -94,3 +94,40 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::get_migrations;
+
+    #[test]
+    fn init_migration_creates_core_tables() {
+        let migrations = get_migrations();
+
+        assert_eq!(migrations.len(), 1);
+
+        let sql = migrations[0].sql.to_lowercase();
+        for table in ["categories", "transactions", "settings"] {
+            assert!(
+                sql.contains(&format!("create table if not exists {table}")),
+                "migration should create {table} table"
+            );
+        }
+    }
+
+    #[test]
+    fn init_migration_creates_transaction_lookup_indexes() {
+        let migrations = get_migrations();
+        let sql = migrations[0].sql.to_lowercase();
+
+        for index in [
+            "idx_transactions_date",
+            "idx_transactions_type",
+            "idx_transactions_category",
+        ] {
+            assert!(
+                sql.contains(&format!("create index if not exists {index}")),
+                "migration should create {index}"
+            );
+        }
+    }
+}
