@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: qingji-${{ matrix.target }}
-          path: src-tauri/target/release/bundle/**/*
+          path: src-tauri/target/release/bundle/**/*.{msi,exe,dmg,deb,AppImage}
 
   # ─── Android ────────────────────────────────────────────────────
   android:
@@ -138,5 +138,5 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**
+          files: artifacts/**/*.{msi,exe,dmg,deb,AppImage,apk}
           generate_release_notes: true
