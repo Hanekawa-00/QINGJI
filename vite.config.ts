@@ -1,3 +1,5 @@
+/// <reference types="vitest" />
+
 import { defineConfig, loadEnv, Plugin } from "vite";
 import vue from "@vitejs/plugin-vue";
 import path from "node:path";
@@ -159,6 +161,26 @@ export default defineConfig(async ({ mode, command }) => {
       reportCompressedSize: false,
       // chunk 大小警告阈值
       chunkSizeWarningLimit: 1000,
+    },
+
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['src/test/setup.ts'],
+      css: true,
+      globals: false,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'html'],
+        reportsDirectory: 'coverage',
+        include: ['src/**/*.{ts,vue}'],
+        exclude: [
+          'src/**/*.d.ts',
+          'src/main.ts',
+          'src/vite-env.d.ts',
+          'src/test/**',
+          'src/**/*.test.ts',
+        ],
+      },
     },
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`

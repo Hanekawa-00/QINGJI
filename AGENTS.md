@@ -6,7 +6,7 @@ QINGJI is a Tauri 2 + Vue 3 + TypeScript personal finance app. Frontend code liv
 
 ## Build, Test, and Development Commands
 
-Use `pnpm install` to install dependencies. Use `pnpm dev` for Vite web preview with mock data, `pnpm tauri:dev` for desktop development, and `pnpm android:dev` for Android device/emulator development. Use `pnpm build` as the main quality gate; it runs `vue-tsc --noEmit` and builds the frontend. Use `pnpm tauri:build` for desktop packages and `pnpm preview` to inspect the Vite production build. Android release helpers include `pnpm run android:build:all:release:installable` for split-per-ABI APKs, `pnpm run android:build:universal` for a universal APK, and `pnpm run android:build:aab` for an app bundle.
+Use `pnpm install` to install dependencies. Use `pnpm dev` for Vite web preview with mock data, `pnpm tauri:dev` for desktop development, and `pnpm android:dev` for Android device/emulator development. Use `pnpm test:run` for the Vitest unit suite and `pnpm test:coverage` for coverage output. Use `pnpm build` as the main production quality gate; it runs `vue-tsc --noEmit` and builds the frontend. Use `pnpm tauri:build` for desktop packages and `pnpm preview` to inspect the Vite production build. Android release helpers include `pnpm run android:build:all:release:installable` for split-per-ABI APKs, `pnpm run android:build:universal` for a universal APK, and `pnpm run android:build:aab` for an app bundle.
 
 ## Coding Style & Naming Conventions
 
@@ -14,7 +14,7 @@ Write Vue SFCs with `<script setup lang="ts">`. Name components `PascalCase.vue`
 
 ## Testing Guidelines
 
-This repository currently has no dedicated test runner or coverage target. Before opening a PR, run `pnpm build`. For behavior changes, manually verify the affected mode: `pnpm dev` for mock-data UI work, `pnpm tauri:dev` for desktop integration, or `pnpm android:dev` for mobile behavior.
+Vitest is the dedicated unit test runner. Place focused tests next to source code in `__tests__` folders and prefer shared business logic in hooks, stores, services, and utils before platform-specific UI. Before opening a PR, run `pnpm test:run` and `pnpm build`; use `pnpm test:coverage` when changing important calculations or shared behavior. For behavior changes, manually verify the affected mode: `pnpm dev` for mock-data UI work, `pnpm tauri:dev` for desktop integration, or `pnpm android:dev` for mobile behavior.
 
 ## Commit & Pull Request Guidelines
 
