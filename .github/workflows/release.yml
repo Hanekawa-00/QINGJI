@@ -48,7 +48,7 @@ jobs:
             libsoup-3.0-dev libjavascriptcoregtk-4.1-dev \
             libappindicator3-dev librsvg2-dev patchelf
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
 
       - name: Build
         run: pnpm tauri build --bundles ${{ matrix.bundles }}
@@ -57,7 +57,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: qingji-${{ matrix.target }}
-          path: src-tauri/target/release/bundle/**/*.{msi,exe,dmg,deb,AppImage}
+          path: |
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.dmg
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.AppImage
+          if-no-files-found: error
 
   # ─── Android ────────────────────────────────────────────────────
   android:
@@ -77,13 +83,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Add Android Rust targets
-        run: rustup target add aarch64-linux-android armv7-linux-androideabi
+        run: rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
 
       - uses: android-actions/setup-android@v3
         with:
-          packages: 'platforms;android-36 build-tools;35.0.1'
+          packages: 'platforms;android-36 build-tools;35.0.1 ndk;27.0.12077973'
 
-      - run: pnpm install
+      - run: pnpm install --frozen-lockfile
 
       - name: Setup signing
         run: |
@@ -114,13 +120,17 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Build release APKs
-        run: pnpm tauri android build --apk true --split-per-abi
+        run: |
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
+          export NDK_HOME="$ANDROID_NDK_HOME"
+          pnpm tauri android build --apk true --split-per-abi
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4
         with:
           name: qingji-android
           path: src-tauri/gen/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
 
   # ─── GitHub Release ────────────────────────────────────────────
   release:
@@ -136,7 +146,32 @@ jobs:
 
       - run: ls -R artifacts/
 
+      - name: Verify release artifacts
+        shell: bash
+        run: |
+          shopt -s globstar nullglob
+          files=(
+            artifacts/**/*.msi
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.deb
+            artifacts/**/*.AppImage
+            artifacts/**/*.apk
+          )
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No release artifacts found"
+            exit 1
+          fi
+          printf 'Release artifacts:\n'
+          printf ' - %s\n' "${files[@]}"
+
       - uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/**/*.{msi,exe,dmg,deb,AppImage,apk}
+          files: |
+            artifacts/**/*.msi
+            artifacts/**/*.exe
+            artifacts/**/*.dmg
+            artifacts/**/*.deb
+            artifacts/**/*.AppImage
+            artifacts/**/*.apk
           generate_release_notes: true
