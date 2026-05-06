@@ -23,7 +23,8 @@ describe('Calculator', () => {
     await clickKey('3', wrapper)
 
     expect(wrapper.find('.calc-value').text()).toBe('$12.3')
-    expect(wrapper.emitted('update:modelValue')?.at(-1)).toEqual([12.3])
+    const updates = wrapper.emitted('update:modelValue')
+    expect(updates?.[updates.length - 1]).toEqual([12.3])
   })
 
   it('completes pending calculations before saving', async () => {

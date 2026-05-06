@@ -25,6 +25,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec vue-tsc --noEmit
       - run: pnpm test:run
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
 
   rust:
     runs-on: ubuntu-latest
@@ -42,6 +54,9 @@ jobs:
 
       - name: cargo check
         run: cargo check --manifest-path src-tauri/Cargo.toml
+
+      - name: cargo test
+        run: cargo test --manifest-path src-tauri/Cargo.toml
 
       - name: cargo clippy
         run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings

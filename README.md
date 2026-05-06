@@ -136,6 +136,8 @@ pnpm android:dev
 | `pnpm test` | 交互式运行 Vitest 单元测试 |
 | `pnpm test:run` | 单次运行 Vitest 单元测试（适合 CI） |
 | `pnpm test:coverage` | 运行单测并生成覆盖率报告 |
+| `pnpm test:e2e` | 运行 Playwright Web 双视口冒烟测试 |
+| `pnpm test:all` | 运行 Vitest + Playwright 测试 |
 | `pnpm build` | 类型检查 + 前端构建（主要质量门） |
 | `pnpm tauri:build` | 构建桌面安装包 |
 | `pnpm preview` | 预览前端构建产物 |
@@ -212,11 +214,13 @@ scripts/
 
 ### 质量门
 
-项目使用 Vitest 覆盖共享业务逻辑，并通过 `vue-tsc` 与 Vite 构建检查生产可用性。提交前建议至少运行：
+项目使用 Vitest 覆盖共享业务逻辑和组件回归，使用 Playwright 覆盖桌面/移动 Web 双视口冒烟流程，并通过 `vue-tsc` 与 Vite 构建检查生产可用性。提交前建议至少运行：
 
 ```bash
 pnpm test:run
+pnpm test:e2e
 pnpm build
+cargo test --manifest-path src-tauri/Cargo.toml
 ```
 
 需要查看覆盖率时运行：
@@ -224,6 +228,8 @@ pnpm build
 ```bash
 pnpm test:coverage
 ```
+
+覆盖率报告只用于观察趋势，不作为 CI 失败阈值。Playwright 会生成 `playwright-report/` 与 `test-results/`，其中包含失败 trace 和冒烟截图产物，目录不会提交到仓库。
 
 ### 提交建议
 

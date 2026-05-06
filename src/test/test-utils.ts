@@ -42,8 +42,8 @@ export async function createTestRouter(
   return router
 }
 
-export async function mountWithPlugins<T extends Component>(
-  component: T,
+export async function mountWithPlugins(
+  component: Component,
   options: MountingOptions<unknown> & {
     routes?: RouteRecordRaw[]
     initialPath?: string
@@ -54,19 +54,19 @@ export async function mountWithPlugins<T extends Component>(
   const i18n = createTestI18n(options.locale)
   const router = await createTestRouter(options.routes, options.initialPath)
 
-  const wrapper = mount(component, {
+  const wrapper = mount(component as any, {
     ...options,
     global: {
       ...options.global,
       plugins: [pinia, i18n, router, ...(options.global?.plugins ?? [])],
     },
-  })
+  } as any)
 
   return { wrapper, pinia, i18n, router }
 }
 
-export async function shallowMountWithPlugins<T extends Component>(
-  component: T,
+export async function shallowMountWithPlugins(
+  component: Component,
   options: MountingOptions<unknown> & {
     routes?: RouteRecordRaw[]
     initialPath?: string
@@ -77,13 +77,13 @@ export async function shallowMountWithPlugins<T extends Component>(
   const i18n = createTestI18n(options.locale)
   const router = await createTestRouter(options.routes, options.initialPath)
 
-  const wrapper = shallowMount(component, {
+  const wrapper = shallowMount(component as any, {
     ...options,
     global: {
       ...options.global,
       plugins: [pinia, i18n, router, ...(options.global?.plugins ?? [])],
     },
-  })
+  } as any)
 
   return { wrapper, pinia, i18n, router }
 }
