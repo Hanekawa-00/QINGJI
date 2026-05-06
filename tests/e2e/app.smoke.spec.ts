@@ -63,7 +63,8 @@ test.describe('mobile web smoke', () => {
 
     await page.locator('.header-right .nav-btn').last().click()
     await expect(page).toHaveURL(/\/mobile\/calendar$/)
-    await expect(page.getByText('SUN')).toBeVisible()
+    await expect(page.locator('.calendar-grid .week-day')).toHaveCount(7)
+    await expect(page.locator('.calendar-grid .day-cell')).toHaveCount(42)
     await expect(page.getByText('Income')).toBeVisible()
     await expect(page.getByText('Expense')).toBeVisible()
     await expect(page.locator('.fab-button')).toBeVisible()
