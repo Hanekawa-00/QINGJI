@@ -61,6 +61,11 @@ const props = withDefaults(defineProps<Props>(), {
   radius: () => ['55%', '75%']
 })
 
+const updateOptions = {
+  notMerge: true,
+  lazyUpdate: false
+}
+
 const option = computed(() => {
   const c = colors.value
   
@@ -171,6 +176,7 @@ const option = computed(() => {
   <VChart 
     class="chart" 
     :option="option" 
+    :update-options="updateOptions"
     :autoresize="true"
     :style="{ height }"
   />

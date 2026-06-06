@@ -64,6 +64,11 @@ const props = withDefaults(defineProps<Props>(), {
   height: '240px'
 })
 
+const updateOptions = {
+  notMerge: true,
+  lazyUpdate: false
+}
+
 const option = computed(() => {
   const labels = props.data.map(d => d.label)
   const incomeData = props.data.map(d => d.income ?? 0)
@@ -220,6 +225,7 @@ const option = computed(() => {
   <VChart 
     class="chart" 
     :option="option" 
+    :update-options="updateOptions"
     :autoresize="true"
     :style="{ height }"
   />
